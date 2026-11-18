@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"medicalfield/mike-baguncinha/internal/aplicacao"
 	"medicalfield/mike-baguncinha/internal/dominio"
@@ -88,11 +89,19 @@ func invalido(campo, mensagem string) *dominio.ErroValidacao {
 
 // lerCorpo decodifica o JSON do corpo. Com opcional=true, corpo vazio é aceito.
 func lerCorpo(w http.ResponseWriter, r *http.Request, limite int64, opcional bool, destino any) error {
-	err := json.NewDecoder(http.MaxBytesReader(w, r.Body, limite)).Decode(destino)
+	// Corpo declarado acima do limite: recusa antes de ler um byte. Com "Expect: 100-continue"
+	// o servidor nem chega a pedir o corpo (não envia o 100) e fecha a conexão após a resposta.
+	if r.ContentLength > limite {
+		w.Header().Set("Connection", "close")
+		return invalido("corpo", "grande demais")
+	}
+	decodificador := json.NewDecoder(http.MaxBytesReader(w, r.Body, limite))
+	decodificador.DisallowUnknownFields() // os esquemas do contrato são estritos
+	err := decodificador.Decode(destino)
 	if err == nil || (opcional && errors.Is(err, io.EOF)) {
 		return nil
 	}
-	return invalido("corpo", "JSON inválido ou grande demais")
+	return invalido("corpo", "JSON inválido, com campo desconhecido ou grande demais")
 }
 
 // ---- autenticação ----
@@ -120,6 +129,15 @@ func (a *API) login(w http.ResponseWriter, r *http.Request) {
 	if corpo.Senha == "" {
 		problemas = append(problemas, dominio.CampoInvalido{Campo: "senha", Mensagem: mensagemObrigatorio})
 	}
+	// Comprimentos do contrato; o registro também entra na chave do limitador de tentativas.
+	for _, c := range []struct {
+		campo, valor string
+		maximo       int
+	}{{"registro", corpo.Registro, dominio.MaximoRegistro}, {"uf", corpo.UF, dominio.MaximoUF}, {"senha", corpo.Senha, dominio.MaximoSenha}} {
+		if utf8.RuneCountInString(c.valor) > c.maximo {
+			problemas = append(problemas, dominio.CampoInvalido{Campo: c.campo, Mensagem: fmt.Sprintf("máximo de %d caracteres", c.maximo)})
+		}
+	}
 	if problemas != nil {
 		a.erro(w, r, &dominio.ErroValidacao{Detalhes: problemas})
 		return
@@ -143,6 +161,10 @@ func (a *API) refresh(w http.ResponseWriter, r *http.Request) {
 	}
 	sessao, err := a.Autenticacao.Renovar(r.Context(), token)
 	if err != nil {
+		if errors.Is(err, dominio.ErrRefreshReutilizado) {
+			a.Log.Warn("refresh token já revogado foi reapresentado; todas as sessões do profissional foram revogadas",
+				"requestId", dados(r).requestID, "ipCliente", dados(r).ip)
+		}
 		a.erro(w, r, err)
 		return
 	}
@@ -239,6 +261,14 @@ func (a *API) receberLogs(w http.ResponseWriter, r *http.Request) {
 		}
 		if strings.TrimSpace(e.Acao) == "" {
 			recusar("acao", mensagemObrigatorio)
+		}
+		for campo, texto := range map[string]string{"acao": e.Acao, "entidade": valor(e.Entidade), "entidadeId": valor(e.EntidadeID)} {
+			if utf8.RuneCountInString(texto) > dominio.MaximoTextoLog {
+				recusar(campo, fmt.Sprintf("máximo de %d caracteres", dominio.MaximoTextoLog))
+			}
+		}
+		if len(e.Detalhe) > dominio.MaximoDetalheBytes {
+			recusar("detalhe", fmt.Sprintf("máximo de %d bytes", dominio.MaximoDetalheBytes))
 		}
 		if e.Resultado != "SUCESSO" && e.Resultado != "FALHA" {
 			recusar("resultado", "deve ser SUCESSO ou FALHA")

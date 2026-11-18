@@ -6,7 +6,19 @@ Contrato: [`docs/contratos.md`](../../docs/contratos.md) (seções 2 a 5) · rot
 
 ## Credenciais de demonstração
 
-Profissionais **fictícios**, criados pela migração `20261117000150_profissionais_demo.sql`. A senha é a mesma para os três:
+Profissionais **fictícios**, criados pela migração `20261117000150_profissionais_demo.sql` **somente em banco de demonstração**. Como a senha abaixo é pública, a migração só insere quando o banco declara, **antes de migrar**:
+
+```sql
+ALTER DATABASE <banco> SET medicalfield.dados_demo = 'on';
+```
+
+(`scripts/dev-db.sh` já faz isso nos bancos que cria.) Sem o parâmetro, a migração não insere nada. Em `AMBIENTE=producao`, o serviço confere na partida e grava um log de nível `error` ("ATENÇÃO: AMBIENTE=producao COM PROFISSIONAIS DE DEMONSTRAÇÃO ATIVOS…") se encontrar algum deles ativo; nesse caso, desative-os ou troque as senhas:
+
+```sql
+UPDATE identidade.profissional SET ativo = false WHERE id::text LIKE '0d5b1c1e-7a10-4c1e-9b11-00000000000_';
+```
+
+A senha é a mesma para os três:
 
 **`Demo#MedicalField26`**
 
@@ -19,8 +31,10 @@ Profissionais **fictícios**, criados pela migração `20261117000150_profission
 Para cadastrar outro profissional, gere o hash Argon2id com o próprio binário e insira em `identidade.profissional`:
 
 ```bash
-docker run --rm medicalfield/mike-baguncinha:dev hash 'a-senha'
+printf '%s' 'a-senha' | docker run --rm -i medicalfield/mike-baguncinha:dev hash
 ```
+
+A senha vai pela entrada padrão, não por argumento (que apareceria na lista de processos).
 
 ## Rodar em desenvolvimento
 
@@ -55,6 +69,23 @@ curl -s localhost:8081/api/v1/auth/me -H "Authorization: Bearer <accessToken>"
 
 Gerar uma chave: `openssl genpkey -algorithm ed25519`.
 
+`GOMEMLIMIT` (variável do runtime do Go) é respeitada; sem ela, o serviço usa um teto flexível de 64 MiB — veja "Memória e login" abaixo.
+
+## Memória e login
+
+Cada verificação de senha (Argon2id, `m=19456`) aloca 19 MiB. O serviço roda **no máximo 2 verificações ao mesmo tempo** (`verificacoesSimultaneas` em `main.go`), inclusive para registro inexistente (hash falso); quem não consegue vaga em 3 s recebe `503 SERVICO_INDISPONIVEL` (transitório: o cliente repete). O pico fica em torno de 2 × 19 MiB + o resto do processo, então o contêiner precisa de **128 Mi de limite de memória** (medido: 32 logins simultâneos repetidos com `--memory=128m`, sem `OOMKilled`). Aumentar o teto de verificações exige aumentar o limite na mesma proporção.
+
+Proteções do login, todas em memória (zeram quando o processo reinicia):
+
+| Limite | Valor | Resposta |
+| --- | --- | --- |
+| Falhas por IP + conta | 5 em 15 min | 429 |
+| Falhas por conta, somando todos os IPs | 20 em 15 min | 429 (até com a senha certa, enquanto durar) |
+| Verificações de senha simultâneas | 2; espera de até 3 s | 503 |
+| Chaves guardadas por limitador | 50 000 | as vencidas saem primeiro; depois, uma qualquer |
+
+Refresh token: reapresentar um refresh **já revogado** (rotacionado ou encerrado) é tratado como roubo e revoga todas as sessões ativas do profissional. Sessões vencidas são apagadas na partida e de hora em hora.
+
 ## Testes
 
 ```bash
@@ -64,6 +95,14 @@ MSYS_NO_PATHCONV=1 docker run --rm \
   --network container:medicalfield-dev-pg \
   -e DATABASE_URL_TESTE='postgres://mf_mike:dev_mike@localhost:5432/mf_teste_mike?sslmode=disable' \
   golang:1.27 sh -c 'go vet ./... && go test ./...'
+```
+
+Para conferir que a carga de demonstração **não** entra sem o parâmetro, rode a mesma suíte contra um banco sem ele (trocando o nome em `DATABASE_URL_TESTE`):
+
+```bash
+bash scripts/dev-db.sh criar-banco mf_teste_mike_sem_demo
+docker exec medicalfield-dev-pg psql -U postgres -c "ALTER DATABASE mf_teste_mike_sem_demo RESET medicalfield.dados_demo"
+bash scripts/dev-db.sh migrar mf_teste_mike_sem_demo
 ```
 
 Sem `DATABASE_URL_TESTE`, os testes de integração são pulados e rodam só os unitários. Os de integração criam profissionais próprios (registro aleatório) e não apagam nada: a auditoria é somente-inserção.
@@ -81,6 +120,10 @@ migrations/                   dbmate
 
 ## Limites conhecidos
 
-- O limite de tentativas de login fica em memória, por processo: com mais de uma réplica, cada uma conta separado.
-- Reutilizar um refresh token já rotacionado é apenas recusado (401); as demais sessões do profissional não são revogadas.
+- Os limites de login ficam em memória, por processo: zeram ao reiniciar e, com mais de uma réplica, cada uma conta separado.
+- O limite por conta permite que terceiros tranquem uma conta por 15 min errando a senha 20 vezes (é o preço de barrar força bruta distribuída).
+- Duas renovações simultâneas do **mesmo** refresh token são indistinguíveis de roubo: a segunda derruba a sessão e o profissional entra de novo.
+- O access token não é revogável: depois do logout ele ainda vale até expirar (15 min), porque cada serviço valida o token sozinho.
+- A `Sessao` devolve o refresh token também no corpo (o contrato exige; o app precisa), embora o portal use só o cookie.
+- Corpo acima do limite (64 KiB em `/auth/*`, 4 MiB em `/log`) responde 422 `VALIDACAO`, não 413: o contrato não tem código para 413.
 - `GET /auth/me` responde com os dados do token (até 15 min de defasagem em relação ao banco).

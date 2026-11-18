@@ -27,6 +27,26 @@ var (
 	ErrMuitasTentativas     = errors.New("muitas tentativas")
 	ErrIndisponivel         = errors.New("dependência indisponível")
 	ErrNaoEncontrado        = errors.New("não encontrado")
+	// ErrRefreshReutilizado é um ErrNaoAutenticado (401) com causa conhecida: um refresh
+	// token já revogado foi reapresentado e as sessões do profissional foram revogadas.
+	ErrRefreshReutilizado = fmt.Errorf("refresh token reutilizado: %w", ErrNaoAutenticado)
+)
+
+// IDsDemonstracao são os ids fixos dos profissionais fictícios da migração de carga
+// (20261117000150_profissionais_demo.sql). Não podem existir em produção.
+var IDsDemonstracao = []string{
+	"0d5b1c1e-7a10-4c1e-9b11-000000000001",
+	"0d5b1c1e-7a10-4c1e-9b11-000000000002",
+	"0d5b1c1e-7a10-4c1e-9b11-000000000003",
+}
+
+// Comprimentos máximos dos campos de entrada (os mesmos de packages/contratos).
+const (
+	MaximoRegistro     = 40
+	MaximoUF           = 2
+	MaximoSenha        = 200
+	MaximoTextoLog     = 100
+	MaximoDetalheBytes = 8 << 10
 )
 
 // CampoInvalido descreve um campo rejeitado na validação.

@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"time"
 
 	"medicalfield/mike-baguncinha/internal/dominio"
@@ -37,7 +38,15 @@ type AutenticacaoUseCase struct {
 	Sessoes       dominio.SessaoRepository
 	Senhas        dominio.VerificadorSenha
 	Tokens        dominio.EmissorToken
-	Limitador     *LimitadorTentativas
+	// Limitador conta falhas por IP + conta (contrato: 5 em 15 min).
+	Limitador *LimitadorTentativas
+	// LimitadorConta conta falhas por conta, de qualquer IP: teto para força bruta distribuída.
+	LimitadorConta *LimitadorTentativas
+	// Vagas limita as verificações de senha simultâneas: cada uma aloca a memória do
+	// Argon2id (19 MiB), então a capacidade do canal é o teto de memória do login.
+	Vagas chan struct{}
+	// EsperaVaga é quanto uma requisição aguarda por vaga antes de receber 503.
+	EsperaVaga time.Duration
 	// HashFalso é verificado quando o registro não existe, para o tempo de
 	// resposta não revelar se o profissional está cadastrado.
 	HashFalso string
@@ -47,8 +56,9 @@ type AutenticacaoUseCase struct {
 // Entrar autentica o profissional e abre uma sessão.
 func (a *AutenticacaoUseCase) Entrar(ctx context.Context, e EntradaLogin) (SessaoEmitida, error) {
 	agora := a.Agora()
-	chave := e.IP + "|" + e.TipoRegistro + "|" + e.Registro
-	if a.Limitador.Bloqueado(chave, agora) {
+	conta := e.TipoRegistro + "|" + e.Registro
+	chave := e.IP + "|" + conta
+	if a.Limitador.Bloqueado(chave, agora) || a.LimitadorConta.Bloqueado(conta, agora) {
 		return SessaoEmitida{}, dominio.ErrMuitasTentativas
 	}
 
@@ -61,11 +71,17 @@ func (a *AutenticacaoUseCase) Entrar(ctx context.Context, e EntradaLogin) (Sessa
 	if existe {
 		hash = p.SenhaHash
 	}
-	senhaOK := a.Senhas.Verificar(e.Senha, hash)
+	senhaOK, err := a.verificarSenha(ctx, e.Senha, hash)
+	if err != nil {
+		return SessaoEmitida{}, err
+	}
 	if !existe || !senhaOK || !p.Ativo {
 		a.Limitador.RegistrarFalha(chave, agora)
+		a.LimitadorConta.RegistrarFalha(conta, agora)
 		return SessaoEmitida{}, dominio.ErrCredenciaisInvalidas
 	}
+	// O contador por conta não é zerado aqui: o login do dono não pode renovar as
+	// tentativas de quem ataca a mesma conta de outros IPs; ele vence pela janela.
 	a.Limitador.Limpar(chave)
 
 	refresh, refreshHash := novoRefreshToken()
@@ -73,6 +89,23 @@ func (a *AutenticacaoUseCase) Entrar(ctx context.Context, e EntradaLogin) (Sessa
 		return SessaoEmitida{}, err
 	}
 	return a.emitir(p, refresh, agora)
+}
+
+// verificarSenha é o único caminho até o Argon2id (hash real ou falso) e só roda com uma
+// vaga. Sem vaga dentro do prazo, devolve ErrIndisponivel (503): o cliente tenta de novo
+// e o processo nunca aloca mais do que cap(Vagas) verificações ao mesmo tempo.
+func (a *AutenticacaoUseCase) verificarSenha(ctx context.Context, senha, hash string) (bool, error) {
+	prazo := time.NewTimer(a.EsperaVaga)
+	defer prazo.Stop()
+	select {
+	case a.Vagas <- struct{}{}:
+		defer func() { <-a.Vagas }()
+		return a.Senhas.Verificar(senha, hash), nil
+	case <-prazo.C:
+		return false, fmt.Errorf("%w: verificação de senha sem vaga", dominio.ErrIndisponivel)
+	case <-ctx.Done():
+		return false, fmt.Errorf("%w: requisição cancelada à espera de vaga", dominio.ErrIndisponivel)
+	}
 }
 
 // Renovar troca um refresh token válido por uma sessão nova (o antigo deixa de valer).

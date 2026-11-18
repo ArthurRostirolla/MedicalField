@@ -31,6 +31,7 @@ type ambiente struct {
 	t        *testing.T
 	url      string
 	pool     *pgxpool.Pool
+	banco    *infra.Postgres
 	gravador *infra.GravadorAcesso
 }
 
@@ -54,7 +55,9 @@ func novoAmbiente(t *testing.T) *ambiente {
 	api := &httpapi.API{
 		Autenticacao: &aplicacao.AutenticacaoUseCase{
 			Profissionais: banco, Sessoes: banco, Senhas: infra.Argon2id{}, Tokens: tokens,
-			Limitador: aplicacao.NovoLimitadorTentativas(5, 15*time.Minute),
+			Limitador:      aplicacao.NovoLimitadorTentativas(5, 15*time.Minute),
+			LimitadorConta: aplicacao.NovoLimitadorTentativas(20, 15*time.Minute),
+			Vagas:          make(chan struct{}, 2), EsperaVaga: 3 * time.Second,
 			HashFalso: infra.GerarHashSenha("falso"), Agora: time.Now,
 		},
 		Auditoria:    &aplicacao.AuditoriaUseCase{Repositorio: banco},
@@ -63,7 +66,7 @@ func novoAmbiente(t *testing.T) *ambiente {
 	}
 	servidor := httptest.NewServer(api.Handler())
 	t.Cleanup(func() { servidor.Close(); pool.Close() })
-	return &ambiente{t: t, url: servidor.URL, pool: pool, gravador: gravador}
+	return &ambiente{t: t, url: servidor.URL, pool: pool, banco: banco, gravador: gravador}
 }
 
 // criarProfissional insere um profissional com registro único e devolve id e registro.
@@ -174,9 +177,6 @@ func TestFluxoLoginMeRefreshLogout(t *testing.T) {
 	}
 	a.chamar("GET", "/api/v1/auth/me", renovada.corpo["accessToken"].(string), nil).exigir(t, 200, "")
 
-	// O refresh antigo é recusado.
-	a.chamar("POST", "/api/v1/auth/refresh", "", map[string]string{"refreshToken": refresh}).exigir(t, 401, "NAO_AUTENTICADO")
-
 	// Refresh pelo cookie (sem corpo).
 	peloCookie := a.chamar("POST", "/api/v1/auth/refresh", "", nil, "Cookie", "mf_refresh="+refresh2)
 	peloCookie.exigir(t, 200, "")
@@ -248,6 +248,26 @@ func TestLogDoClienteIdempotente(t *testing.T) {
 	if gravados != 2 || dispositivoGravado != dispositivo {
 		t.Fatalf("esperado 2 linhas do dispositivo %s, obtido %d (%s)", dispositivo, gravados, dispositivoGravado)
 	}
+
+	// Limites por campo (os de packages/contratos): textos de até 100, detalhe de até 8 KiB.
+	valido := func() map[string]any {
+		return map[string]any{"id": dominio.NovoUUID(), "ocorridoEm": "2026-11-17T21:00:00Z", "acao": "X", "resultado": "SUCESSO", "estavaOnline": true}
+	}
+	for campo, valor := range map[string]any{
+		"acao": strings.Repeat("a", 101), "entidade": strings.Repeat("e", 101), "entidadeId": strings.Repeat("i", 101),
+		"detalhe": map[string]any{"texto": strings.Repeat("d", 9000)},
+	} {
+		log := valido()
+		log[campo] = valor
+		recusado := enviar([]map[string]any{log})
+		recusado.exigir(t, 422, "VALIDACAO")
+		if detalhes := fmt.Sprint(recusado.corpo["detalhes"]); !strings.Contains(detalhes, "logs[0]."+campo) {
+			t.Fatalf("%s acima do limite deveria ser apontado: %s", campo, detalhes)
+		}
+	}
+	comCampoExtra := valido()
+	comCampoExtra["inventado"] = 1
+	enviar([]map[string]any{comCampoExtra}).exigir(t, 422, "VALIDACAO")
 
 	// Validação: campo inválido e lote acima de 500.
 	enviar([]map[string]any{{"id": "nao-e-uuid", "ocorridoEm": "ontem", "acao": "", "resultado": "TALVEZ"}}).exigir(t, 422, "VALIDACAO")
@@ -355,6 +375,8 @@ func TestRequisicaoGeraLinhaCompletaNoLogDeAcesso(t *testing.T) {
 		t.Fatal("o X-Request-Id recebido deveria voltar na resposta")
 	}
 	a.chamar("GET", "/api/v1/auth/me", "", nil, "X-Request-Id", anonima).exigir(t, 401, "NAO_AUTENTICADO")
+	desconhecida := "teste-" + dominio.NovoUUID()
+	a.chamar("GET", "/api/v1/caminho/que/nao/existe/123", token, nil, "X-Request-Id", desconhecida).exigir(t, 404, "NAO_ENCONTRADO")
 	a.gravador.Fechar() // descarrega o buffer, como no encerramento do processo
 
 	var (
@@ -380,4 +402,87 @@ func TestRequisicaoGeraLinhaCompletaNoLogDeAcesso(t *testing.T) {
 	if profissional != nil || status != 401 || rota != "/api/v1/auth/me" {
 		t.Fatalf("linha do 401 inesperada: %v %d %s", profissional, status, rota)
 	}
+
+	// D-QA-18: rota desconhecida entra no banco com o nome único, sem o caminho pedido.
+	if err := a.pool.QueryRow(context.Background(), consulta, desconhecida).Scan(&dataHora, &servico, &ip, &profissional, &metodo, &rota, &status, &tempoMs, &quantidade); err != nil {
+		t.Fatalf("linha da rota desconhecida não encontrada: %v", err)
+	}
+	if rota != "(rota desconhecida)" || status != 404 {
+		t.Fatalf("rota desconhecida registrada como %q (%d)", rota, status)
+	}
+}
+
+// D-QA-09: reapresentar um refresh já rotacionado é tratado como roubo — caem todas as
+// sessões ativas do profissional, inclusive a que nasceu da rotação e as de outros aparelhos.
+func TestReusoDeRefreshRevogaTodasAsSessoes(t *testing.T) {
+	a := novoAmbiente(t)
+	_, registro := a.criarProfissional(dominio.PapelProfissional)
+	_, registroVizinho := a.criarProfissional(dominio.PapelProfissional)
+	renovar := func(refresh string) resposta {
+		return a.chamar("POST", "/api/v1/auth/refresh", "", map[string]string{"refreshToken": refresh})
+	}
+
+	r1 := a.login(registro, senhaTeste).corpo["refreshToken"].(string)
+	outroAparelho := a.login(registro, senhaTeste).corpo["refreshToken"].(string)
+	vizinho := a.login(registroVizinho, senhaTeste).corpo["refreshToken"].(string)
+
+	primeira := renovar(r1)
+	primeira.exigir(t, 200, "")
+	r2 := primeira.corpo["refreshToken"].(string)
+
+	renovar(r1).exigir(t, 401, "NAO_AUTENTICADO") // reuso: dispara a revogação
+	renovar(r2).exigir(t, 401, "NAO_AUTENTICADO") // a sessão nascida da rotação caiu
+	renovar(outroAparelho).exigir(t, 401, "NAO_AUTENTICADO")
+
+	// Outro profissional não é afetado, token desconhecido não revoga nada, e a vítima entra de novo.
+	renovar("token-que-nunca-existiu").exigir(t, 401, "NAO_AUTENTICADO")
+	renovar(vizinho).exigir(t, 200, "")
+	nova := a.login(registro, senhaTeste)
+	nova.exigir(t, 200, "")
+	renovar(nova.corpo["refreshToken"].(string)).exigir(t, 200, "")
+}
+
+// D-QA-03: a carga de demonstração só existe em banco que declara medicalfield.dados_demo = 'on'.
+// Rode a suíte contra um banco com o parâmetro e outro sem (veja o README).
+func TestCargaDeDemonstracaoSoComParametroLigado(t *testing.T) {
+	a := novoAmbiente(t)
+	var parametro string
+	if err := a.pool.QueryRow(context.Background(), `SELECT coalesce(current_setting('medicalfield.dados_demo', true), '')`).Scan(&parametro); err != nil {
+		t.Fatal(err)
+	}
+	esperado := 0
+	if parametro == "on" {
+		esperado = len(dominio.IDsDemonstracao)
+	}
+	obtido, err := a.banco.ContarDemonstracao(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if obtido != esperado {
+		t.Fatalf("medicalfield.dados_demo=%q: esperado %d profissionais de demonstração, há %d", parametro, esperado, obtido)
+	}
+	t.Logf("medicalfield.dados_demo=%q -> %d profissionais de demonstração", parametro, obtido)
+}
+
+// D-QA-21: sessões vencidas são expurgadas; as vigentes ficam.
+func TestExpurgoDeSessoesVencidas(t *testing.T) {
+	a := novoAmbiente(t)
+	id, registro := a.criarProfissional(dominio.PapelProfissional)
+	vigente := a.login(registro, senhaTeste).corpo["refreshToken"].(string)
+	if _, err := a.pool.Exec(context.Background(), `
+		INSERT INTO identidade.sessao (profissional_id, refresh_hash, expira_em)
+		VALUES ($1::text::uuid, $2, now() - interval '1 minute')`, id, "vencida-"+dominio.NovoUUID()); err != nil {
+		t.Fatal(err)
+	}
+	apagadas, err := a.banco.ExpurgarSessoes(context.Background())
+	if err != nil || apagadas < 1 {
+		t.Fatalf("esperado ao menos 1 sessão expurgada: %d, %v", apagadas, err)
+	}
+	var restantes, vencidas int
+	_ = a.pool.QueryRow(context.Background(),
+		`SELECT count(*), count(*) FILTER (WHERE expira_em < now()) FROM identidade.sessao WHERE profissional_id = $1::text::uuid`, id).Scan(&restantes, &vencidas)
+	if restantes != 1 || vencidas != 0 {
+		t.Fatalf("esperado só a sessão vigente; há %d (%d vencidas)", restantes, vencidas)
+	}
+	a.chamar("POST", "/api/v1/auth/refresh", "", map[string]string{"refreshToken": vigente}).exigir(t, 200, "")
 }

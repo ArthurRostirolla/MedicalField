@@ -3,6 +3,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"strings"
 	"syscall"
 	"time"
@@ -23,9 +25,15 @@ import (
 )
 
 func main() {
-	// Utilitário: `mike-baguncinha hash <senha>` imprime o hash Argon2id para cadastrar um profissional.
-	if len(os.Args) == 3 && os.Args[1] == "hash" {
-		fmt.Println(infra.GerarHashSenha(os.Args[2]))
+	// Utilitário: `mike-baguncinha hash` lê a senha da entrada padrão (não de argumento, que
+	// ficaria visível na lista de processos) e imprime o hash Argon2id para cadastrar um profissional.
+	if len(os.Args) == 2 && os.Args[1] == "hash" {
+		senha, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		if senha = strings.TrimRight(senha, "\r\n"); senha == "" {
+			fmt.Fprintln(os.Stderr, "mike-baguncinha: informe a senha pela entrada padrão")
+			os.Exit(1)
+		}
+		fmt.Println(infra.GerarHashSenha(senha))
 		return
 	}
 	if err := executar(); err != nil {
@@ -40,6 +48,11 @@ func executar() error {
 		return err
 	}
 	log := novoLogger(config.NivelLog)
+	// Teto flexível de memória do runtime, com folga abaixo do limite do contêiner: perto dele o
+	// coletor trabalha mais em vez de o processo crescer. GOMEMLIMIT, se definida, prevalece.
+	if os.Getenv("GOMEMLIMIT") == "" {
+		debug.SetMemoryLimit(memoriaPadrao)
+	}
 
 	tokens, err := infra.NovosTokens(config.ChavePrivadaPEM)
 	if err != nil {
@@ -60,14 +73,21 @@ func executar() error {
 	defer pool.Close()
 
 	banco := &infra.Postgres{Pool: pool}
+	if config.Producao {
+		avisarDadosDemonstracao(ctx, banco, log)
+	}
+	go expurgarSessoes(ctx, banco, log)
 	gravador := infra.NovoGravadorAcesso(banco, log)
 
 	api := &httpapi.API{
 		Autenticacao: &aplicacao.AutenticacaoUseCase{
 			Profissionais: banco, Sessoes: banco, Senhas: infra.Argon2id{}, Tokens: tokens,
-			Limitador: aplicacao.NovoLimitadorTentativas(5, 15*time.Minute),
-			HashFalso: infra.GerarHashSenha(dominio.NovoUUID()),
-			Agora:     time.Now,
+			Limitador:      aplicacao.NovoLimitadorTentativas(5, 15*time.Minute),
+			LimitadorConta: aplicacao.NovoLimitadorTentativas(falhasPorConta, 15*time.Minute),
+			Vagas:          make(chan struct{}, verificacoesSimultaneas),
+			EsperaVaga:     esperaPorVaga,
+			HashFalso:      infra.GerarHashSenha(dominio.NovoUUID()),
+			Agora:          time.Now,
 		},
 		Auditoria:       &aplicacao.AuditoriaUseCase{Repositorio: banco},
 		ValidarToken:    tokens.Validar,
@@ -104,6 +124,53 @@ func executar() error {
 	_ = servidorGestao.Shutdown(prazo)
 	gravador.Fechar()
 	return err
+}
+
+const (
+	// verificacoesSimultaneas × 19 MiB é o pico de memória do Argon2id; mexer aqui exige
+	// rever o limite de memória do pod.
+	verificacoesSimultaneas = 2
+	esperaPorVaga           = 3 * time.Second
+	// falhasPorConta é o teto por conta somando todos os IPs. Mais alto que o limite por IP (5)
+	// para um terceiro não trancar a conta de alguém com meia dúzia de tentativas.
+	falhasPorConta = 20
+	memoriaPadrao  = 64 << 20
+)
+
+// avisarDadosDemonstracao grita no log de partida se a carga de demonstração (senha pública,
+// no README) existe num ambiente de produção.
+func avisarDadosDemonstracao(ctx context.Context, banco *infra.Postgres, log *slog.Logger) {
+	ctx, cancelar := context.WithTimeout(ctx, 3*time.Second)
+	defer cancelar()
+	n, err := banco.ContarDemonstracao(ctx)
+	switch {
+	case err != nil:
+		log.Warn("não foi possível conferir se há profissionais de demonstração no banco", "erro", err.Error())
+	case n > 0:
+		log.Error("ATENÇÃO: AMBIENTE=producao COM PROFISSIONAIS DE DEMONSTRAÇÃO ATIVOS — a senha deles é pública (README). "+
+			"Desative-os (UPDATE identidade.profissional SET ativo = false) ou troque as senhas antes de expor o serviço.",
+			"profissionaisDemonstracao", n)
+	}
+}
+
+// expurgarSessoes apaga as sessões vencidas na partida e depois de hora em hora.
+func expurgarSessoes(ctx context.Context, banco *infra.Postgres, log *slog.Logger) {
+	relogio := time.NewTicker(time.Hour)
+	defer relogio.Stop()
+	for {
+		prazo, cancelar := context.WithTimeout(ctx, 30*time.Second)
+		if n, err := banco.ExpurgarSessoes(prazo); err != nil {
+			log.Warn("falha ao expurgar sessões vencidas", "erro", err.Error())
+		} else if n > 0 {
+			log.Info("sessões vencidas expurgadas", "sessoes", n)
+		}
+		cancelar()
+		select {
+		case <-relogio.C:
+		case <-ctx.Done():
+			return
+		}
+	}
 }
 
 func novoServidor(porta int, handler http.Handler) *http.Server {

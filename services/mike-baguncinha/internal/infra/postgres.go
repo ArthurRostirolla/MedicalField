@@ -72,10 +72,41 @@ func (pg *Postgres) Rotacionar(ctx context.Context, hashAntigo, hashNovo string,
 		SELECT id::text, nome, tipo_registro, registro, uf, papel FROM antiga`,
 		hashAntigo, hashNovo, expiraEm,
 	).Scan(&p.ID, &p.Nome, &p.TipoRegistro, &p.Registro, &p.UF, &p.Papel)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return p, dominio.ErrNaoAutenticado
+	if !errors.Is(err, pgx.ErrNoRows) {
+		return p, traduzir(err)
 	}
-	return p, traduzir(err)
+	// O token não valia. Se é um refresh JÁ REVOGADO (rotacionado ou encerrado), alguém está
+	// reapresentando um token antigo: sinal de roubo. Revoga todas as sessões ativas do
+	// profissional — o ladrão e a vítima caem, e a vítima entra de novo com a senha.
+	// Efeito colateral aceito: duas renovações simultâneas do MESMO token derrubam a sessão.
+	tag, err := pg.Pool.Exec(ctx, `
+		UPDATE identidade.sessao SET revogada_em = now()
+		 WHERE revogada_em IS NULL
+		   AND profissional_id = (SELECT profissional_id FROM identidade.sessao
+		                           WHERE refresh_hash = $1 AND revogada_em IS NOT NULL)`,
+		hashAntigo)
+	if err != nil {
+		return p, traduzir(err)
+	}
+	if tag.RowsAffected() > 0 {
+		return p, dominio.ErrRefreshReutilizado
+	}
+	return p, dominio.ErrNaoAutenticado
+}
+
+// ContarDemonstracao conta os profissionais de demonstração (ids fixos da migração de carga) ativos.
+func (pg *Postgres) ContarDemonstracao(ctx context.Context) (int, error) {
+	var n int
+	err := pg.Pool.QueryRow(ctx,
+		`SELECT count(*) FROM identidade.profissional WHERE ativo AND id::text = ANY($1::text[])`,
+		dominio.IDsDemonstracao).Scan(&n)
+	return n, traduzir(err)
+}
+
+// ExpurgarSessoes apaga as sessões vencidas (o refresh delas já não vale de qualquer forma).
+func (pg *Postgres) ExpurgarSessoes(ctx context.Context) (int, error) {
+	tag, err := pg.Pool.Exec(ctx, `DELETE FROM identidade.sessao WHERE expira_em < now()`)
+	return int(tag.RowsAffected()), traduzir(err)
 }
 
 // Revogar implementa dominio.SessaoRepository.

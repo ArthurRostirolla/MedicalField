@@ -5,19 +5,23 @@ import (
 	"time"
 )
 
-// LimitadorTentativas conta falhas de login por chave (IP + registro) em memória.
-// ponytail: estado por processo; com mais de uma réplica o limite vira 5 × réplicas —
-// mover para o Postgres se o serviço escalar horizontalmente.
+// TetoEntradasLimitador é o máximo de chaves guardadas por limitador.
+const TetoEntradasLimitador = 50000
+
+// LimitadorTentativas conta falhas de login por chave em memória.
+// ponytail: estado por processo; zera ao reiniciar e, com mais de uma réplica, o limite
+// vira N × réplicas — mover para o Postgres se o serviço escalar horizontalmente.
 type LimitadorTentativas struct {
 	mu     sync.Mutex
 	falhas map[string][]time.Time
 	maximo int
 	janela time.Duration
+	teto   int
 }
 
-// NovoLimitadorTentativas cria o limitador (contrato: 5 falhas em 15 min).
+// NovoLimitadorTentativas cria um limitador de `maximo` falhas por `janela`.
 func NovoLimitadorTentativas(maximo int, janela time.Duration) *LimitadorTentativas {
-	return &LimitadorTentativas{falhas: map[string][]time.Time{}, maximo: maximo, janela: janela}
+	return &LimitadorTentativas{falhas: map[string][]time.Time{}, maximo: maximo, janela: janela, teto: TetoEntradasLimitador}
 }
 
 // Bloqueado informa se a chave já atingiu o máximo de falhas dentro da janela.
@@ -31,13 +35,27 @@ func (l *LimitadorTentativas) Bloqueado(chave string, agora time.Time) bool {
 func (l *LimitadorTentativas) RegistrarFalha(chave string, agora time.Time) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
-	// Varre as chaves vencidas para o mapa não crescer sem limite.
-	if len(l.falhas) >= 10000 {
+	validas := l.recentes(chave, agora)
+	if validas == nil && len(l.falhas) >= l.teto {
+		// No teto: primeiro descarta as chaves vencidas.
 		for c := range l.falhas {
 			l.recentes(c, agora)
 		}
+		// ponytail: ainda cheio, descarta uma chave qualquer (o mapa itera em ordem aleatória).
+		// Enfraquece o limite de uma vítima ao acaso só sob 50 mil chaves vivas; trocar por
+		// LRU se isso virar um vetor real.
+		if len(l.falhas) >= l.teto {
+			for c := range l.falhas {
+				delete(l.falhas, c)
+				break
+			}
+		}
 	}
-	l.falhas[chave] = append(l.recentes(chave, agora), agora)
+	// Além do máximo não há o que guardar: a chave já está bloqueada.
+	if len(validas) >= l.maximo {
+		validas = validas[1:]
+	}
+	l.falhas[chave] = append(validas, agora)
 }
 
 // Limpar zera a contagem (login bem-sucedido).

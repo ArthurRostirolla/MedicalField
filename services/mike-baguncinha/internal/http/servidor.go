@@ -18,9 +18,11 @@ import (
 )
 
 const (
-	servico        = "mike-baguncinha"
-	prefixoAPI     = "/api/v1/"
-	formatoDataISO = "2006-01-02T15:04:05.000Z"
+	servico    = "mike-baguncinha"
+	prefixoAPI = "/api/v1/"
+	// rotaDesconhecida é o nome único, no log de acesso, do que não casa com rota nenhuma.
+	rotaDesconhecida = "(rota desconhecida)"
+	formatoDataISO   = "2006-01-02T15:04:05.000Z"
 )
 
 // API reúne as dependências da camada http.
@@ -176,14 +178,12 @@ func (a *API) logAcesso(proximo *http.ServeMux) http.Handler {
 }
 
 // rotaDoPadrao tira o método do padrão do ServeMux ("GET /api/v1/auth/me" → "/api/v1/auth/me").
+// O que não casa com rota nenhuma sai sempre com o mesmo nome, igual nos três serviços.
 func rotaDoPadrao(padrao string) string {
 	if _, rota, achou := strings.Cut(padrao, " "); achou {
 		return rota
 	}
-	if padrao == "" {
-		return prefixoAPI
-	}
-	return padrao
+	return rotaDesconhecida
 }
 
 // autenticar exige um access token válido e, se papel != "", exatamente aquele papel.
