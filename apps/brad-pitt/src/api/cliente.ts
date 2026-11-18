@@ -15,7 +15,7 @@ import type { z } from 'zod';
 const BASE = '/api/v1';
 
 /** Códigos do contrato + os que só existem do lado do navegador. */
-export type CodigoErroApi = z.infer<typeof erroSchema>['codigo'] | 'SEM_CONEXAO' | 'RESPOSTA_INVALIDA';
+export type CodigoErroApi = z.infer<typeof erroSchema>['codigo'] | 'SEM_CONEXAO' | 'OFFLINE_SIMULADO' | 'RESPOSTA_INVALIDA';
 
 export class ErroApi extends Error {
   constructor(
@@ -101,7 +101,19 @@ interface Opcoes {
   cabecalhos?: Record<string, string>;
 }
 
+/* ───────── Simulação offline (o estado vive em offline.ts; aqui só o portão) ───────── */
+
+let offlineSimulado = false;
+export function definirOfflineSimulado(simulando: boolean): void {
+  offlineSimulado = simulando;
+}
+
 async function buscar(caminho: string, { metodo = 'GET', corpo, consulta, cabecalhos }: Opcoes): Promise<Response> {
+  // Recusada ANTES de sair: simulando, nenhuma requisição aparece na aba de rede.
+  // `/auth/*` passa: o portal não tem sessão offline, e recarregar a página precisa do refresh.
+  if (offlineSimulado && !caminho.startsWith('/auth/')) {
+    throw new ErroApi(null, 'OFFLINE_SIMULADO', 'Modo offline simulado: nenhuma requisição é enviada.');
+  }
   const parametros = new URLSearchParams();
   for (const [nome, valor] of Object.entries(consulta ?? {})) {
     if (valor !== undefined && valor !== '' && valor !== false) parametros.set(nome, String(valor));

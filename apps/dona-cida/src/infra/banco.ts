@@ -30,6 +30,7 @@ export type PessoaLinha = {
   telefone: string | null;
   contato_emergencia_nome: string | null;
   contato_emergencia_telefone: string | null;
+  email: string | null;
   contato_emergencia_email: string | null;
   nao_identificada: boolean;
   descricao_identificacao: string | null;

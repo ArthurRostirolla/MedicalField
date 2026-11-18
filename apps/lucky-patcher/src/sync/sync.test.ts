@@ -378,7 +378,7 @@ describe('logs locais', () => {
 describe('descida', () => {
   const medicamento = (n: number) => ({ id: `00000000-0000-4000-8000-00000000000${n}`, nome: `Medicamento ${n}`, principioAtivo: null, apresentacao: null, observacao: null, ativo: true });
   const pessoaServidor = (id: string, nome: string) => ({
-    id, nome, dataNascimento: null, sexo: null, cpf: null, cns: null, telefone: null,
+    id, nome, dataNascimento: null, sexo: null, cpf: null, cns: null, telefone: null, email: null,
     contatoEmergenciaNome: null, contatoEmergenciaTelefone: null, contatoEmergenciaEmail: null,
     naoIdentificada: false, descricaoIdentificacao: null, possivelDuplicataDe: null,
     criadoEm: '2026-11-01T00:00:00.000Z', atualizadoEm: '2026-11-02T00:00:00.000Z',

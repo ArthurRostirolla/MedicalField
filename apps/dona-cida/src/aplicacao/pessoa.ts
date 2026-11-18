@@ -41,6 +41,7 @@ export class CadastrarPessoaUseCase {
         sexo: campos.sexo ?? null,
         cns: campos.cns ?? null,
         telefone: campos.telefone ?? null,
+        email: campos.email ?? null,
         contatoEmergenciaNome: campos.contatoEmergenciaNome ?? null,
         contatoEmergenciaTelefone: campos.contatoEmergenciaTelefone ?? null,
         contatoEmergenciaEmail: campos.contatoEmergenciaEmail ?? null,

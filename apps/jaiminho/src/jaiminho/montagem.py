@@ -72,13 +72,15 @@ def montar(config: Config, enviador: EnviadorEmail | None = None) -> Servico:
             await pool.close()
             log.info("jaiminho encerrado")
 
+    casos_envio = EnviosUseCases(envios, documentos, worker)
     rotas = criar_rotas(
         DocumentosUseCases(
             documentos,
             ClienteClinicoHttp(http, config.clinico_url),
             RenderizadorFichaWeasyPrint(config.url_publica_portal),
+            casos_envio,
         ),
-        EnviosUseCases(envios, documentos, worker),
+        casos_envio,
     )
     api = criar_app(
         rotas,

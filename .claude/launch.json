@@ -1,0 +1,62 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "lucky-patcher-web",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "web",
+        "-w",
+        "@medicalfield/lucky-patcher"
+      ],
+      "port": 5182
+    },
+    {
+      "name": "brad-pitt",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "@medicalfield/brad-pitt"
+      ],
+      "port": 5181
+    },
+    {
+      "name": "brad-pitt-gateway",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "@medicalfield/brad-pitt"
+      ],
+      "port": 5181,
+      "env": {
+        "MF_MIKE_URL": "http://localhost:8088",
+        "MF_CIDA_URL": "http://localhost:8088",
+        "MF_JAIMINHO_URL": "http://localhost:8088"
+      }
+    },
+    {
+      "name": "brad-pitt-gateway-alt",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "-w",
+        "@medicalfield/brad-pitt",
+        "--",
+        "--port",
+        "5191"
+      ],
+      "port": 5191,
+      "env": {
+        "MF_MIKE_URL": "http://localhost:8088",
+        "MF_CIDA_URL": "http://localhost:8088",
+        "MF_JAIMINHO_URL": "http://localhost:8088"
+      }
+    }
+  ]
+}

@@ -1,8 +1,11 @@
-import { aplicarTema, Botao, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
+import { aplicarTema, BarraConectividade, Botao, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
+import { useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, UserRound, Users } from 'lucide-react';
-import { useEffect, useState, type MouseEvent } from 'react';
+import { useEffect, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { Outlet, useHref, useLocation, useNavigate } from 'react-router';
 import { sair } from '../api/cliente';
+import { assinarOffline, definirSimulacao, iniciarOffline, lerOffline, sincronizar, type Rejeicao } from '../api/offline';
+import { useAvisar } from '../comum/avisos';
 import { useProfissional } from '../sessao/sessao';
 import { lerTema, salvarTema } from './tema';
 
@@ -29,6 +32,25 @@ export function Casca() {
   const base = useHref('/');
   const local = useLocation();
   const [tema, setTema] = useState<Tema>(lerTema);
+  const offline = useSyncExternalStore(assinarOffline, lerOffline);
+  const consultas = useQueryClient();
+  const avisar = useAvisar();
+
+  useEffect(() => {
+    const avisarRejeicoes = (rejeitadas: Rejeicao[]) => {
+      for (const { comando, motivo } of rejeitadas) avisar({ tom: 'erro', titulo: `Recusado: ${comando.descricao}`, descricao: motivo });
+      void consultas.invalidateQueries();
+    };
+    return iniciarOffline(avisarRejeicoes);
+  }, [avisar, consultas]);
+
+  /** Desligar a simulação: a fila sobe e as telas buscam de novo o que o servidor tem. */
+  async function mudarSimulacao(simular: boolean) {
+    definirSimulacao(simular);
+    if (simular) return;
+    await sincronizar(); // recusas chegam pelo aviso ligado em iniciarOffline
+    void consultas.invalidateQueries();
+  }
 
   const partes = local.pathname.split('/').filter(Boolean);
   const atual = (partes[0] === 'auditoria' ? partes[1] : partes[0]) ?? '';
@@ -116,6 +138,15 @@ export function Casca() {
           </>
         }
       >
+        <BarraConectividade
+          className="mb-4"
+          online={!offline.simulando && offline.redeDoComputador}
+          simulandoOffline={offline.simulando}
+          aoMudarSimulacao={(simular) => void mudarSimulacao(simular)}
+          pendencias={offline.fila.length}
+          sincronizando={offline.sincronizando}
+          ultimaSync={offline.ultimaSync ? new Date(offline.ultimaSync).toLocaleTimeString('pt-BR', { timeStyle: 'short' }) : undefined}
+        />
         <Outlet />
       </LayoutPortal>
     </div>

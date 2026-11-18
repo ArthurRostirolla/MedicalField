@@ -94,6 +94,7 @@ beforeAll(async () => {
     porta: 0,
     portaGestao: 0,
     databaseUrl: URL_SERVICO,
+    jaiminhoUrl: null,
     jwksUrl: `http://127.0.0.1:${(jwks.address() as AddressInfo).port}/jwks.json`,
     proxiesConfiaveis: ['127.0.0.1/32', '::1/128'],
     ambiente: 'desenvolvimento',

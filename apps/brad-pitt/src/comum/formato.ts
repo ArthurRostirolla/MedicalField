@@ -66,6 +66,11 @@ export function descreverErro(erro: unknown, oQue = 'os dados'): ErroDescrito {
   switch (erro.codigo) {
     case 'SEM_CONEXAO':
       return { titulo: 'Sem conexão com o servidor', descricao: 'Confira a rede deste computador e tente de novo.' };
+    case 'OFFLINE_SIMULADO':
+      return {
+        titulo: 'Modo offline simulado',
+        descricao: 'Nada é buscado no servidor agora. O que você gravar fica na fila e sobe ao desligar a simulação.',
+      };
     case 'SERVICO_INDISPONIVEL':
       return {
         titulo: 'Serviço fora do ar',

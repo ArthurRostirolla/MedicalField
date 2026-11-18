@@ -50,6 +50,7 @@ case "${1:-}" in
     esperar mike-baguncinha 9091
     docker run -d --name dona-cida --read-only -p 8082:8080 -p 9092:9090 \
       -e DATABASE_URL="postgres://mf_cida:dev_cida@$BANCO" -e JWKS_URL="$JWKS" \
+      -e JAIMINHO_URL="http://host.docker.internal:8083" \
       -e PROXIES_CONFIAVEIS="$PROXIES" medicalfield/dona-cida:dev >/dev/null
     esperar dona-cida 9092
     docker run -d --name jaiminho --read-only --tmpfs /tmp -p 8083:8080 -p 9093:9090 \

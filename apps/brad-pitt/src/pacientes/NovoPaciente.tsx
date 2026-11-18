@@ -26,6 +26,7 @@ const CAMPOS = [
   'cpf',
   'cns',
   'telefone',
+  'email',
   'contatoEmergenciaNome',
   'contatoEmergenciaTelefone',
   'contatoEmergenciaEmail',
@@ -94,6 +95,7 @@ export function TelaNovoPaciente() {
         ...opcional('cpf', digitos(v('cpf'))),
         ...opcional('cns', digitos(v('cns'))),
         ...opcional('telefone'),
+        ...opcional('email'),
         ...opcional('contatoEmergenciaNome'),
         ...opcional('contatoEmergenciaTelefone'),
         ...opcional('contatoEmergenciaEmail'),
@@ -188,6 +190,7 @@ export function TelaNovoPaciente() {
             <CampoTexto rotulo="CPF" inputMode="numeric" autoComplete="off" {...ligar('cpf')} />
             <CampoTexto rotulo="CNS" inputMode="numeric" autoComplete="off" {...ligar('cns')} />
             <CampoTexto rotulo="Telefone" type="tel" autoComplete="off" {...ligar('telefone')} />
+            <CampoTexto rotulo="E-mail (recebe a ficha)" type="email" autoComplete="off" {...ligar('email')} />
             <CampoTexto rotulo="Contato de emergência" autoComplete="off" {...ligar('contatoEmergenciaNome')} />
             <CampoTexto rotulo="Telefone do contato" type="tel" autoComplete="off" {...ligar('contatoEmergenciaTelefone')} />
             <CampoTexto rotulo="E-mail do contato" type="email" autoComplete="off" {...ligar('contatoEmergenciaEmail')} />

@@ -160,6 +160,7 @@ export function Prontuario() {
       ['CPF', formatarCpf(pessoa.cpf)],
       ['Cartão SUS', pessoa.cns],
       ['Telefone', pessoa.telefone],
+      ['E-mail', pessoa.email],
       [
         'Contato de emergência',
         pessoa.contatoEmergenciaNome ?? pessoa.contatoEmergenciaTelefone ?? pessoa.contatoEmergenciaEmail,

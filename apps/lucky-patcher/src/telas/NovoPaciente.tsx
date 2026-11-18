@@ -62,6 +62,7 @@ const DETALHES: ReadonlyArray<keyof FormularioPessoa> = [
   'cpf',
   'cns',
   'telefone',
+  'email',
   'contatoEmergenciaNome',
   'contatoEmergenciaTelefone',
   'contatoEmergenciaEmail',
@@ -109,7 +110,10 @@ function CamposCadastro({ formulario, mudar, erros, depoisDoNome, detalhesAberto
           <CampoTexto rotulo="CPF" inputMode="numeric" autoComplete="off" style={metade} {...texto('cpf')} />
           <CampoTexto rotulo="Cartão SUS (CNS)" inputMode="numeric" autoComplete="off" style={metade} {...texto('cns')} />
         </View>
-        <CampoTexto rotulo="Telefone" inputMode="tel" autoComplete="off" {...texto('telefone')} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+          <CampoTexto rotulo="Telefone" inputMode="tel" autoComplete="off" style={metade} {...texto('telefone')} />
+          <CampoTexto rotulo="E-mail (recebe a ficha)" inputMode="email" autoComplete="off" autoCapitalize="none" style={metade} {...texto('email')} />
+        </View>
         <CampoTexto rotulo="Contato de emergência" autoComplete="off" {...texto('contatoEmergenciaNome')} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
           <CampoTexto rotulo="Telefone do contato" inputMode="tel" autoComplete="off" style={metade} {...texto('contatoEmergenciaTelefone')} />

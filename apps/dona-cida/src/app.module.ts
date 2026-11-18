@@ -19,6 +19,7 @@ import { ServidorDeGestao } from './http/gestao.ts';
 import { criarListaDeProxies } from './http/ip-cliente.ts';
 import { BANCO, criarBanco, type Banco } from './infra/banco.ts';
 import { CONFIG, type Config } from './infra/config.ts';
+import { AvisoDeEncerramento } from './infra/jaiminho.ts';
 import { RegistroDeAcesso } from './infra/log-acesso.ts';
 import { LOG, type Log } from './infra/log.ts';
 import { UnidadeDeTrabalhoSql } from './infra/repositorio-clinico.ts';
@@ -51,6 +52,7 @@ export class AppModule implements NestModule {
         RegistrarAtendimentoUseCase,
         RegistrarEventoUseCase,
         ServidorDeGestao,
+        AvisoDeEncerramento,
         { provide: APP_GUARD, useClass: AutenticacaoGuard },
         { provide: APP_FILTER, useClass: FiltroDeErros },
       ],

@@ -97,6 +97,8 @@ services:
       <<: *comum
       DATABASE_URL: postgres://mf_cida:${SENHA_MF_CIDA}@postgres:5432/medicalfield?sslmode=disable
       JWKS_URL: http://mike-baguncinha:9090/jwks.json
+      # Encerramento de atendimento => ficha enviada ao e-mail do paciente.
+      JAIMINHO_URL: http://jaiminho:8080
     depends_on:
       migra-cida: { condition: service_completed_successfully }
     mem_limit: 384m

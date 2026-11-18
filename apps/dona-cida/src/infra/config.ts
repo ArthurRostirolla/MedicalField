@@ -8,6 +8,8 @@ const esquema = z.object({
   PORTA_GESTAO: porta(9090),
   DATABASE_URL: z.string().min(1, 'obrigatória'),
   JWKS_URL: z.url('deve ser uma URL'),
+  /** Opcional: sem ela, o encerramento nao dispara o envio automatico da ficha. */
+  JAIMINHO_URL: z.url('deve ser uma URL').optional(),
   PROXIES_CONFIAVEIS: z.string().default('127.0.0.1/32,::1/128,10.42.0.0/16'),
   AMBIENTE: z.enum(['desenvolvimento', 'producao']).default('desenvolvimento'),
   NIVEL_LOG: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
@@ -18,6 +20,7 @@ export type Config = {
   portaGestao: number;
   databaseUrl: string;
   jwksUrl: string;
+  jaiminhoUrl: string | null;
   proxiesConfiaveis: string[];
   ambiente: 'desenvolvimento' | 'producao';
   nivelLog: 'debug' | 'info' | 'warn' | 'error';
@@ -38,6 +41,7 @@ export function carregarConfig(ambiente: NodeJS.ProcessEnv): Config {
     portaGestao: env.PORTA_GESTAO,
     databaseUrl: env.DATABASE_URL,
     jwksUrl: env.JWKS_URL,
+    jaiminhoUrl: env.JAIMINHO_URL?.replace(/\/$/, '') ?? null,
     proxiesConfiaveis: env.PROXIES_CONFIAVEIS.split(',').map((cidr) => cidr.trim()).filter(Boolean),
     ambiente: env.AMBIENTE,
     nivelLog: env.NIVEL_LOG,

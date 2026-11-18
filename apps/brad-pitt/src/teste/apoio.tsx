@@ -117,6 +117,7 @@ export function ficha(): Ficha {
       cpf: '00000000191',
       cns: null,
       telefone: null,
+      email: null,
       contatoEmergenciaNome: null,
       contatoEmergenciaTelefone: null,
       contatoEmergenciaEmail: null,

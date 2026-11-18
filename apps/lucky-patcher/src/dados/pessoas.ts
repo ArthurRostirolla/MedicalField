@@ -45,6 +45,7 @@ export interface FormularioPessoa {
   cpf: string;
   cns: string;
   telefone: string;
+  email: string;
   contatoEmergenciaNome: string;
   contatoEmergenciaTelefone: string;
   contatoEmergenciaEmail: string;
@@ -62,6 +63,7 @@ export const FORMULARIO_PESSOA_VAZIO: FormularioPessoa = {
   cpf: '',
   cns: '',
   telefone: '',
+  email: '',
   contatoEmergenciaNome: '',
   contatoEmergenciaTelefone: '',
   contatoEmergenciaEmail: '',
@@ -95,6 +97,7 @@ function corpoPessoa(ctx: ContextoDados, id: string, formulario: FormularioPesso
     cpf: opcional(somenteDigitos(formulario.cpf)),
     cns: opcional(somenteDigitos(formulario.cns)),
     telefone: opcional(formulario.telefone),
+    email: opcional(formulario.email),
     contatoEmergenciaNome: opcional(formulario.contatoEmergenciaNome),
     contatoEmergenciaTelefone: opcional(formulario.contatoEmergenciaTelefone),
     contatoEmergenciaEmail: opcional(formulario.contatoEmergenciaEmail),
@@ -113,6 +116,7 @@ function linhaPessoa(corpo: PessoaEntrada, criadoEm: string) {
     cpf: corpo.cpf ?? null,
     cns: corpo.cns ?? null,
     telefone: corpo.telefone ?? null,
+    email: corpo.email ?? null,
     contatoEmergenciaNome: corpo.contatoEmergenciaNome ?? null,
     contatoEmergenciaTelefone: corpo.contatoEmergenciaTelefone ?? null,
     contatoEmergenciaEmail: corpo.contatoEmergenciaEmail ?? null,
@@ -260,6 +264,7 @@ export class RepositorioPessoas {
       cpf: pessoa.cpf ?? '',
       cns: pessoa.cns ?? '',
       telefone: pessoa.telefone ?? '',
+      email: pessoa.email ?? '',
       contatoEmergenciaNome: pessoa.contatoEmergenciaNome ?? '',
       contatoEmergenciaTelefone: pessoa.contatoEmergenciaTelefone ?? '',
       contatoEmergenciaEmail: pessoa.contatoEmergenciaEmail ?? '',

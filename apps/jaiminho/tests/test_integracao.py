@@ -72,6 +72,44 @@ async def test_gerar_ficha_cria_e_depois_devolve_o_mesmo_documento(ambiente: Amb
     assert lista.json()["proximoCursor"] is None
 
 
+async def test_ficha_de_atendimento_encerrado_vai_sozinha_ao_email_do_paciente(ambiente: Ambiente) -> None:
+    atendimento_id = ambiente.novo_atendimento()
+    ficha = ambiente.falso.fichas[atendimento_id]
+    ficha["pessoa"]["email"] = "paciente@exemplo.com"
+    corpo = {"atendimentoId": atendimento_id}
+
+    documento = (
+        await ambiente.cliente.post("/api/v1/documento/ficha-atendimento", json=corpo, headers=ambiente.autorizacao())
+    ).json()
+    # Repetir a geração (mesmo conteúdo) não enfileira outro e-mail.
+    await ambiente.cliente.post("/api/v1/documento/ficha-atendimento", json=corpo, headers=ambiente.autorizacao())
+    envios = ambiente.admin.execute(
+        "SELECT destinatario_nome, destinatario_email, vinculo FROM documentos.envio_email WHERE documento_id = %s",
+        (documento["id"],),
+    ).fetchall()
+    assert envios == [
+        {
+            "destinatario_nome": ficha["pessoa"]["nome"],
+            "destinatario_email": "paciente@exemplo.com",
+            "vinculo": "PACIENTE",
+        }
+    ]
+
+    # Atendimento ainda aberto: nada sai sozinho.
+    aberto = ambiente.novo_atendimento()
+    ambiente.falso.fichas[aberto]["pessoa"]["email"] = "paciente@exemplo.com"
+    ambiente.falso.fichas[aberto]["atendimento"]["status"] = "ABERTO"
+    outro = (
+        await ambiente.cliente.post(
+            "/api/v1/documento/ficha-atendimento", json={"atendimentoId": aberto}, headers=ambiente.autorizacao()
+        )
+    ).json()
+    total = ambiente.admin.execute(
+        "SELECT count(*) AS n FROM documentos.envio_email WHERE documento_id = %s", (outro["id"],)
+    ).fetchone()
+    assert total == {"n": 0}
+
+
 async def test_download_devolve_o_pdf_guardado_e_metadados_conferem(ambiente: Ambiente) -> None:
     documento = await ambiente.gerar()
 

@@ -122,6 +122,7 @@ export function DetalhePessoa() {
           <CampoLeitura rotulo="CPF">{p.cpf ? <span className="mf-dado">{formatarCpf(p.cpf)}</span> : null}</CampoLeitura>
           <CampoLeitura rotulo="CNS">{p.cns ? <span className="mf-dado">{p.cns}</span> : null}</CampoLeitura>
           <CampoLeitura rotulo="Telefone">{p.telefone}</CampoLeitura>
+          <CampoLeitura rotulo="E-mail">{p.email}</CampoLeitura>
           <CampoLeitura rotulo="Contato de emergência">{p.contatoEmergenciaNome}</CampoLeitura>
           <CampoLeitura rotulo="Telefone do contato">{p.contatoEmergenciaTelefone}</CampoLeitura>
           <CampoLeitura rotulo="E-mail do contato">{p.contatoEmergenciaEmail}</CampoLeitura>

@@ -27,6 +27,7 @@ import {
 } from '@medicalfield/contratos';
 import { z } from 'zod';
 import { api, apiComStatus, baixar } from './cliente';
+import { escrever } from './offline';
 
 export interface Pagina {
   limite?: number;
@@ -41,11 +42,11 @@ export const listarAtendimentosDaPessoa = (pessoaId: string, pagina: Pagina) =>
 
 /** Atendimento aberto pelo portal (mesma rota do app; o id vem do cliente para a repeticao ser idempotente). */
 export const registrarAtendimento = (entrada: AtendimentoEntrada) =>
-  api('/atendimento', atendimentoSchema, { metodo: 'POST', corpo: entrada });
+  escrever('/atendimento', atendimentoSchema, entrada, 'Início de atendimento');
 
 /** Acrescenta um evento a linha do tempo; corrigir = evento RETIFICACAO, nada se reescreve. */
 export const registrarEvento = (entrada: EventoEntrada) =>
-  api('/atendimento-evento', eventoSchema, { metodo: 'POST', corpo: entrada });
+  escrever('/atendimento-evento', eventoSchema, entrada, `Evento ${entrada.tipo}`);
 
 export const obterFicha = (atendimentoId: string) => api(`/ficha/${atendimentoId}`, fichaSchema);
 
@@ -60,18 +61,18 @@ export const buscarPessoas = (busca: string, pagina: Pagina) =>
   api('/pessoa', paginaSchema(pessoaSchema), { consulta: { ...pagina, ...(busca ? { busca } : {}) } });
 
 /* Escritas do cadastro: os mesmos comandos do app, com id gerado aqui (repetir = 200, não duplica). */
-export const cadastrarPessoa = (entrada: PessoaEntrada) => api('/pessoa', pessoaSchema, { metodo: 'POST', corpo: entrada });
+export const cadastrarPessoa = (entrada: PessoaEntrada) => escrever('/pessoa', pessoaSchema, entrada, 'Cadastro de paciente');
 
 /** Pessoa que já tem prontuário: o servidor devolve o existente com os itens unidos. */
 export const cadastrarProntuario = (entrada: ProntuarioEntrada) =>
-  api('/prontuario', prontuarioSchema, { metodo: 'POST', corpo: entrada });
+  escrever('/prontuario', prontuarioSchema, entrada, 'Prontuário');
 
 export const acrescentarItem = (entrada: ProntuarioItemEntrada) =>
-  api('/prontuario-item', prontuarioItemSchema, { metodo: 'POST', corpo: entrada });
+  escrever('/prontuario-item', prontuarioItemSchema, entrada, 'Item do prontuário');
 
 /** Inativar é um ato registrado: o item continua no prontuário, marcado. */
 export const inativarItem = (id: string) =>
-  api(`/prontuario-item/${id}/inativacao`, prontuarioItemSchema, { metodo: 'POST', corpo: { inativadoEm: new Date().toISOString() } });
+  escrever(`/prontuario-item/${id}/inativacao`, prontuarioItemSchema, { inativadoEm: new Date().toISOString() }, 'Inativação de item');
 
 export const listarDuplicatas = (pagina: Pagina) =>
   api('/pessoa', paginaSchema(pessoaSchema), { consulta: { ...pagina, somenteDuplicatas: true } });

@@ -1,9 +1,13 @@
 // Banco local: migracoes na abertura, escrita sempre em transacao e aviso de mudanca para a interface.
 import { ErroBancoLocal, type ComandoSql, type ExecutorSql, type Parametro } from './executor.ts';
 import m001 from './migracoes/001_inicial.ts';
+import m002 from './migracoes/002_pessoa_email.ts';
 
 /** Migracoes em ordem: o numero e o `user_version` que ela deixa no banco. Nova migracao = nova linha. */
-export const MIGRACOES = [{ versao: 1, sql: m001 }];
+export const MIGRACOES = [
+  { versao: 1, sql: m001 },
+  { versao: 2, sql: m002 },
+];
 
 const semComentarios = (sql: string) => sql.replace(/--.*$/gm, '');
 

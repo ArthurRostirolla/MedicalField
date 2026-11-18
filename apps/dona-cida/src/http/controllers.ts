@@ -31,7 +31,20 @@ import {
   CadastrarProntuarioUseCase,
   InativarItemProntuarioUseCase,
 } from '../aplicacao/prontuario.ts';
+import { AvisoDeEncerramento } from '../infra/jaiminho.ts';
 import { contextoDoComando, idDaRota, validar, type Requisicao } from './requisicao.ts';
+
+/** Depois de gravado (transacao ja confirmada): se veio um ENCERRAMENTO, a ficha segue para o paciente. */
+const avisarSeEncerrou = (
+  aviso: AvisoDeEncerramento,
+  requisicao: Requisicao,
+  atendimentoId: string,
+  tipos: ReadonlyArray<{ tipo: string }>,
+): void => {
+  if (tipos.some((evento) => evento.tipo === 'ENCERRAMENTO')) {
+    aviso.avisar(atendimentoId, requisicao.get('authorization'), requisicao.requestId);
+  }
+};
 
 /** 201 na criacao, 200 na repeticao: o status vem do caso de uso, nao do verbo HTTP. */
 const responder = (resposta: Response, resultado: ResultadoComando<unknown>): void => {
@@ -138,6 +151,7 @@ export class AtendimentoController {
   constructor(
     @Inject(ConsultasClinicas) private readonly consultas: ConsultasClinicas,
     @Inject(RegistrarAtendimentoUseCase) private readonly registrar: RegistrarAtendimentoUseCase,
+    @Inject(AvisoDeEncerramento) private readonly aviso: AvisoDeEncerramento,
   ) {}
 
   @Get()
@@ -154,17 +168,22 @@ export class AtendimentoController {
   async criar(@Body() corpo: unknown, @Req() requisicao: Requisicao, @Res() resposta: Response): Promise<void> {
     const entrada = validar(atendimentoEntradaSchema, corpo);
     responder(resposta, await this.registrar.executar(entrada, contextoDoComando(requisicao)));
+    avisarSeEncerrou(this.aviso, requisicao, entrada.id, entrada.eventos ?? []);
   }
 }
 
 @Controller('atendimento-evento')
 export class AtendimentoEventoController {
-  constructor(@Inject(RegistrarEventoUseCase) private readonly registrar: RegistrarEventoUseCase) {}
+  constructor(
+    @Inject(RegistrarEventoUseCase) private readonly registrar: RegistrarEventoUseCase,
+    @Inject(AvisoDeEncerramento) private readonly aviso: AvisoDeEncerramento,
+  ) {}
 
   @Post()
   async criar(@Body() corpo: unknown, @Req() requisicao: Requisicao, @Res() resposta: Response): Promise<void> {
     const entrada = validar(eventoEntradaSchema, corpo);
     responder(resposta, await this.registrar.executar(entrada, contextoDoComando(requisicao)));
+    avisarSeEncerrou(this.aviso, requisicao, entrada.atendimentoId, [entrada]);
   }
 }
 

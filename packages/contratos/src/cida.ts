@@ -41,6 +41,8 @@ const camposEditaveisPessoa = {
   cpf: z.string().regex(/^\d{11}$/, 'deve ter 11 dígitos, sem pontuação').nullable(),
   cns: z.string().regex(/^\d{15}$/, 'deve ter 15 dígitos, sem pontuação').nullable(),
   telefone: texto(30).nullable(),
+  /** E-mail do proprio paciente: com ele, a ficha vai sozinha ao encerrar o atendimento. */
+  email: z.email('e-mail inválido').max(320).nullable(),
   contatoEmergenciaNome: texto(200).nullable(),
   contatoEmergenciaTelefone: texto(30).nullable(),
   contatoEmergenciaEmail: z.email('e-mail inválido').max(320).nullable(),
@@ -60,6 +62,7 @@ export const pessoaSchema = z.object({
   cpf: z.string().nullable(),
   cns: z.string().nullable(),
   telefone: z.string().nullable(),
+  email: z.string().nullable(),
   contatoEmergenciaNome: z.string().nullable(),
   contatoEmergenciaTelefone: z.string().nullable(),
   contatoEmergenciaEmail: z.string().nullable(),
