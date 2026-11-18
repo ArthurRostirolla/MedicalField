@@ -1,0 +1,631 @@
+openapi: 3.1.0
+info:
+  title: Jaiminho — MedicalField
+  summary: Ficha de atendimento em PDF e envio por e-mail
+  version: 0.1.0
+paths:
+  /api/v1/documento/ficha-atendimento:
+    post:
+      tags:
+      - documento
+      summary: Gera a ficha de atendimento em PDF
+      operationId: gerar_ficha_api_v1_documento_ficha_atendimento_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GerarFichaEntrada'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoSaida'
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '200':
+          description: Já existia documento com o mesmo conteúdo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoSaida'
+      security:
+      - HTTPBearer: []
+  /api/v1/documento:
+    get:
+      tags:
+      - documento
+      summary: Documentos de um atendimento
+      operationId: listar_api_v1_documento_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: atendimentoId
+        in: query
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Atendimentoid
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaDocumentos'
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /api/v1/documento/{id}:
+    get:
+      tags:
+      - documento
+      summary: Metadados e integridade
+      operationId: obter_api_v1_documento__id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentoComIntegridade'
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /api/v1/documento/{id}/pdf:
+    get:
+      tags:
+      - documento
+      summary: Download do PDF
+      operationId: baixar_api_v1_documento__id__pdf_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Id
+      responses:
+        '200':
+          description: O PDF guardado
+          content:
+            application/pdf: {}
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /api/v1/documento/{id}/email:
+    post:
+      tags:
+      - documento
+      summary: Enfileira o envio da ficha por e-mail
+      operationId: solicitar_envio_api_v1_documento__id__email_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Id
+      - name: Idempotency-Key
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Idempotency-Key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvioEntrada'
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioSaida'
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+    get:
+      tags:
+      - documento
+      summary: Situação dos envios
+      operationId: listar_envios_api_v1_documento__id__email_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ListaEnvios'
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+  /api/v1/documento/email/{envioId}/reenvio:
+    post:
+      tags:
+      - documento
+      summary: Recoloca na fila um envio em FALHA_DEFINITIVA
+      operationId: reenviar_api_v1_documento_email__envioId__reenvio_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: envioId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Envioid
+      responses:
+        '202':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EnvioSaida'
+        '401':
+          description: NAO_AUTENTICADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '404':
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '422':
+          description: VALIDACAO ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '500':
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+        '503':
+          description: SERVICO_INDISPONIVEL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Erro'
+components:
+  schemas:
+    DocumentoComIntegridade:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        atendimentoId:
+          type: string
+          format: uuid
+          title: Atendimentoid
+        codigoVerificacao:
+          type: string
+          title: Codigoverificacao
+        hashConteudo:
+          type: string
+          title: Hashconteudo
+        geradoPor:
+          type: string
+          format: uuid
+          title: Geradopor
+        geradoEm:
+          type: string
+          title: Geradoem
+        tamanhoBytes:
+          type: integer
+          title: Tamanhobytes
+        integro:
+          type: boolean
+          title: Integro
+      type: object
+      required:
+      - id
+      - atendimentoId
+      - codigoVerificacao
+      - hashConteudo
+      - geradoPor
+      - geradoEm
+      - tamanhoBytes
+      - integro
+      title: DocumentoComIntegridade
+    DocumentoSaida:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        atendimentoId:
+          type: string
+          format: uuid
+          title: Atendimentoid
+        codigoVerificacao:
+          type: string
+          title: Codigoverificacao
+        hashConteudo:
+          type: string
+          title: Hashconteudo
+        geradoPor:
+          type: string
+          format: uuid
+          title: Geradopor
+        geradoEm:
+          type: string
+          title: Geradoem
+        tamanhoBytes:
+          type: integer
+          title: Tamanhobytes
+      type: object
+      required:
+      - id
+      - atendimentoId
+      - codigoVerificacao
+      - hashConteudo
+      - geradoPor
+      - geradoEm
+      - tamanhoBytes
+      title: DocumentoSaida
+    EnvioEntrada:
+      properties:
+        destinatarioNome:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Destinatarionome
+        destinatarioEmail:
+          type: string
+          maxLength: 254
+          minLength: 3
+          title: Destinatarioemail
+        vinculo:
+          type: string
+          enum:
+          - PACIENTE
+          - FAMILIAR
+          title: Vinculo
+      additionalProperties: false
+      type: object
+      required:
+      - destinatarioNome
+      - destinatarioEmail
+      - vinculo
+      title: EnvioEntrada
+    EnvioSaida:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        documentoId:
+          type: string
+          format: uuid
+          title: Documentoid
+        destinatarioNome:
+          type: string
+          title: Destinatarionome
+        destinatarioEmail:
+          type: string
+          title: Destinatarioemail
+        vinculo:
+          type: string
+          title: Vinculo
+        status:
+          type: string
+          enum:
+          - PENDENTE
+          - ENVIANDO
+          - ENVIADO
+          - FALHA_DEFINITIVA
+          title: Status
+        tentativas:
+          type: integer
+          title: Tentativas
+        proximaTentativaEm:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Proximatentativaem
+        ultimoErro:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Ultimoerro
+        solicitadoPor:
+          type: string
+          format: uuid
+          title: Solicitadopor
+        criadoEm:
+          type: string
+          title: Criadoem
+        enviadoEm:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Enviadoem
+      type: object
+      required:
+      - id
+      - documentoId
+      - destinatarioNome
+      - destinatarioEmail
+      - vinculo
+      - status
+      - tentativas
+      - proximaTentativaEm
+      - ultimoErro
+      - solicitadoPor
+      - criadoEm
+      - enviadoEm
+      title: EnvioSaida
+    Erro:
+      properties:
+        codigo:
+          type: string
+          title: Codigo
+        mensagem:
+          type: string
+          title: Mensagem
+        detalhes:
+          items:
+            additionalProperties:
+              type: string
+            type: object
+          type: array
+          title: Detalhes
+        requestId:
+          type: string
+          title: Requestid
+      type: object
+      required:
+      - codigo
+      - mensagem
+      - detalhes
+      - requestId
+      title: Erro
+    GerarFichaEntrada:
+      properties:
+        atendimentoId:
+          type: string
+          format: uuid
+          title: Atendimentoid
+      additionalProperties: false
+      type: object
+      required:
+      - atendimentoId
+      title: GerarFichaEntrada
+    ListaDocumentos:
+      properties:
+        itens:
+          items:
+            $ref: '#/components/schemas/DocumentoSaida'
+          type: array
+          title: Itens
+        proximoCursor:
+          type: 'null'
+          title: Proximocursor
+      type: object
+      required:
+      - itens
+      title: ListaDocumentos
+    ListaEnvios:
+      properties:
+        itens:
+          items:
+            $ref: '#/components/schemas/EnvioSaida'
+          type: array
+          title: Itens
+        proximoCursor:
+          type: 'null'
+          title: Proximocursor
+      type: object
+      required:
+      - itens
+      title: ListaEnvios
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

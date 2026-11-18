@@ -1,0 +1,498 @@
+{
+  "atendimento": {
+    "id": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+    "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+    "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+    "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+    "profissionalNome": "Enf. Caio Brandão",
+    "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+    "iniciadoEm": "2026-11-17T17:42:00.000Z",
+    "recebidoEm": "2026-11-17T18:40:12.000Z",
+    "localDescricao": "Av. Benjamin Constant, 1200 — Centro, Lajeado/RS",
+    "latitude": -29.46692,
+    "longitude": -51.9614,
+    "queixaPrincipal": "Dor torácica em aperto com irradiação para o braço esquerdo",
+    "status": "ENCERRADO",
+    "encerradoEm": "2026-11-17T18:34:00.000Z"
+  },
+  "pessoa": {
+    "id": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+    "nome": "Otávio Luís Ferraz Antunes",
+    "dataNascimento": "1968-03-09",
+    "sexo": "M",
+    "cpf": "52998224725",
+    "cns": "898001160660761",
+    "telefone": "(51) 99999-0142",
+    "contatoEmergenciaNome": "Marina Antunes (filha)",
+    "contatoEmergenciaTelefone": "(51) 99999-0177",
+    "contatoEmergenciaEmail": "marina.antunes@exemplo.com",
+    "naoIdentificada": false,
+    "descricaoIdentificacao": null,
+    "possivelDuplicataDe": null,
+    "criadoEm": "2026-08-02T13:10:00.000Z",
+    "atualizadoEm": "2026-11-17T17:43:00.000Z"
+  },
+  "prontuario": {
+    "id": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+    "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+    "tipoSanguineo": "O+",
+    "observacoes": "Acompanhamento na unidade básica de saúde do bairro.",
+    "criadoEm": "2026-08-02T13:10:00.000Z",
+    "atualizadoEm": "2026-11-17T17:45:00.000Z",
+    "itens": [
+      {
+        "id": "11000000-0000-4000-8000-000000000001",
+        "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+        "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+        "tipo": "ALERGIA",
+        "descricao": "Dipirona",
+        "registradoPor": "a1b2c3d4-0002-4000-8000-000000000002",
+        "registradoEm": "2026-08-02T13:12:00.000Z",
+        "inativadoEm": null
+      },
+      {
+        "id": "11000000-0000-4000-8000-000000000002",
+        "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+        "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+        "tipo": "ALERGIA",
+        "descricao": "Látex",
+        "registradoPor": "a1b2c3d4-0002-4000-8000-000000000002",
+        "registradoEm": "2026-11-17T17:45:00.000Z",
+        "inativadoEm": null
+      },
+      {
+        "id": "11000000-0000-4000-8000-000000000003",
+        "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+        "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+        "tipo": "COMORBIDADE",
+        "descricao": "Hipertensão arterial sistêmica",
+        "registradoPor": "a1b2c3d4-0002-4000-8000-000000000002",
+        "registradoEm": "2026-08-02T13:12:00.000Z",
+        "inativadoEm": null
+      },
+      {
+        "id": "11000000-0000-4000-8000-000000000004",
+        "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+        "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+        "tipo": "COMORBIDADE",
+        "descricao": "Diabetes mellitus tipo 2",
+        "registradoPor": "a1b2c3d4-0002-4000-8000-000000000002",
+        "registradoEm": "2026-08-02T13:12:00.000Z",
+        "inativadoEm": null
+      },
+      {
+        "id": "11000000-0000-4000-8000-000000000005",
+        "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+        "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+        "tipo": "MEDICACAO_CONTINUA",
+        "descricao": "Losartana 50 mg, 2x ao dia",
+        "registradoPor": "a1b2c3d4-0002-4000-8000-000000000002",
+        "registradoEm": "2026-08-02T13:12:00.000Z",
+        "inativadoEm": null
+      },
+      {
+        "id": "11000000-0000-4000-8000-000000000006",
+        "prontuarioId": "c2d4e6f8-1a3b-4c5d-8e7f-9a0b1c2d3e4f",
+        "pessoaId": "3f9a6d52-8c1b-4e7a-b2d4-6a1c9e0f5b21",
+        "tipo": "MEDICACAO_CONTINUA",
+        "descricao": "Metformina 850 mg, 2x ao dia",
+        "registradoPor": "a1b2c3d4-0002-4000-8000-000000000002",
+        "registradoEm": "2026-08-02T13:12:00.000Z",
+        "inativadoEm": null
+      }
+    ]
+  },
+  "eventos": [
+    {
+      "id": "e0000000-0000-4000-8000-000000000001",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "OBSERVACAO",
+      "ocorridoEm": "2026-11-17T17:44:10.000Z",
+      "dados": {
+        "texto": "Paciente encontrado sentado na calçada, consciente e orientado, acompanhado pela filha. Refere dor no peito em aperto iniciada há cerca de 40 minutos, com irradiação para o braço esquerdo."
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000002",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "SINAIS_VITAIS",
+      "ocorridoEm": "2026-11-17T17:46:30.000Z",
+      "dados": {
+        "pressaoSistolica": 168,
+        "pressaoDiastolica": 102,
+        "frequenciaCardiaca": 108,
+        "frequenciaRespiratoria": 22,
+        "saturacao": 93,
+        "temperatura": 36.4,
+        "glicemia": 142
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000003",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "GLASGOW",
+      "ocorridoEm": "2026-11-17T17:47:05.000Z",
+      "dados": {
+        "ocular": 4,
+        "verbal": 5,
+        "motora": 6,
+        "total": 15
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000004",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "TRIAGEM",
+      "ocorridoEm": "2026-11-17T17:48:20.000Z",
+      "dados": {
+        "protocolo": "MANCHESTER",
+        "classificacao": "LARANJA"
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000005",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "PROCEDIMENTO",
+      "ocorridoEm": "2026-11-17T17:49:40.000Z",
+      "dados": {
+        "descricao": "Oxigênio por cateter nasal a 3 L/min"
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000006",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "PROCEDIMENTO",
+      "ocorridoEm": "2026-11-17T17:51:15.000Z",
+      "dados": {
+        "descricao": "Monitorização cardíaca contínua e oximetria de pulso"
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000007",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "PROCEDIMENTO",
+      "ocorridoEm": "2026-11-17T17:53:00.000Z",
+      "dados": {
+        "descricao": "Acesso venoso periférico em membro superior direito, cateter 18G"
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000008",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "MEDICACAO",
+      "ocorridoEm": "2026-11-17T17:55:30.000Z",
+      "dados": {
+        "medicamentoId": "0a000000-0000-4000-8000-000000000011",
+        "nome": "Ácido acetilsalicílico",
+        "dose": "200",
+        "unidade": "mg",
+        "via": "Oral (mastigado)"
+      },
+      "profissionalId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "profissionalNome": "Dra. Helena Prado",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000009",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "MEDICACAO",
+      "ocorridoEm": "2026-11-17T17:58:10.000Z",
+      "dados": {
+        "medicamentoId": "0a000000-0000-4000-8000-000000000012",
+        "nome": "Dinitrato de isossorbida",
+        "dose": "5",
+        "unidade": "mg",
+        "via": "Sublingual"
+      },
+      "profissionalId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "profissionalNome": "Dra. Helena Prado",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000010",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "SINAIS_VITAIS",
+      "ocorridoEm": "2026-11-17T18:03:45.000Z",
+      "dados": {
+        "pressaoSistolica": 154,
+        "pressaoDiastolica": 96,
+        "frequenciaCardiaca": 101,
+        "frequenciaRespiratoria": 20,
+        "saturacao": 96
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000011",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "OBSERVACAO",
+      "ocorridoEm": "2026-11-17T18:05:20.000Z",
+      "dados": {
+        "texto": "Refere melhora parcial da dor após medicação. Mantém-se consciente, orientado e colaborativo."
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000012",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "PROCEDIMENTO",
+      "ocorridoEm": "2026-11-17T18:07:00.000Z",
+      "dados": {
+        "descricao": "Eletrocardiograma de 12 derivações realizado e transmitido à central de regulação"
+      },
+      "profissionalId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "profissionalNome": "Dra. Helena Prado",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000013",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "MEDICACAO",
+      "ocorridoEm": "2026-11-17T18:10:30.000Z",
+      "dados": {
+        "medicamentoId": null,
+        "nome": "Morfina",
+        "dose": "3",
+        "unidade": "mg",
+        "via": "Endovenosa"
+      },
+      "profissionalId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "profissionalNome": "Dra. Helena Prado",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000014",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "RETIFICACAO",
+      "ocorridoEm": "2026-11-17T18:12:40.000Z",
+      "dados": {
+        "motivo": "Dose digitada incorretamente no registro original",
+        "dadosCorrigidos": {
+          "dose": "2",
+          "unidade": "mg"
+        }
+      },
+      "profissionalId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "profissionalNome": "Dra. Helena Prado",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z",
+      "retificaEventoId": "e0000000-0000-4000-8000-000000000013"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000015",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "SINAIS_VITAIS",
+      "ocorridoEm": "2026-11-17T18:15:00.000Z",
+      "dados": {
+        "pressaoSistolica": 142,
+        "pressaoDiastolica": 90,
+        "frequenciaCardiaca": 94,
+        "frequenciaRespiratoria": 18,
+        "saturacao": 97
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000016",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "OBSERVACAO",
+      "ocorridoEm": "2026-11-17T18:17:30.000Z",
+      "dados": {
+        "texto": "Início do deslocamento para o hospital de referência. Familiar acompanha na viatura."
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000017",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "GLASGOW",
+      "ocorridoEm": "2026-11-17T18:22:10.000Z",
+      "dados": {
+        "ocular": 4,
+        "verbal": 5,
+        "motora": 6,
+        "total": 15
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000018",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "SINAIS_VITAIS",
+      "ocorridoEm": "2026-11-17T18:26:40.000Z",
+      "dados": {
+        "pressaoSistolica": 138,
+        "pressaoDiastolica": 88,
+        "frequenciaCardiaca": 90,
+        "frequenciaRespiratoria": 18,
+        "saturacao": 97,
+        "temperatura": 36.5
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000019",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "OBSERVACAO",
+      "ocorridoEm": "2026-11-17T18:30:15.000Z",
+      "dados": {
+        "texto": "Chegada ao hospital. Passagem de caso verbal à equipe da sala de emergência, com entrega do traçado do eletrocardiograma."
+      },
+      "profissionalId": "a1b2c3d4-0002-4000-8000-000000000002",
+      "profissionalNome": "Enf. Caio Brandão",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    },
+    {
+      "id": "e0000000-0000-4000-8000-000000000020",
+      "atendimentoId": "7b0e2c0a-5f1d-4c3e-9a41-2d6f8e1b9c10",
+      "tipo": "ENCERRAMENTO",
+      "ocorridoEm": "2026-11-17T18:34:00.000Z",
+      "dados": {
+        "desfecho": "Paciente entregue à equipe hospitalar",
+        "destino": "Hospital Regional do Vale — Sala de Emergência"
+      },
+      "profissionalId": "a1b2c3d4-0001-4000-8000-000000000001",
+      "profissionalNome": "Dra. Helena Prado",
+      "dispositivoId": "d15b0517-0000-4000-8000-0000000000aa",
+      "recebidoEm": "2026-11-17T18:40:12.000Z"
+    }
+  ],
+  "resumo": {
+    "ultimosSinaisVitais": {
+      "ocorridoEm": "2026-11-17T18:26:40.000Z",
+      "dados": {
+        "pressaoSistolica": 138,
+        "pressaoDiastolica": 88,
+        "frequenciaCardiaca": 90,
+        "frequenciaRespiratoria": 18,
+        "saturacao": 97,
+        "temperatura": 36.5
+      }
+    },
+    "glasgowMaisRecente": {
+      "ocorridoEm": "2026-11-17T18:22:10.000Z",
+      "dados": {
+        "ocular": 4,
+        "verbal": 5,
+        "motora": 6,
+        "total": 15
+      }
+    },
+    "triagem": {
+      "ocorridoEm": "2026-11-17T17:48:20.000Z",
+      "dados": {
+        "protocolo": "MANCHESTER",
+        "classificacao": "LARANJA"
+      }
+    },
+    "medicacoes": [
+      {
+        "ocorridoEm": "2026-11-17T17:55:30.000Z",
+        "nome": "Ácido acetilsalicílico",
+        "dose": "200",
+        "unidade": "mg",
+        "via": "Oral (mastigado)"
+      },
+      {
+        "ocorridoEm": "2026-11-17T17:58:10.000Z",
+        "nome": "Dinitrato de isossorbida",
+        "dose": "5",
+        "unidade": "mg",
+        "via": "Sublingual"
+      },
+      {
+        "ocorridoEm": "2026-11-17T18:10:30.000Z",
+        "nome": "Morfina",
+        "dose": "2",
+        "unidade": "mg",
+        "via": "Endovenosa"
+      }
+    ],
+    "procedimentos": [
+      {
+        "ocorridoEm": "2026-11-17T17:49:40.000Z",
+        "descricao": "Oxigênio por cateter nasal a 3 L/min"
+      },
+      {
+        "ocorridoEm": "2026-11-17T17:51:15.000Z",
+        "descricao": "Monitorização cardíaca contínua e oximetria de pulso"
+      },
+      {
+        "ocorridoEm": "2026-11-17T17:53:00.000Z",
+        "descricao": "Acesso venoso periférico em membro superior direito, cateter 18G"
+      },
+      {
+        "ocorridoEm": "2026-11-17T18:07:00.000Z",
+        "descricao": "Eletrocardiograma de 12 derivações realizado e transmitido à central de regulação"
+      }
+    ],
+    "alergias": [
+      "Dipirona",
+      "Látex"
+    ],
+    "comorbidades": [
+      "Hipertensão arterial sistêmica",
+      "Diabetes mellitus tipo 2"
+    ],
+    "medicacoesContinuas": [
+      "Losartana 50 mg, 2x ao dia",
+      "Metformina 850 mg, 2x ao dia"
+    ],
+    "encerramento": {
+      "ocorridoEm": "2026-11-17T18:34:00.000Z",
+      "desfecho": "Paciente entregue à equipe hospitalar",
+      "destino": "Hospital Regional do Vale — Sala de Emergência"
+    }
+  }
+}

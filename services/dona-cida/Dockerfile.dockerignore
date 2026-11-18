@@ -1,0 +1,8 @@
+# Vale para o build deste Dockerfile (contexto = raiz do repositorio).
+.git
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example

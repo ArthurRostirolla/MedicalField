@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Ficha de Atendimento Pré-Hospitalar — {{ codigo }}</title>
+<meta name="author" content="MedicalField">
+<style>
+{% include "ficha.css" %}
+</style>
+</head>
+<body>
+
+{# Elementos repetidos em toda página (posicionados nas margens pelo CSS). #}
+<div class="faixa">{{ faixa }}</div>
+<div class="rodape">
+  <table><tr>
+    <td class="rodape-qr"><img src="{{ qr }}" alt="QR de verificação"></td>
+    <td class="rodape-texto">
+      <div><span class="rotulo">Código de verificação</span> <span class="codigo">{{ codigo }}</span></div>
+      <div>Verifique em {{ url_verificacao }}</div>
+      <div>Gerado em {{ gerado_em }} (horário de Brasília) · MedicalField</div>
+    </td>
+    <td class="rodape-pagina">Página <span class="pagina"></span> de <span class="paginas"></span></td>
+  </tr></table>
+</div>
+
+{% macro pares(lista) %}
+  {% for rotulo, valor in lista %}
+    <span class="par{% if rotulo and valor|length < 40 %} junto{% endif %}">{% if rotulo %}<span class="par-rotulo">{{ rotulo }}</span> {% endif %}{{ valor }}</span>{% if not loop.last %}<span class="sep"> · </span>{% endif %}
+  {% endfor %}
+{% endmacro %}
+
+{% macro lista_simples(itens) %}
+  {% if itens %}
+    <ul>{% for item in itens %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% else %}
+    <p class="sem-registro">Sem registro</p>
+  {% endif %}
+{% endmacro %}
+
+<header class="cabecalho">
+  <table><tr>
+    <td>
+      <div class="marca">MedicalField</div>
+      <h1>Ficha de Atendimento Pré-Hospitalar</h1>
+    </td>
+    <td class="cabecalho-codigo">
+      <div class="rotulo">Código de verificação</div>
+      <div class="codigo">{{ codigo }}</div>
+    </td>
+  </tr></table>
+</header>
+
+<section>
+  <h2>Identificação da pessoa</h2>
+  <table class="campos">
+    <tr>
+      <td colspan="3">
+        <div class="rotulo">Nome</div>
+        <div class="valor nome">{{ pessoa.nome }}{% if pessoa.nao_identificada %} <span class="marca-texto">Não identificada</span>{% endif %}</div>
+        {% if pessoa.descricao_identificacao %}<div class="complemento">{{ pessoa.descricao_identificacao }}</div>{% endif %}
+      </td>
+      <td>
+        <div class="rotulo">Tipo sanguíneo</div>
+        <div class="valor">{{ pessoa.tipo_sanguineo }}</div>
+      </td>
+    </tr>
+    <tr>
+      <td><div class="rotulo">Nascimento</div><div class="valor">{{ pessoa.nascimento }}</div></td>
+      <td><div class="rotulo">Sexo</div><div class="valor">{{ pessoa.sexo }}</div></td>
+      <td><div class="rotulo">CPF</div><div class="valor">{{ pessoa.cpf }}</div></td>
+      <td><div class="rotulo">CNS</div><div class="valor">{{ pessoa.cns }}</div></td>
+    </tr>
+    <tr>
+      <td><div class="rotulo">Telefone</div><div class="valor">{{ pessoa.telefone }}</div></td>
+      <td colspan="3">
+        <div class="rotulo">Contato de emergência</div>
+        <div class="valor">{{ pessoa.contato_nome }}{% if pessoa.contato_telefone != "—" %} · {{ pessoa.contato_telefone }}{% endif %}</div>
+      </td>
+    </tr>
+    {% if pessoa.observacoes %}
+    <tr>
+      <td colspan="4"><div class="rotulo">Observações do prontuário</div><div class="valor">{{ pessoa.observacoes }}</div></td>
+    </tr>
+    {% endif %}
+  </table>
+</section>
+
+<section>
+  <h2>Atendimento</h2>
+  <table class="campos">
+    <tr>
+      <td><div class="rotulo">Início</div><div class="valor">{{ atendimento.inicio }}</div></td>
+      <td><div class="rotulo">Encerramento</div><div class="valor">{{ atendimento.encerrado_em }}</div></td>
+      <td><div class="rotulo">Situação</div><div class="valor">{{ atendimento.situacao }}</div></td>
+      <td><div class="rotulo">Profissional responsável</div><div class="valor">{{ atendimento.profissional }}</div></td>
+    </tr>
+    <tr>
+      <td colspan="2"><div class="rotulo">Local</div><div class="valor">{{ atendimento.local }}</div></td>
+      <td colspan="2"><div class="rotulo">Queixa principal</div><div class="valor">{{ atendimento.queixa }}</div></td>
+    </tr>
+  </table>
+</section>
+
+<section class="passagem">
+  <h2>Passagem de caso</h2>
+  <div class="passagem-corpo">
+
+    <table class="quadros"><tr>
+      <td class="quadro quadro-largo">
+        <div class="quadro-titulo">Últimos sinais vitais{% if resumo.sinais_vitais %} <span class="quando">{{ resumo.sinais_vitais.quando }}</span>{% endif %}</div>
+        {% if resumo.sinais_vitais %}
+          {% for rotulo, valor in resumo.sinais_vitais.pares %}
+            <div class="medida-item"><div class="rotulo">{{ rotulo }}</div><div class="medida">{{ valor }}</div></div>
+          {% endfor %}
+        {% else %}
+          <p class="sem-registro">Sem registro</p>
+        {% endif %}
+      </td>
+      <td class="quadro">
+        <div class="quadro-titulo">Glasgow mais recente{% if resumo.glasgow %} <span class="quando">{{ resumo.glasgow.quando }}</span>{% endif %}</div>
+        {% if resumo.glasgow %}
+          <div class="destaque-numero">{{ resumo.glasgow.total }}</div>
+          <div class="detalhe">{{ pares(resumo.glasgow.pares) }}</div>
+        {% else %}
+          <p class="sem-registro">Sem registro</p>
+        {% endif %}
+      </td>
+      <td class="quadro">
+        <div class="quadro-titulo">Triagem{% if resumo.triagem %} <span class="quando">{{ resumo.triagem.quando }}</span>{% endif %}</div>
+        {% if resumo.triagem %}
+          <div class="destaque-texto"><span class="cor cor-{{ resumo.triagem.classe }}"></span>{{ resumo.triagem.classificacao }}</div>
+          <div class="detalhe"><span class="par-rotulo">Protocolo</span> {{ resumo.triagem.protocolo }}</div>
+        {% else %}
+          <p class="sem-registro">Sem registro</p>
+        {% endif %}
+      </td>
+    </tr></table>
+
+    <table class="quadros"><tr>
+      <td class="quadro">
+        <div class="quadro-titulo">Alergias</div>
+        {{ lista_simples(resumo.alergias) }}
+      </td>
+      <td class="quadro">
+        <div class="quadro-titulo">Comorbidades</div>
+        {{ lista_simples(resumo.comorbidades) }}
+      </td>
+      <td class="quadro">
+        <div class="quadro-titulo">Medicações de uso contínuo</div>
+        {{ lista_simples(resumo.medicacoes_continuas) }}
+      </td>
+    </tr></table>
+
+    <div class="bloco">
+      <div class="quadro-titulo">Medicações administradas</div>
+      {% if resumo.medicacoes %}
+      <table class="lista">
+        <thead><tr><th class="col-hora">Hora</th><th>Medicamento</th><th>Dose</th><th>Via</th></tr></thead>
+        <tbody>
+        {% for medicacao in resumo.medicacoes %}
+          <tr><td class="col-hora">{{ medicacao.hora }}</td><td>{{ medicacao.nome }}</td><td>{{ medicacao.dose }}</td><td>{{ medicacao.via }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="sem-registro">Sem registro</p>
+      {% endif %}
+    </div>
+
+    <div class="bloco">
+      <div class="quadro-titulo">Procedimentos</div>
+      {% if resumo.procedimentos %}
+      <table class="lista">
+        <tbody>
+        {% for procedimento in resumo.procedimentos %}
+          <tr><td class="col-hora">{{ procedimento.hora }}</td><td>{{ procedimento.descricao }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="sem-registro">Sem registro</p>
+      {% endif %}
+    </div>
+
+    <div class="bloco desfecho">
+      <div class="quadro-titulo">Desfecho{% if resumo.encerramento %} <span class="quando">{{ resumo.encerramento.quando }}</span>{% endif %}</div>
+      {% if resumo.encerramento %}
+        <div class="valor"><strong>{{ resumo.encerramento.desfecho }}</strong>{% if resumo.encerramento.destino != "—" %}<span class="sep"> · </span><span class="par-rotulo">Destino</span> {{ resumo.encerramento.destino }}{% endif %}</div>
+      {% else %}
+        <p class="sem-registro">Atendimento sem encerramento registrado</p>
+      {% endif %}
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <h2>Linha do tempo</h2>
+  {% if linha_do_tempo %}
+  <table class="tempo">
+    <thead>
+      <tr><th class="col-hora">Hora</th><th class="col-tipo">Tipo</th><th>Registro</th><th class="col-prof">Profissional</th></tr>
+    </thead>
+    <tbody>
+    {% for evento in linha_do_tempo %}
+      <tr class="{{ 'retificado' if evento.retificado_por }}">
+        <td class="col-hora">{{ evento.hora }}{% if evento.novo_dia %}<div class="dia">{{ evento.dia }}</div>{% endif %}</td>
+        <td class="col-tipo">{{ evento.tipo }}</td>
+        <td>
+          {% if evento.retifica %}
+            <div>Retifica o registro de <strong>{{ evento.retifica.tipo }}</strong> de {{ evento.retifica.quando }}</div>
+            <div>{{ pares(evento.pares) }}</div>
+            {% if evento.pares_corrigidos %}<div><span class="par-rotulo">Dados corrigidos:</span> {{ pares(evento.pares_corrigidos) }}</div>{% endif %}
+          {% else %}
+            <div class="conteudo">{{ pares(evento.pares) }}</div>
+          {% endif %}
+          {% for retificacao in evento.retificado_por %}
+            <div class="retificacao">
+              <span class="marca-texto">Retificado</span>
+              em {{ retificacao.quando }} por {{ retificacao.profissional }} —
+              <span class="par-rotulo">Motivo</span> {{ retificacao.motivo }}
+              {% if retificacao.pares %}<br><span class="par-rotulo">Dados corrigidos:</span> {{ pares(retificacao.pares) }}{% endif %}
+            </div>
+          {% endfor %}
+        </td>
+        <td class="col-prof">{{ evento.profissional }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+    <p class="sem-registro">Nenhum evento registrado</p>
+  {% endif %}
+  <p class="fim">Fim da ficha · {{ linha_do_tempo|length }} registro{{ "s" if linha_do_tempo|length != 1 }} na linha do tempo · atendimento {{ atendimento.id }}</p>
+</section>
+
+</body>
+</html>

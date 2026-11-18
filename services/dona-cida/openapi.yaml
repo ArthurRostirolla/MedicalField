@@ -1,0 +1,4270 @@
+openapi: 3.1.0
+info:
+  title: MedicalField — DonaCida (núcleo clínico e sincronização)
+  version: 0.1.0
+  description: "Gerado por scripts/gerar-openapi.ts a partir de @medicalfield/contratos; a fonte de verdade é
+    docs/contratos.md. DADOS DEMONSTRATIVOS — SEM VALIDADE CLÍNICA. Escritas: o id da entidade vem do cliente; com
+    Idempotency-Key, a repetição devolve 200 com a resposta original. 4xx = rejeição definitiva; rede/5xx =
+    transitório."
+servers:
+  - url: /api/v1
+security:
+  - bearer: []
+paths:
+  /medicamento:
+    get:
+      summary: Lista o catálogo de medicamentos
+      tags:
+        - medicamento
+      parameters:
+        - name: limite
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - name: incluirInativos
+          in: query
+          required: false
+          schema:
+            default: "false"
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaMedicamento"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /prontuario:
+    get:
+      summary: Lista todos os prontuários, com a pessoa resumida
+      tags:
+        - prontuario
+      parameters:
+        - name: limite
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaProntuario"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+    post:
+      summary: Cadastra o prontuário; se a pessoa já tem, devolve o existente com os itens unidos
+      tags:
+        - prontuario
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProntuarioEntrada"
+      responses:
+        "200":
+          description: Repetição do comando, ou o registro já existia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prontuario"
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prontuario"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /prontuario/{pessoaId}:
+    get:
+      summary: Prontuário de uma pessoa, com itens
+      tags:
+        - prontuario
+      parameters:
+        - name: pessoaId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Prontuario"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /prontuario-item:
+    post:
+      summary: Acrescenta alergia, comorbidade ou medicação contínua
+      tags:
+        - prontuario-item
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProntuarioItemEntrada"
+      responses:
+        "200":
+          description: Repetição do comando, ou o registro já existia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProntuarioItem"
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProntuarioItem"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /prontuario-item/{id}/inativacao:
+    post:
+      summary: Inativa um item do prontuário
+      tags:
+        - prontuario-item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InativacaoEntrada"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProntuarioItem"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /pessoa:
+    post:
+      summary: Cadastra pessoa; duplicata provável é aceita e sinalizada
+      tags:
+        - pessoa
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PessoaEntrada"
+      responses:
+        "200":
+          description: Repetição do comando, ou o registro já existia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pessoa"
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pessoa"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+    get:
+      summary: Lista ou busca pessoas (nome ou CPF)
+      tags:
+        - pessoa
+      parameters:
+        - name: limite
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - name: busca
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 200
+        - name: somenteDuplicatas
+          in: query
+          required: false
+          schema:
+            default: "false"
+            type: string
+            enum:
+              - "true"
+              - "false"
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaPessoa"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /pessoa/{id}:
+    get:
+      summary: Uma pessoa
+      tags:
+        - pessoa
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pessoa"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+    patch:
+      summary: Altera o cadastro; por campo, vence a edição mais recente
+      tags:
+        - pessoa
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PessoaAlteracao"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Pessoa"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /atendimento/{pessoaId}:
+    get:
+      summary: Atendimentos de uma pessoa, mais recentes primeiro
+      tags:
+        - atendimento
+      parameters:
+        - name: pessoaId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limite
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaAtendimento"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /atendimento:
+    get:
+      summary: Todos os atendimentos, mais recentes primeiro
+      tags:
+        - atendimento
+      parameters:
+        - name: limite
+          in: query
+          required: false
+          schema:
+            default: 50
+            type: integer
+            minimum: 1
+            maximum: 200
+        - name: cursor
+          in: query
+          required: false
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 500
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaginaAtendimento"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+    post:
+      summary: Registra atendimento (pode trazer eventos iniciais)
+      tags:
+        - atendimento
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AtendimentoEntrada"
+      responses:
+        "200":
+          description: Repetição do comando, ou o registro já existia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Atendimento"
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Atendimento"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /atendimento-evento:
+    post:
+      summary: Acrescenta evento à linha do tempo
+      tags:
+        - atendimento-evento
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+        - $ref: "#/components/parameters/DispositivoId"
+        - $ref: "#/components/parameters/RequestId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EventoEntrada"
+      responses:
+        "200":
+          description: Repetição do comando, ou o registro já existia
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Evento"
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Evento"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO (corpo inválido ou referência inexistente) ou CHAVE_IDEMPOTENCIA_CONFLITANTE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /ficha/{atendimentoId}:
+    get:
+      summary: Atendimento completo + resumo (passagem de caso)
+      tags:
+        - ficha
+      parameters:
+        - name: atendimentoId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ficha"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "404":
+          description: NAO_ENCONTRADO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+  /sync/alteracoes:
+    get:
+      summary: "Descida por cursor: o que mudou desde `desde`"
+      tags:
+        - sync
+      parameters:
+        - name: desde
+          in: query
+          required: false
+          schema:
+            default: "0"
+            type: string
+            pattern: ^\d{1,18}$
+        - name: limite
+          in: query
+          required: false
+          schema:
+            default: 500
+            type: integer
+            minimum: 1
+            maximum: 1000
+        - $ref: "#/components/parameters/RequestId"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alteracoes"
+        "401":
+          description: NAO_AUTENTICADO — token ausente, inválido ou expirado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "422":
+          description: VALIDACAO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "500":
+          description: ERRO_INTERNO
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+        "503":
+          description: SERVICO_INDISPONIVEL — banco ou serviço de identidade fora
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Erro"
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT (EdDSA, emitido pelo MikeBaguncinha)
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: UUID da operação; o app sempre envia em escritas.
+    DispositivoId:
+      name: X-Dispositivo-Id
+      in: header
+      required: false
+      schema:
+        type: string
+        format: uuid
+    RequestId:
+      name: X-Request-Id
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Gerado se ausente; devolvido na resposta.
+  schemas:
+    Erro:
+      type: object
+      properties:
+        codigo:
+          type: string
+          enum:
+            - CREDENCIAIS_INVALIDAS
+            - NAO_AUTENTICADO
+            - SEM_PERMISSAO
+            - NAO_ENCONTRADO
+            - VALIDACAO
+            - CHAVE_IDEMPOTENCIA_CONFLITANTE
+            - MUITAS_TENTATIVAS
+            - ERRO_INTERNO
+            - SERVICO_INDISPONIVEL
+        mensagem:
+          type: string
+        detalhes:
+          type: array
+          items:
+            type: object
+            properties:
+              campo:
+                type: string
+              mensagem:
+                type: string
+            required:
+              - campo
+              - mensagem
+            additionalProperties: false
+        requestId:
+          type: string
+      required:
+        - codigo
+        - mensagem
+        - requestId
+      additionalProperties: false
+    Medicamento:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        nome:
+          type: string
+        principioAtivo:
+          type:
+            - string
+            - "null"
+        apresentacao:
+          type:
+            - string
+            - "null"
+        observacao:
+          type:
+            - string
+            - "null"
+        ativo:
+          type: boolean
+      required:
+        - id
+        - nome
+        - principioAtivo
+        - apresentacao
+        - observacao
+        - ativo
+      additionalProperties: false
+    Pessoa:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        nome:
+          type: string
+        dataNascimento:
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
+        sexo:
+          anyOf:
+            - type: string
+              enum:
+                - M
+                - F
+                - I
+            - type: "null"
+        cpf:
+          type:
+            - string
+            - "null"
+        cns:
+          type:
+            - string
+            - "null"
+        telefone:
+          type:
+            - string
+            - "null"
+        contatoEmergenciaNome:
+          type:
+            - string
+            - "null"
+        contatoEmergenciaTelefone:
+          type:
+            - string
+            - "null"
+        contatoEmergenciaEmail:
+          type:
+            - string
+            - "null"
+        naoIdentificada:
+          type: boolean
+        descricaoIdentificacao:
+          type:
+            - string
+            - "null"
+        possivelDuplicataDe:
+          anyOf:
+            - type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            - type: "null"
+        criadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        atualizadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+      required:
+        - id
+        - nome
+        - dataNascimento
+        - sexo
+        - cpf
+        - cns
+        - telefone
+        - contatoEmergenciaNome
+        - contatoEmergenciaTelefone
+        - contatoEmergenciaEmail
+        - naoIdentificada
+        - descricaoIdentificacao
+        - possivelDuplicataDe
+        - criadoEm
+        - atualizadoEm
+      additionalProperties: false
+    PessoaEntrada:
+      type: object
+      properties:
+        nome:
+          type: string
+          minLength: 1
+          maxLength: 200
+        dataNascimento:
+          anyOf:
+            - type: string
+              format: date
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+            - type: "null"
+        sexo:
+          anyOf:
+            - type: string
+              enum:
+                - M
+                - F
+                - I
+            - type: "null"
+        cpf:
+          anyOf:
+            - type: string
+              pattern: ^\d{11}$
+            - type: "null"
+        cns:
+          anyOf:
+            - type: string
+              pattern: ^\d{15}$
+            - type: "null"
+        telefone:
+          anyOf:
+            - type: string
+              minLength: 1
+              maxLength: 30
+            - type: "null"
+        contatoEmergenciaNome:
+          anyOf:
+            - type: string
+              minLength: 1
+              maxLength: 200
+            - type: "null"
+        contatoEmergenciaTelefone:
+          anyOf:
+            - type: string
+              minLength: 1
+              maxLength: 30
+            - type: "null"
+        contatoEmergenciaEmail:
+          anyOf:
+            - type: string
+              maxLength: 320
+              format: email
+              pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+            - type: "null"
+        naoIdentificada:
+          type: boolean
+        descricaoIdentificacao:
+          anyOf:
+            - type: string
+              minLength: 1
+              maxLength: 1000
+            - type: "null"
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        editadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+      required:
+        - nome
+        - id
+        - editadoEm
+      additionalProperties: false
+    PessoaAlteracao:
+      type: object
+      properties:
+        campos:
+          type: object
+          properties:
+            nome:
+              type: string
+              minLength: 1
+              maxLength: 200
+            dataNascimento:
+              anyOf:
+                - type: string
+                  format: date
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                - type: "null"
+            sexo:
+              anyOf:
+                - type: string
+                  enum:
+                    - M
+                    - F
+                    - I
+                - type: "null"
+            cpf:
+              anyOf:
+                - type: string
+                  pattern: ^\d{11}$
+                - type: "null"
+            cns:
+              anyOf:
+                - type: string
+                  pattern: ^\d{15}$
+                - type: "null"
+            telefone:
+              anyOf:
+                - type: string
+                  minLength: 1
+                  maxLength: 30
+                - type: "null"
+            contatoEmergenciaNome:
+              anyOf:
+                - type: string
+                  minLength: 1
+                  maxLength: 200
+                - type: "null"
+            contatoEmergenciaTelefone:
+              anyOf:
+                - type: string
+                  minLength: 1
+                  maxLength: 30
+                - type: "null"
+            contatoEmergenciaEmail:
+              anyOf:
+                - type: string
+                  maxLength: 320
+                  format: email
+                  pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
+                - type: "null"
+            naoIdentificada:
+              type: boolean
+            descricaoIdentificacao:
+              anyOf:
+                - type: string
+                  minLength: 1
+                  maxLength: 1000
+                - type: "null"
+          additionalProperties: false
+        editadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+      required:
+        - campos
+        - editadoEm
+      additionalProperties: false
+    ProntuarioItem:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        prontuarioId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tipo:
+          type: string
+          enum:
+            - ALERGIA
+            - COMORBIDADE
+            - MEDICACAO_CONTINUA
+        descricao:
+          type: string
+        registradoPor:
+          anyOf:
+            - type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            - type: "null"
+        registradoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        inativadoEm:
+          anyOf:
+            - type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            - type: "null"
+      required:
+        - id
+        - prontuarioId
+        - pessoaId
+        - tipo
+        - descricao
+        - registradoPor
+        - registradoEm
+        - inativadoEm
+      additionalProperties: false
+    Prontuario:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tipoSanguineo:
+          type:
+            - string
+            - "null"
+        observacoes:
+          type:
+            - string
+            - "null"
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              prontuarioId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              pessoaId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              tipo:
+                type: string
+                enum:
+                  - ALERGIA
+                  - COMORBIDADE
+                  - MEDICACAO_CONTINUA
+              descricao:
+                type: string
+              registradoPor:
+                anyOf:
+                  - type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  - type: "null"
+              registradoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              inativadoEm:
+                anyOf:
+                  - type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  - type: "null"
+            required:
+              - id
+              - prontuarioId
+              - pessoaId
+              - tipo
+              - descricao
+              - registradoPor
+              - registradoEm
+              - inativadoEm
+            additionalProperties: false
+        criadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        atualizadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+      required:
+        - id
+        - pessoaId
+        - tipoSanguineo
+        - observacoes
+        - itens
+        - criadoEm
+        - atualizadoEm
+      additionalProperties: false
+    ProntuarioComPessoa:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tipoSanguineo:
+          type:
+            - string
+            - "null"
+        observacoes:
+          type:
+            - string
+            - "null"
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              prontuarioId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              pessoaId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              tipo:
+                type: string
+                enum:
+                  - ALERGIA
+                  - COMORBIDADE
+                  - MEDICACAO_CONTINUA
+              descricao:
+                type: string
+              registradoPor:
+                anyOf:
+                  - type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  - type: "null"
+              registradoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              inativadoEm:
+                anyOf:
+                  - type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  - type: "null"
+            required:
+              - id
+              - prontuarioId
+              - pessoaId
+              - tipo
+              - descricao
+              - registradoPor
+              - registradoEm
+              - inativadoEm
+            additionalProperties: false
+        criadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        atualizadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        pessoa:
+          type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            nome:
+              type: string
+            dataNascimento:
+              anyOf:
+                - type: string
+                  format: date
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                - type: "null"
+            cpf:
+              type:
+                - string
+                - "null"
+            naoIdentificada:
+              type: boolean
+          required:
+            - id
+            - nome
+            - dataNascimento
+            - cpf
+            - naoIdentificada
+          additionalProperties: false
+      required:
+        - id
+        - pessoaId
+        - tipoSanguineo
+        - observacoes
+        - itens
+        - criadoEm
+        - atualizadoEm
+        - pessoa
+      additionalProperties: false
+    ProntuarioEntrada:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tipoSanguineo:
+          type: string
+          minLength: 1
+          maxLength: 10
+        observacoes:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        itens:
+          maxItems: 200
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              tipo:
+                type: string
+                enum:
+                  - ALERGIA
+                  - COMORBIDADE
+                  - MEDICACAO_CONTINUA
+              descricao:
+                type: string
+                minLength: 1
+                maxLength: 500
+              registradoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            required:
+              - id
+              - tipo
+              - descricao
+              - registradoEm
+            additionalProperties: false
+      required:
+        - id
+        - pessoaId
+      additionalProperties: false
+    ProntuarioItemEntrada:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        tipo:
+          type: string
+          enum:
+            - ALERGIA
+            - COMORBIDADE
+            - MEDICACAO_CONTINUA
+        descricao:
+          type: string
+          minLength: 1
+          maxLength: 500
+        registradoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+      required:
+        - id
+        - tipo
+        - descricao
+        - registradoEm
+        - pessoaId
+      additionalProperties: false
+    InativacaoEntrada:
+      type: object
+      properties:
+        inativadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+      required:
+        - inativadoEm
+      additionalProperties: false
+    EventoEntrada:
+      oneOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: SINAIS_VITAIS
+            dados:
+              type: object
+              properties:
+                pressaoSistolica:
+                  type: integer
+                  minimum: 0
+                  maximum: 300
+                pressaoDiastolica:
+                  type: integer
+                  minimum: 0
+                  maximum: 200
+                frequenciaCardiaca:
+                  type: integer
+                  minimum: 0
+                  maximum: 300
+                frequenciaRespiratoria:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                saturacao:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                temperatura:
+                  type: number
+                  minimum: 20
+                  maximum: 45
+                glicemia:
+                  type: integer
+                  minimum: 0
+                  maximum: 1000
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: GLASGOW
+            dados:
+              type: object
+              properties:
+                ocular:
+                  type: integer
+                  minimum: 1
+                  maximum: 4
+                verbal:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                motora:
+                  type: integer
+                  minimum: 1
+                  maximum: 6
+                total:
+                  type: integer
+                  minimum: 3
+                  maximum: 15
+              required:
+                - ocular
+                - verbal
+                - motora
+                - total
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: TRIAGEM
+            dados:
+              oneOf:
+                - type: object
+                  properties:
+                    protocolo:
+                      type: string
+                      const: MANCHESTER
+                    classificacao:
+                      type: string
+                      enum:
+                        - VERMELHO
+                        - LARANJA
+                        - AMARELO
+                        - VERDE
+                        - AZUL
+                  required:
+                    - protocolo
+                    - classificacao
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    protocolo:
+                      type: string
+                      const: START
+                    classificacao:
+                      type: string
+                      enum:
+                        - VERMELHO
+                        - AMARELO
+                        - VERDE
+                        - PRETO
+                  required:
+                    - protocolo
+                    - classificacao
+                  additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: MEDICACAO
+            dados:
+              type: object
+              properties:
+                medicamentoId:
+                  anyOf:
+                    - type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    - type: "null"
+                nome:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                dose:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                unidade:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                via:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+              required:
+                - medicamentoId
+                - nome
+                - dose
+                - unidade
+                - via
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: PROCEDIMENTO
+            dados:
+              type: object
+              properties:
+                descricao:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+              required:
+                - descricao
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: OBSERVACAO
+            dados:
+              type: object
+              properties:
+                texto:
+                  type: string
+                  minLength: 1
+                  maxLength: 4000
+              required:
+                - texto
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: RETIFICACAO
+            dados:
+              type: object
+              properties:
+                motivo:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                dadosCorrigidos:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+              required:
+                - motivo
+              additionalProperties: false
+            retificaEventoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+            - retificaEventoId
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipo:
+              type: string
+              const: ENCERRAMENTO
+            dados:
+              type: object
+              properties:
+                desfecho:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                destino:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+              required:
+                - desfecho
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - tipo
+            - dados
+          additionalProperties: false
+    Evento:
+      oneOf:
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: SINAIS_VITAIS
+            dados:
+              type: object
+              properties:
+                pressaoSistolica:
+                  type: integer
+                  minimum: 0
+                  maximum: 300
+                pressaoDiastolica:
+                  type: integer
+                  minimum: 0
+                  maximum: 200
+                frequenciaCardiaca:
+                  type: integer
+                  minimum: 0
+                  maximum: 300
+                frequenciaRespiratoria:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                saturacao:
+                  type: integer
+                  minimum: 0
+                  maximum: 100
+                temperatura:
+                  type: number
+                  minimum: 20
+                  maximum: 45
+                glicemia:
+                  type: integer
+                  minimum: 0
+                  maximum: 1000
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: GLASGOW
+            dados:
+              type: object
+              properties:
+                ocular:
+                  type: integer
+                  minimum: 1
+                  maximum: 4
+                verbal:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                motora:
+                  type: integer
+                  minimum: 1
+                  maximum: 6
+                total:
+                  type: integer
+                  minimum: 3
+                  maximum: 15
+              required:
+                - ocular
+                - verbal
+                - motora
+                - total
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: TRIAGEM
+            dados:
+              oneOf:
+                - type: object
+                  properties:
+                    protocolo:
+                      type: string
+                      const: MANCHESTER
+                    classificacao:
+                      type: string
+                      enum:
+                        - VERMELHO
+                        - LARANJA
+                        - AMARELO
+                        - VERDE
+                        - AZUL
+                  required:
+                    - protocolo
+                    - classificacao
+                  additionalProperties: false
+                - type: object
+                  properties:
+                    protocolo:
+                      type: string
+                      const: START
+                    classificacao:
+                      type: string
+                      enum:
+                        - VERMELHO
+                        - AMARELO
+                        - VERDE
+                        - PRETO
+                  required:
+                    - protocolo
+                    - classificacao
+                  additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: MEDICACAO
+            dados:
+              type: object
+              properties:
+                medicamentoId:
+                  anyOf:
+                    - type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    - type: "null"
+                nome:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                dose:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                unidade:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                via:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+              required:
+                - medicamentoId
+                - nome
+                - dose
+                - unidade
+                - via
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: PROCEDIMENTO
+            dados:
+              type: object
+              properties:
+                descricao:
+                  type: string
+                  minLength: 1
+                  maxLength: 2000
+              required:
+                - descricao
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: OBSERVACAO
+            dados:
+              type: object
+              properties:
+                texto:
+                  type: string
+                  minLength: 1
+                  maxLength: 4000
+              required:
+                - texto
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: RETIFICACAO
+            dados:
+              type: object
+              properties:
+                motivo:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                dadosCorrigidos:
+                  type: object
+                  propertyNames:
+                    type: string
+                  additionalProperties: {}
+              required:
+                - motivo
+              additionalProperties: false
+            retificaEventoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+            - retificaEventoId
+          additionalProperties: false
+        - type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            ocorridoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atendimentoId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            tipo:
+              type: string
+              const: ENCERRAMENTO
+            dados:
+              type: object
+              properties:
+                desfecho:
+                  type: string
+                  minLength: 1
+                  maxLength: 1000
+                destino:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+              required:
+                - desfecho
+              additionalProperties: false
+          required:
+            - id
+            - ocorridoEm
+            - atendimentoId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - recebidoEm
+            - tipo
+            - dados
+          additionalProperties: false
+    Atendimento:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        prontuarioId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        profissionalId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        profissionalNome:
+          type: string
+        dispositivoId:
+          anyOf:
+            - type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            - type: "null"
+        iniciadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        recebidoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        localDescricao:
+          type:
+            - string
+            - "null"
+        latitude:
+          type:
+            - number
+            - "null"
+        longitude:
+          type:
+            - number
+            - "null"
+        queixaPrincipal:
+          type:
+            - string
+            - "null"
+        status:
+          type: string
+          enum:
+            - ABERTO
+            - ENCERRADO
+        encerradoEm:
+          anyOf:
+            - type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            - type: "null"
+      required:
+        - id
+        - pessoaId
+        - prontuarioId
+        - profissionalId
+        - profissionalNome
+        - dispositivoId
+        - iniciadoEm
+        - recebidoEm
+        - localDescricao
+        - latitude
+        - longitude
+        - queixaPrincipal
+        - status
+        - encerradoEm
+      additionalProperties: false
+    AtendimentoEntrada:
+      type: object
+      properties:
+        id:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        pessoaId:
+          type: string
+          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+        iniciadoEm:
+          type: string
+          format: date-time
+          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+        localDescricao:
+          type: string
+          minLength: 1
+          maxLength: 500
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+        queixaPrincipal:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        eventos:
+          maxItems: 500
+          type: array
+          items:
+            oneOf:
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: SINAIS_VITAIS
+                  dados:
+                    type: object
+                    properties:
+                      pressaoSistolica:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                      pressaoDiastolica:
+                        type: integer
+                        minimum: 0
+                        maximum: 200
+                      frequenciaCardiaca:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                      frequenciaRespiratoria:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                      saturacao:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                      temperatura:
+                        type: number
+                        minimum: 20
+                        maximum: 45
+                      glicemia:
+                        type: integer
+                        minimum: 0
+                        maximum: 1000
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: GLASGOW
+                  dados:
+                    type: object
+                    properties:
+                      ocular:
+                        type: integer
+                        minimum: 1
+                        maximum: 4
+                      verbal:
+                        type: integer
+                        minimum: 1
+                        maximum: 5
+                      motora:
+                        type: integer
+                        minimum: 1
+                        maximum: 6
+                      total:
+                        type: integer
+                        minimum: 3
+                        maximum: 15
+                    required:
+                      - ocular
+                      - verbal
+                      - motora
+                      - total
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: TRIAGEM
+                  dados:
+                    oneOf:
+                      - type: object
+                        properties:
+                          protocolo:
+                            type: string
+                            const: MANCHESTER
+                          classificacao:
+                            type: string
+                            enum:
+                              - VERMELHO
+                              - LARANJA
+                              - AMARELO
+                              - VERDE
+                              - AZUL
+                        required:
+                          - protocolo
+                          - classificacao
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          protocolo:
+                            type: string
+                            const: START
+                          classificacao:
+                            type: string
+                            enum:
+                              - VERMELHO
+                              - AMARELO
+                              - VERDE
+                              - PRETO
+                        required:
+                          - protocolo
+                          - classificacao
+                        additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: MEDICACAO
+                  dados:
+                    type: object
+                    properties:
+                      medicamentoId:
+                        anyOf:
+                          - type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                          - type: "null"
+                      nome:
+                        type: string
+                        minLength: 1
+                        maxLength: 200
+                      dose:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                      unidade:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                      via:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                    required:
+                      - medicamentoId
+                      - nome
+                      - dose
+                      - unidade
+                      - via
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: PROCEDIMENTO
+                  dados:
+                    type: object
+                    properties:
+                      descricao:
+                        type: string
+                        minLength: 1
+                        maxLength: 2000
+                    required:
+                      - descricao
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: OBSERVACAO
+                  dados:
+                    type: object
+                    properties:
+                      texto:
+                        type: string
+                        minLength: 1
+                        maxLength: 4000
+                    required:
+                      - texto
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: RETIFICACAO
+                  dados:
+                    type: object
+                    properties:
+                      motivo:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                      dadosCorrigidos:
+                        type: object
+                        propertyNames:
+                          type: string
+                        additionalProperties: {}
+                    required:
+                      - motivo
+                    additionalProperties: false
+                  retificaEventoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                  - retificaEventoId
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: ENCERRAMENTO
+                  dados:
+                    type: object
+                    properties:
+                      desfecho:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                      destino:
+                        type: string
+                        minLength: 1
+                        maxLength: 500
+                    required:
+                      - desfecho
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+      required:
+        - id
+        - pessoaId
+        - iniciadoEm
+      additionalProperties: false
+    Ficha:
+      type: object
+      properties:
+        atendimento:
+          type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            pessoaId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            prontuarioId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            profissionalNome:
+              type: string
+            dispositivoId:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            iniciadoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            recebidoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            localDescricao:
+              type:
+                - string
+                - "null"
+            latitude:
+              type:
+                - number
+                - "null"
+            longitude:
+              type:
+                - number
+                - "null"
+            queixaPrincipal:
+              type:
+                - string
+                - "null"
+            status:
+              type: string
+              enum:
+                - ABERTO
+                - ENCERRADO
+            encerradoEm:
+              anyOf:
+                - type: string
+                  format: date-time
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                - type: "null"
+          required:
+            - id
+            - pessoaId
+            - prontuarioId
+            - profissionalId
+            - profissionalNome
+            - dispositivoId
+            - iniciadoEm
+            - recebidoEm
+            - localDescricao
+            - latitude
+            - longitude
+            - queixaPrincipal
+            - status
+            - encerradoEm
+          additionalProperties: false
+        pessoa:
+          type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            nome:
+              type: string
+            dataNascimento:
+              anyOf:
+                - type: string
+                  format: date
+                  pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                - type: "null"
+            sexo:
+              anyOf:
+                - type: string
+                  enum:
+                    - M
+                    - F
+                    - I
+                - type: "null"
+            cpf:
+              type:
+                - string
+                - "null"
+            cns:
+              type:
+                - string
+                - "null"
+            telefone:
+              type:
+                - string
+                - "null"
+            contatoEmergenciaNome:
+              type:
+                - string
+                - "null"
+            contatoEmergenciaTelefone:
+              type:
+                - string
+                - "null"
+            contatoEmergenciaEmail:
+              type:
+                - string
+                - "null"
+            naoIdentificada:
+              type: boolean
+            descricaoIdentificacao:
+              type:
+                - string
+                - "null"
+            possivelDuplicataDe:
+              anyOf:
+                - type: string
+                  pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                - type: "null"
+            criadoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atualizadoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+          required:
+            - id
+            - nome
+            - dataNascimento
+            - sexo
+            - cpf
+            - cns
+            - telefone
+            - contatoEmergenciaNome
+            - contatoEmergenciaTelefone
+            - contatoEmergenciaEmail
+            - naoIdentificada
+            - descricaoIdentificacao
+            - possivelDuplicataDe
+            - criadoEm
+            - atualizadoEm
+          additionalProperties: false
+        prontuario:
+          type: object
+          properties:
+            id:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            pessoaId:
+              type: string
+              pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+            tipoSanguineo:
+              type:
+                - string
+                - "null"
+            observacoes:
+              type:
+                - string
+                - "null"
+            itens:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  prontuarioId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  pessoaId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  tipo:
+                    type: string
+                    enum:
+                      - ALERGIA
+                      - COMORBIDADE
+                      - MEDICACAO_CONTINUA
+                  descricao:
+                    type: string
+                  registradoPor:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  registradoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  inativadoEm:
+                    anyOf:
+                      - type: string
+                        format: date-time
+                        pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                      - type: "null"
+                required:
+                  - id
+                  - prontuarioId
+                  - pessoaId
+                  - tipo
+                  - descricao
+                  - registradoPor
+                  - registradoEm
+                  - inativadoEm
+                additionalProperties: false
+            criadoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            atualizadoEm:
+              type: string
+              format: date-time
+              pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+          required:
+            - id
+            - pessoaId
+            - tipoSanguineo
+            - observacoes
+            - itens
+            - criadoEm
+            - atualizadoEm
+          additionalProperties: false
+        eventos:
+          type: array
+          items:
+            oneOf:
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: SINAIS_VITAIS
+                  dados:
+                    type: object
+                    properties:
+                      pressaoSistolica:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                      pressaoDiastolica:
+                        type: integer
+                        minimum: 0
+                        maximum: 200
+                      frequenciaCardiaca:
+                        type: integer
+                        minimum: 0
+                        maximum: 300
+                      frequenciaRespiratoria:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                      saturacao:
+                        type: integer
+                        minimum: 0
+                        maximum: 100
+                      temperatura:
+                        type: number
+                        minimum: 20
+                        maximum: 45
+                      glicemia:
+                        type: integer
+                        minimum: 0
+                        maximum: 1000
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: GLASGOW
+                  dados:
+                    type: object
+                    properties:
+                      ocular:
+                        type: integer
+                        minimum: 1
+                        maximum: 4
+                      verbal:
+                        type: integer
+                        minimum: 1
+                        maximum: 5
+                      motora:
+                        type: integer
+                        minimum: 1
+                        maximum: 6
+                      total:
+                        type: integer
+                        minimum: 3
+                        maximum: 15
+                    required:
+                      - ocular
+                      - verbal
+                      - motora
+                      - total
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: TRIAGEM
+                  dados:
+                    oneOf:
+                      - type: object
+                        properties:
+                          protocolo:
+                            type: string
+                            const: MANCHESTER
+                          classificacao:
+                            type: string
+                            enum:
+                              - VERMELHO
+                              - LARANJA
+                              - AMARELO
+                              - VERDE
+                              - AZUL
+                        required:
+                          - protocolo
+                          - classificacao
+                        additionalProperties: false
+                      - type: object
+                        properties:
+                          protocolo:
+                            type: string
+                            const: START
+                          classificacao:
+                            type: string
+                            enum:
+                              - VERMELHO
+                              - AMARELO
+                              - VERDE
+                              - PRETO
+                        required:
+                          - protocolo
+                          - classificacao
+                        additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: MEDICACAO
+                  dados:
+                    type: object
+                    properties:
+                      medicamentoId:
+                        anyOf:
+                          - type: string
+                            pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                          - type: "null"
+                      nome:
+                        type: string
+                        minLength: 1
+                        maxLength: 200
+                      dose:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                      unidade:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                      via:
+                        type: string
+                        minLength: 1
+                        maxLength: 50
+                    required:
+                      - medicamentoId
+                      - nome
+                      - dose
+                      - unidade
+                      - via
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: PROCEDIMENTO
+                  dados:
+                    type: object
+                    properties:
+                      descricao:
+                        type: string
+                        minLength: 1
+                        maxLength: 2000
+                    required:
+                      - descricao
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: OBSERVACAO
+                  dados:
+                    type: object
+                    properties:
+                      texto:
+                        type: string
+                        minLength: 1
+                        maxLength: 4000
+                    required:
+                      - texto
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: RETIFICACAO
+                  dados:
+                    type: object
+                    properties:
+                      motivo:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                      dadosCorrigidos:
+                        type: object
+                        propertyNames:
+                          type: string
+                        additionalProperties: {}
+                    required:
+                      - motivo
+                    additionalProperties: false
+                  retificaEventoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                  - retificaEventoId
+                additionalProperties: false
+              - type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  atendimentoId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalId:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  profissionalNome:
+                    type: string
+                  dispositivoId:
+                    anyOf:
+                      - type: string
+                        pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                      - type: "null"
+                  recebidoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  tipo:
+                    type: string
+                    const: ENCERRAMENTO
+                  dados:
+                    type: object
+                    properties:
+                      desfecho:
+                        type: string
+                        minLength: 1
+                        maxLength: 1000
+                      destino:
+                        type: string
+                        minLength: 1
+                        maxLength: 500
+                    required:
+                      - desfecho
+                    additionalProperties: false
+                required:
+                  - id
+                  - ocorridoEm
+                  - atendimentoId
+                  - profissionalId
+                  - profissionalNome
+                  - dispositivoId
+                  - recebidoEm
+                  - tipo
+                  - dados
+                additionalProperties: false
+        resumo:
+          type: object
+          properties:
+            ultimosSinaisVitais:
+              anyOf:
+                - type: object
+                  properties:
+                    ocorridoEm:
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                    dados:
+                      type: object
+                      propertyNames:
+                        type: string
+                      additionalProperties: {}
+                  required:
+                    - ocorridoEm
+                    - dados
+                  additionalProperties: false
+                - type: "null"
+            glasgowMaisRecente:
+              anyOf:
+                - type: object
+                  properties:
+                    ocorridoEm:
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                    dados:
+                      type: object
+                      propertyNames:
+                        type: string
+                      additionalProperties: {}
+                  required:
+                    - ocorridoEm
+                    - dados
+                  additionalProperties: false
+                - type: "null"
+            triagem:
+              anyOf:
+                - type: object
+                  properties:
+                    ocorridoEm:
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                    dados:
+                      type: object
+                      propertyNames:
+                        type: string
+                      additionalProperties: {}
+                  required:
+                    - ocorridoEm
+                    - dados
+                  additionalProperties: false
+                - type: "null"
+            medicacoes:
+              type: array
+              items:
+                type: object
+                properties:
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  nome:
+                    type: string
+                  dose:
+                    type: string
+                  unidade:
+                    type: string
+                  via:
+                    type: string
+                required:
+                  - ocorridoEm
+                  - nome
+                  - dose
+                  - unidade
+                  - via
+                additionalProperties: false
+            procedimentos:
+              type: array
+              items:
+                type: object
+                properties:
+                  ocorridoEm:
+                    type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  descricao:
+                    type: string
+                required:
+                  - ocorridoEm
+                  - descricao
+                additionalProperties: false
+            alergias:
+              type: array
+              items:
+                type: string
+            comorbidades:
+              type: array
+              items:
+                type: string
+            medicacoesContinuas:
+              type: array
+              items:
+                type: string
+            encerramento:
+              anyOf:
+                - type: object
+                  properties:
+                    ocorridoEm:
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                    desfecho:
+                      type: string
+                    destino:
+                      type:
+                        - string
+                        - "null"
+                  required:
+                    - ocorridoEm
+                    - desfecho
+                    - destino
+                  additionalProperties: false
+                - type: "null"
+          required:
+            - ultimosSinaisVitais
+            - glasgowMaisRecente
+            - triagem
+            - medicacoes
+            - procedimentos
+            - alergias
+            - comorbidades
+            - medicacoesContinuas
+            - encerramento
+          additionalProperties: false
+      required:
+        - atendimento
+        - pessoa
+        - prontuario
+        - eventos
+        - resumo
+      additionalProperties: false
+    Alteracoes:
+      type: object
+      properties:
+        medicamentos:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              nome:
+                type: string
+              principioAtivo:
+                type:
+                  - string
+                  - "null"
+              apresentacao:
+                type:
+                  - string
+                  - "null"
+              observacao:
+                type:
+                  - string
+                  - "null"
+              ativo:
+                type: boolean
+            required:
+              - id
+              - nome
+              - principioAtivo
+              - apresentacao
+              - observacao
+              - ativo
+            additionalProperties: false
+        pessoas:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              nome:
+                type: string
+              dataNascimento:
+                anyOf:
+                  - type: string
+                    format: date
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                  - type: "null"
+              sexo:
+                anyOf:
+                  - type: string
+                    enum:
+                      - M
+                      - F
+                      - I
+                  - type: "null"
+              cpf:
+                type:
+                  - string
+                  - "null"
+              cns:
+                type:
+                  - string
+                  - "null"
+              telefone:
+                type:
+                  - string
+                  - "null"
+              contatoEmergenciaNome:
+                type:
+                  - string
+                  - "null"
+              contatoEmergenciaTelefone:
+                type:
+                  - string
+                  - "null"
+              contatoEmergenciaEmail:
+                type:
+                  - string
+                  - "null"
+              naoIdentificada:
+                type: boolean
+              descricaoIdentificacao:
+                type:
+                  - string
+                  - "null"
+              possivelDuplicataDe:
+                anyOf:
+                  - type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  - type: "null"
+              criadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              atualizadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            required:
+              - id
+              - nome
+              - dataNascimento
+              - sexo
+              - cpf
+              - cns
+              - telefone
+              - contatoEmergenciaNome
+              - contatoEmergenciaTelefone
+              - contatoEmergenciaEmail
+              - naoIdentificada
+              - descricaoIdentificacao
+              - possivelDuplicataDe
+              - criadoEm
+              - atualizadoEm
+            additionalProperties: false
+        prontuarios:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              pessoaId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              tipoSanguineo:
+                type:
+                  - string
+                  - "null"
+              observacoes:
+                type:
+                  - string
+                  - "null"
+              criadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              atualizadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            required:
+              - id
+              - pessoaId
+              - tipoSanguineo
+              - observacoes
+              - criadoEm
+              - atualizadoEm
+            additionalProperties: false
+        prontuarioItens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              prontuarioId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              pessoaId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              tipo:
+                type: string
+                enum:
+                  - ALERGIA
+                  - COMORBIDADE
+                  - MEDICACAO_CONTINUA
+              descricao:
+                type: string
+              registradoPor:
+                anyOf:
+                  - type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  - type: "null"
+              registradoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              inativadoEm:
+                anyOf:
+                  - type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  - type: "null"
+            required:
+              - id
+              - prontuarioId
+              - pessoaId
+              - tipo
+              - descricao
+              - registradoPor
+              - registradoEm
+              - inativadoEm
+            additionalProperties: false
+        proximoCursor:
+          type: string
+        temMais:
+          type: boolean
+      required:
+        - medicamentos
+        - pessoas
+        - prontuarios
+        - prontuarioItens
+        - proximoCursor
+        - temMais
+      additionalProperties: false
+    PaginaMedicamento:
+      type: object
+      properties:
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              nome:
+                type: string
+              principioAtivo:
+                type:
+                  - string
+                  - "null"
+              apresentacao:
+                type:
+                  - string
+                  - "null"
+              observacao:
+                type:
+                  - string
+                  - "null"
+              ativo:
+                type: boolean
+            required:
+              - id
+              - nome
+              - principioAtivo
+              - apresentacao
+              - observacao
+              - ativo
+            additionalProperties: false
+        proximoCursor:
+          type:
+            - string
+            - "null"
+      required:
+        - itens
+        - proximoCursor
+      additionalProperties: false
+    PaginaPessoa:
+      type: object
+      properties:
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              nome:
+                type: string
+              dataNascimento:
+                anyOf:
+                  - type: string
+                    format: date
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                  - type: "null"
+              sexo:
+                anyOf:
+                  - type: string
+                    enum:
+                      - M
+                      - F
+                      - I
+                  - type: "null"
+              cpf:
+                type:
+                  - string
+                  - "null"
+              cns:
+                type:
+                  - string
+                  - "null"
+              telefone:
+                type:
+                  - string
+                  - "null"
+              contatoEmergenciaNome:
+                type:
+                  - string
+                  - "null"
+              contatoEmergenciaTelefone:
+                type:
+                  - string
+                  - "null"
+              contatoEmergenciaEmail:
+                type:
+                  - string
+                  - "null"
+              naoIdentificada:
+                type: boolean
+              descricaoIdentificacao:
+                type:
+                  - string
+                  - "null"
+              possivelDuplicataDe:
+                anyOf:
+                  - type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  - type: "null"
+              criadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              atualizadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+            required:
+              - id
+              - nome
+              - dataNascimento
+              - sexo
+              - cpf
+              - cns
+              - telefone
+              - contatoEmergenciaNome
+              - contatoEmergenciaTelefone
+              - contatoEmergenciaEmail
+              - naoIdentificada
+              - descricaoIdentificacao
+              - possivelDuplicataDe
+              - criadoEm
+              - atualizadoEm
+            additionalProperties: false
+        proximoCursor:
+          type:
+            - string
+            - "null"
+      required:
+        - itens
+        - proximoCursor
+      additionalProperties: false
+    PaginaProntuario:
+      type: object
+      properties:
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              pessoaId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              tipoSanguineo:
+                type:
+                  - string
+                  - "null"
+              observacoes:
+                type:
+                  - string
+                  - "null"
+              itens:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    prontuarioId:
+                      type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    pessoaId:
+                      type: string
+                      pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                    tipo:
+                      type: string
+                      enum:
+                        - ALERGIA
+                        - COMORBIDADE
+                        - MEDICACAO_CONTINUA
+                    descricao:
+                      type: string
+                    registradoPor:
+                      anyOf:
+                        - type: string
+                          pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                        - type: "null"
+                    registradoEm:
+                      type: string
+                      format: date-time
+                      pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                    inativadoEm:
+                      anyOf:
+                        - type: string
+                          format: date-time
+                          pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                        - type: "null"
+                  required:
+                    - id
+                    - prontuarioId
+                    - pessoaId
+                    - tipo
+                    - descricao
+                    - registradoPor
+                    - registradoEm
+                    - inativadoEm
+                  additionalProperties: false
+              criadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              atualizadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              pessoa:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  nome:
+                    type: string
+                  dataNascimento:
+                    anyOf:
+                      - type: string
+                        format: date
+                        pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))$
+                      - type: "null"
+                  cpf:
+                    type:
+                      - string
+                      - "null"
+                  naoIdentificada:
+                    type: boolean
+                required:
+                  - id
+                  - nome
+                  - dataNascimento
+                  - cpf
+                  - naoIdentificada
+                additionalProperties: false
+            required:
+              - id
+              - pessoaId
+              - tipoSanguineo
+              - observacoes
+              - itens
+              - criadoEm
+              - atualizadoEm
+              - pessoa
+            additionalProperties: false
+        proximoCursor:
+          type:
+            - string
+            - "null"
+      required:
+        - itens
+        - proximoCursor
+      additionalProperties: false
+    PaginaAtendimento:
+      type: object
+      properties:
+        itens:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              pessoaId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              prontuarioId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              profissionalId:
+                type: string
+                pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+              profissionalNome:
+                type: string
+              dispositivoId:
+                anyOf:
+                  - type: string
+                    pattern: ^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$
+                  - type: "null"
+              iniciadoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              recebidoEm:
+                type: string
+                format: date-time
+                pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+              localDescricao:
+                type:
+                  - string
+                  - "null"
+              latitude:
+                type:
+                  - number
+                  - "null"
+              longitude:
+                type:
+                  - number
+                  - "null"
+              queixaPrincipal:
+                type:
+                  - string
+                  - "null"
+              status:
+                type: string
+                enum:
+                  - ABERTO
+                  - ENCERRADO
+              encerradoEm:
+                anyOf:
+                  - type: string
+                    format: date-time
+                    pattern: ^(?:(?:\d\d[2468][048]|\d\d[13579][26]|\d\d0[48]|[02468][048]00|[13579][26]00)-02-29|\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\d|30)|(?:02)-(?:0[1-9]|1\d|2[0-8])))T(?:(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:Z))$
+                  - type: "null"
+              pessoaNome:
+                type: string
+            required:
+              - id
+              - pessoaId
+              - prontuarioId
+              - profissionalId
+              - profissionalNome
+              - dispositivoId
+              - iniciadoEm
+              - recebidoEm
+              - localDescricao
+              - latitude
+              - longitude
+              - queixaPrincipal
+              - status
+              - encerradoEm
+              - pessoaNome
+            additionalProperties: false
+        proximoCursor:
+          type:
+            - string
+            - "null"
+      required:
+        - itens
+        - proximoCursor
+      additionalProperties: false
