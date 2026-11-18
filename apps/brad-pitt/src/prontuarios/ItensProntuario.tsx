@@ -1,6 +1,6 @@
 // Itens do prontuário pelo portal: acrescentar e inativar (nada se apaga), como no app.
 import type { ProntuarioItem, TipoItem } from '@medicalfield/contratos';
-import { Botao, CampoTexto, Dialogo, Select } from '@medicalfield/ui';
+import { Botao, CampoTexto, Dialogo, SeletorSegmentado } from '@medicalfield/ui';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CircleAlert, Plus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -48,19 +48,26 @@ export function NovoItem({ pessoaId, semProntuario = false }: { pessoaId: string
   }
 
   return (
-    <form className="grid grid-cols-1 items-end gap-3 border-t border-fio p-3 md:grid-cols-[14rem_1fr_auto]" onSubmit={aoEnviar} noValidate aria-label="Acrescentar item ao prontuário">
-      <Select
-        rotulo="Tipo"
-        value={tipo}
-        onChange={(e) => setTipo(e.target.value as TipoItem)}
+    <form className="grid grid-cols-1 items-end gap-3 border-t border-fio p-3 md:grid-cols-[1fr_auto]" onSubmit={aoEnviar} noValidate aria-label="Acrescentar item ao prontuário">
+      <SeletorSegmentado
+        className="md:col-span-2 md:max-w-xl"
+        rotulo="Acrescentar ao prontuário"
+        valor={tipo}
+        aoMudar={setTipo}
         opcoes={(Object.keys(TIPO_ITEM) as TipoItem[]).map((t) => ({ valor: t, rotulo: TIPO_ITEM[t] }))}
       />
-      <CampoTexto rotulo="Descrição" value={descricao} onChange={(e) => setDescricao(e.target.value)} autoComplete="off" maxLength={500} />
+      <CampoTexto
+        rotulo={`Descrição da ${TIPO_ITEM[tipo].toLowerCase()}`}
+        value={descricao}
+        onChange={(e) => setDescricao(e.target.value)}
+        autoComplete="off"
+        maxLength={500}
+      />
       <Botao type="submit" icone={<Plus aria-hidden />} carregando={gravacao.isPending}>
         Acrescentar
       </Botao>
       {falha ? (
-        <p className="mf-campo__erro m-0 md:col-span-3" role="alert">
+        <p className="mf-campo__erro m-0 md:col-span-2" role="alert">
           <CircleAlert aria-hidden />
           <span>{falha}</span>
         </p>

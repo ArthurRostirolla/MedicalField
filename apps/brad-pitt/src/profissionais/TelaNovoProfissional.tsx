@@ -1,5 +1,5 @@
 import { profissionalEntradaSchema, type Papel, type TipoRegistro } from '@medicalfield/contratos';
-import { Botao, CampoTexto, Secao, Select } from '@medicalfield/ui';
+import { Botao, CampoSenha, CampoTexto, Secao, Select, SeletorSegmentado } from '@medicalfield/ui';
 import { useMutation } from '@tanstack/react-query';
 import { CircleAlert, UserPlus } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
@@ -10,15 +10,15 @@ import { descreverErro } from '../comum/formato';
 
 const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
 
-const TIPOS: { valor: TipoRegistro; rotulo: string }[] = [
-  { valor: 'CRM', rotulo: 'CRM (medicina)' },
-  { valor: 'COREN', rotulo: 'COREN (enfermagem)' },
-  { valor: 'SOCORRISTA', rotulo: 'Socorrista' },
+const TIPOS: { valor: TipoRegistro; rotulo: string; detalhe: string }[] = [
+  { valor: 'CRM', rotulo: 'CRM', detalhe: 'medicina' },
+  { valor: 'COREN', rotulo: 'COREN', detalhe: 'enfermagem' },
+  { valor: 'SOCORRISTA', rotulo: 'Socorrista', detalhe: 'sem conselho' },
 ];
 
-const PAPEIS: { valor: Papel; rotulo: string }[] = [
-  { valor: 'PROFISSIONAL', rotulo: 'Profissional' },
-  { valor: 'ADMIN', rotulo: 'Administração (vê auditoria e cadastra)' },
+const PAPEIS: { valor: Papel; rotulo: string; detalhe: string }[] = [
+  { valor: 'PROFISSIONAL', rotulo: 'Profissional', detalhe: 'registra atendimentos' },
+  { valor: 'ADMIN', rotulo: 'Administração', detalhe: 'vê auditoria e cadastra' },
 ];
 
 type Erros = Partial<Record<string, string>>;
@@ -83,13 +83,7 @@ export function TelaNovoProfissional() {
     >
       <form className="grid max-w-xl grid-cols-1 gap-3" onSubmit={aoEnviar} noValidate>
         <CampoTexto rotulo="Nome" value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="off" erro={erros.nome} />
-        <Select
-          rotulo="Tipo de registro"
-          value={tipoRegistro}
-          onChange={(e) => setTipoRegistro(e.target.value as TipoRegistro)}
-          opcoes={TIPOS}
-          erro={erros.tipoRegistro}
-        />
+        <SeletorSegmentado rotulo="Tipo de registro" valor={tipoRegistro} aoMudar={setTipoRegistro} opcoes={TIPOS} />
         <div className="mf-grade-campos" style={{ gridTemplateColumns: comUf ? 'minmax(0, 1fr) 6.5rem' : 'minmax(0, 1fr)' }}>
           <CampoTexto
             rotulo="Número do registro"
@@ -108,10 +102,9 @@ export function TelaNovoProfissional() {
             />
           ) : null}
         </div>
-        <Select rotulo="Papel" value={papel} onChange={(e) => setPapel(e.target.value as Papel)} opcoes={PAPEIS} erro={erros.papel} />
-        <CampoTexto
+        <SeletorSegmentado rotulo="Papel" valor={papel} aoMudar={setPapel} opcoes={PAPEIS} />
+        <CampoSenha
           rotulo="Senha inicial"
-          type="password"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
           autoComplete="new-password"

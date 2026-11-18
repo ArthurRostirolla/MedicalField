@@ -1,6 +1,8 @@
 // @medicalfield/ui — componentes do design system. Estilos: `@medicalfield/ui/estilos.css`.
 export * from './componentes/Botao';
 export * from './componentes/campos';
+export * from './componentes/formulario';
+export * from './componentes/clinicos';
 export * from './componentes/etiquetas';
 export * from './componentes/BarraConectividade';
 export * from './componentes/LinhaDoTempo';

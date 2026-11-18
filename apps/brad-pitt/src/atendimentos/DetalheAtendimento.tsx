@@ -47,8 +47,8 @@ function Voltar({ nome }: { nome?: string }) {
   );
 }
 
-/** Coluna única: passagem, linha do tempo, novo registro, ficha e dados do atendimento, nessa ordem. */
-const COLUNA = 'mx-auto grid w-full max-w-[60rem] grid-cols-1 gap-6';
+/** Passagem, linha do tempo + novo registro (lado a lado quando cabe), ficha e dados do atendimento. */
+const COLUNA = 'mx-auto grid w-full max-w-[60rem] grid-cols-1 gap-6 xl:max-w-[96rem]';
 
 export function DetalheAtendimento({ id }: { id: string }) {
   const eu = useProfissional();
@@ -123,20 +123,25 @@ export function DetalheAtendimento({ id }: { id: string }) {
         }
       />
 
-      <Secao
-        titulo="Linha do tempo"
-        descricao={`${eventos.length} ${eventos.length === 1 ? 'entrada' : 'entradas'}`}
-        acoes={<BotaoAtualizar atualizando={ficha.isFetching} aoAtualizar={() => void ficha.refetch()} />}
-        rente
-      >
-        {eventos.length > 0 ? (
-          <LinhaDoTempo eventos={eventos} />
-        ) : (
-          <EstadoVazio className="m-3" titulo="Nenhum evento registrado" />
-        )}
-      </Secao>
+      {/* Em tela larga: o que já aconteceu à esquerda, o próximo registro sempre à mão à direita. */}
+      <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <Secao
+          titulo="Linha do tempo"
+          descricao={`${eventos.length} ${eventos.length === 1 ? 'entrada' : 'entradas'} · mais antiga primeiro`}
+          acoes={<BotaoAtualizar atualizando={ficha.isFetching} aoAtualizar={() => void ficha.refetch()} />}
+          rente
+        >
+          {eventos.length > 0 ? (
+            <LinhaDoTempo eventos={eventos} />
+          ) : (
+            <EstadoVazio className="m-3" titulo="Nenhum evento registrado" descricao="O primeiro registro feito ao lado aparece aqui." />
+          )}
+        </Secao>
 
-      <RegistroPortal atendimentoId={id} encerrado={atendimento.status === 'ENCERRADO'} eventos={eventos} />
+        <div className="xl:sticky xl:top-4">
+          <RegistroPortal atendimentoId={id} encerrado={atendimento.status === 'ENCERRADO'} eventos={eventos} />
+        </div>
+      </div>
 
       <FichaPdfEnvios atendimentoId={id} nomeDe={(profissionalId) => nomes.get(profissionalId)} />
 

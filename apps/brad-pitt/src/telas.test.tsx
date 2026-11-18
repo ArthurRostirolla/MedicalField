@@ -412,7 +412,7 @@ describe('Novo profissional', () => {
     });
     montar('/profissionais/novo', HELENA);
     await userEvent.type(await screen.findByLabelText('Nome'), 'Soc. Novo');
-    await userEvent.selectOptions(screen.getByLabelText('Tipo de registro'), 'SOCORRISTA');
+    await userEvent.click(screen.getByRole('radio', { name: /Socorrista/ }));
     expect(screen.queryByLabelText('UF')).not.toBeInTheDocument();
     await userEvent.type(screen.getByLabelText('Número do registro'), '900');
     await userEvent.type(screen.getByLabelText('Senha inicial'), 'curta');

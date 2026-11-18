@@ -108,7 +108,7 @@ describe('Novo atendimento e novo paciente', () => {
     montar(`/pacientes/${f.pessoa.id}`, CAIO);
     expect(await screen.findByRole('link', { name: 'Novo atendimento' })).toHaveAttribute('href', `/atendimentos/novo?pessoa=${f.pessoa.id}`);
 
-    await userEvent.type(await screen.findByLabelText('Descrição'), 'Dipirona');
+    await userEvent.type(await screen.findByLabelText('Descrição da alergia'), 'Dipirona');
     await userEvent.click(screen.getByRole('button', { name: 'Acrescentar' }));
     expect(await screen.findByText('Alergia registrada')).toBeInTheDocument();
     expect(para('/prontuario-item', 'POST')[0]?.corpo).toMatchObject({ pessoaId: f.pessoa.id, tipo: 'ALERGIA', descricao: 'Dipirona' });

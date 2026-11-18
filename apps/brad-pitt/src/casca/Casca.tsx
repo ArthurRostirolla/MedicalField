@@ -1,4 +1,4 @@
-import { aplicarTema, BarraConectividade, Botao, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
+import { aplicarTema, BarraConectividade, Botao, Chave, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
 import { useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, UserRound, Users } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore, type MouseEvent } from 'react';
@@ -52,6 +52,7 @@ export function Casca() {
     void consultas.invalidateQueries();
   }
 
+  const online = !offline.simulando && offline.redeDoComputador;
   const partes = local.pathname.split('/').filter(Boolean);
   const atual = (partes[0] === 'auditoria' ? partes[1] : partes[0]) ?? '';
   const titulo = (partes[1] === 'novo' ? NOVOS[atual] : undefined) ?? TITULOS[atual] ?? 'Portal';
@@ -124,6 +125,11 @@ export function Casca() {
         acoes={
           <>
             <span className="self-center text-pequeno text-tinta-2 lg:hidden">{profissional.nome}</span>
+            {online ? (
+              <Chave className="self-center" marcado={false} aoMudar={() => void mudarSimulacao(true)}>
+                Simular offline
+              </Chave>
+            ) : null}
             <Botao
               variante="fantasma"
               somenteIcone
@@ -138,15 +144,18 @@ export function Casca() {
           </>
         }
       >
-        <BarraConectividade
-          className="mb-4"
-          online={!offline.simulando && offline.redeDoComputador}
-          simulandoOffline={offline.simulando}
-          aoMudarSimulacao={(simular) => void mudarSimulacao(simular)}
-          pendencias={offline.fila.length}
-          sincronizando={offline.sincronizando}
-          ultimaSync={offline.ultimaSync ? new Date(offline.ultimaSync).toLocaleTimeString('pt-BR', { timeStyle: 'short' }) : undefined}
-        />
+        {/* Online e com tudo enviado não há o que dizer: a tira só aparece quando muda o que se pode fazer. */}
+        {online && !offline.fila.length && !offline.sincronizando ? null : (
+          <BarraConectividade
+            className="mb-4"
+            online={online}
+            simulandoOffline={offline.simulando}
+            aoMudarSimulacao={(simular) => void mudarSimulacao(simular)}
+            pendencias={offline.fila.length}
+            sincronizando={offline.sincronizando}
+            ultimaSync={offline.ultimaSync ? new Date(offline.ultimaSync).toLocaleTimeString('pt-BR', { timeStyle: 'short' }) : undefined}
+          />
+        )}
         <Outlet />
       </LayoutPortal>
     </div>

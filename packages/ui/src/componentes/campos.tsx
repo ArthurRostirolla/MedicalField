@@ -10,14 +10,14 @@ import {
 } from 'react';
 import { cx } from '../util';
 
-interface CampoBase {
+export interface CampoBase {
   rotulo: string;
   ajuda?: ReactNode;
   /** Mensagem de erro: diz o problema e como resolver. */
   erro?: ReactNode;
 }
 
-function Mensagens({ id, ajuda, erro }: { id: string; ajuda?: ReactNode; erro?: ReactNode }) {
+export function Mensagens({ id, ajuda, erro }: { id: string; ajuda?: ReactNode; erro?: ReactNode }) {
   if (erro) {
     return (
       <p id={id} className="mf-campo__erro">
@@ -282,6 +282,8 @@ export interface SeletorSegmentadoProps<T extends string> {
   aoMudar: (valor: T) => void;
   /** Esconde a legenda visualmente (continua lida por leitor de tela). */
   rotuloOculto?: boolean;
+  /** Quebra em linhas (opções com ícone, muitas opções): cada opção vira um botão solto. */
+  grade?: boolean;
   className?: string;
 }
 
@@ -291,11 +293,12 @@ export function SeletorSegmentado<T extends string>({
   valor,
   aoMudar,
   rotuloOculto,
+  grade,
   className,
 }: SeletorSegmentadoProps<T>) {
   const nome = useId();
   return (
-    <fieldset className={cx('mf-segmentado', className)}>
+    <fieldset className={cx('mf-segmentado', grade && 'mf-segmentado--grade', className)}>
       <legend className={rotuloOculto ? 'mf-so-leitor' : 'mf-rotulo'}>{rotulo}</legend>
       <div className="mf-segmentado__opcoes">
         {opcoes.map((opcao) => (

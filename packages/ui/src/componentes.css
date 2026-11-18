@@ -1656,6 +1656,468 @@
     letter-spacing: 0;
     text-align: center;
   }
+
+  /* ═════════ Componentes de formulário (formulario.tsx, clinicos.tsx) ═════════ */
+
+  /* Área de texto */
+  .mf-campo--area .mf-campo__entrada {
+    resize: vertical;
+    min-height: 3rem;
+    padding-top: 0.125rem;
+    line-height: 1.375rem;
+  }
+
+  /* Botão dentro da caixa (mostrar senha) */
+  .mf-campo__acao {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    margin: -0.375rem -0.375rem -0.375rem 0;
+    border: 0;
+    border-radius: var(--radius-1);
+    background: transparent;
+    color: var(--mf-tinta-2);
+    cursor: pointer;
+  }
+  .mf-campo__acao:hover {
+    background-color: var(--mf-papel-2);
+    color: var(--mf-tinta);
+  }
+  .mf-campo__acao:focus-visible {
+    outline: 3px solid var(--mf-foco);
+    outline-offset: 0;
+  }
+  .mf-campo__acao svg {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  /* Escolha rápida: fichas */
+  .mf-fichas,
+  .mf-sangue,
+  .mf-lista-escolha {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .mf-fichas > legend,
+  .mf-sangue > legend,
+  .mf-lista-escolha > legend {
+    padding: 0;
+    margin-bottom: 0.375rem;
+  }
+  .mf-fichas__opcoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+  }
+  .mf-ficha {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--mf-alvo);
+    min-height: var(--mf-alvo);
+    padding: 0 0.875rem;
+    border: 1px solid var(--mf-fio-forte);
+    border-radius: var(--radius-1);
+    background-color: var(--mf-papel);
+    color: var(--mf-tinta);
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+      background-color var(--mf-duracao) var(--ease-seco),
+      border-color var(--mf-duracao) var(--ease-seco);
+  }
+  .mf-ficha:hover {
+    border-color: var(--mf-tinta);
+  }
+  .mf-ficha input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .mf-ficha:has(input:checked) {
+    border-color: var(--mf-marca);
+    background-color: var(--mf-marca-suave);
+    box-shadow: inset 0 -2px 0 var(--mf-marca);
+    font-weight: 700;
+  }
+  .mf-ficha:has(input:focus-visible) {
+    outline: 3px solid var(--mf-foco);
+    outline-offset: 2px;
+  }
+  .mf-campo[data-invalido='true'] .mf-ficha:not(:has(input:checked)) {
+    border-color: var(--mf-carmim);
+  }
+
+  /* Lista de itens: fichas digitadas dentro da caixa */
+  .mf-itens {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+    padding-top: 0.125rem;
+  }
+  .mf-itens .mf-campo__entrada {
+    flex: 1 1 8rem;
+    width: auto;
+  }
+  .mf-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    max-width: 100%;
+    min-height: 1.75rem;
+    padding: 0 0.125rem 0 0.5rem;
+    border: 1px solid var(--mf-rosa-fio);
+    border-radius: var(--radius-1);
+    background-color: var(--mf-rosa);
+    color: var(--mf-rosa-tinta);
+    font-size: var(--mf-pequeno);
+    font-weight: 650;
+    overflow-wrap: anywhere;
+  }
+  .mf-item button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border: 0;
+    border-radius: 2px;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+  }
+  .mf-item button:hover {
+    background-color: var(--mf-marca-suave);
+  }
+  .mf-item button:focus-visible {
+    outline: 2px solid var(--mf-foco);
+  }
+  .mf-item svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+  .mf-sugestoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.375rem;
+    margin-top: 0.375rem;
+  }
+  .mf-sugestao {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 1.75rem;
+    padding: 0 0.5rem 0 0.375rem;
+    border: 1px dashed var(--mf-fio-forte);
+    border-radius: var(--radius-1);
+    background: transparent;
+    color: var(--mf-tinta-2);
+    font: inherit;
+    font-size: var(--mf-pequeno);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .mf-sugestao:hover {
+    border-style: solid;
+    border-color: var(--mf-tinta);
+    color: var(--mf-tinta);
+  }
+  .mf-sugestao:focus-visible {
+    outline: 3px solid var(--mf-foco);
+    outline-offset: 1px;
+  }
+  .mf-sugestao svg {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  /* Lista de escolha: linhas de rádio */
+  .mf-lista-escolha__itens {
+    display: grid;
+    max-height: 19rem;
+    overflow-y: auto;
+    border: 1px solid var(--mf-fio-forte);
+    border-radius: var(--radius-1);
+    background-color: var(--mf-papel);
+  }
+  .mf-lista-escolha__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+    min-height: var(--mf-alvo);
+    padding: 0.5rem var(--mf-recuo);
+    border-top: 1px solid var(--mf-fio);
+    cursor: pointer;
+  }
+  .mf-lista-escolha__item:first-child {
+    border-top: 0;
+  }
+  .mf-lista-escolha__item:hover {
+    background-color: var(--mf-papel-2);
+  }
+  .mf-lista-escolha__item input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .mf-lista-escolha__marca {
+    width: 1.125rem;
+    height: 1.125rem;
+    border: 1.5px solid var(--mf-fio-forte);
+    border-radius: 999px;
+    background-color: var(--mf-papel);
+  }
+  .mf-lista-escolha__item:has(input:checked) {
+    background-color: var(--mf-marca-suave);
+    box-shadow: inset 2px 0 0 var(--mf-marca);
+  }
+  .mf-lista-escolha__item:has(input:checked) .mf-lista-escolha__marca {
+    border: 5px solid var(--mf-marca);
+  }
+  .mf-lista-escolha__item:has(input:focus-visible) {
+    outline: 3px solid var(--mf-foco);
+    outline-offset: -3px;
+  }
+  .mf-lista-escolha__texto {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .mf-lista-escolha__titulo {
+    font-weight: 650;
+  }
+  .mf-lista-escolha__detalhe {
+    color: var(--mf-tinta-2);
+    font-size: var(--mf-pequeno);
+  }
+  .mf-lista-escolha__vazio {
+    margin: 0;
+    padding: 0.75rem var(--mf-recuo);
+    border: 1px dashed var(--mf-fio-forte);
+    border-radius: var(--radius-1);
+    color: var(--mf-tinta-2);
+  }
+
+  /* Segmentado em grade: opções soltas que quebram linha (ex.: tipo de registro com ícone) */
+  .mf-segmentado--grade .mf-segmentado__opcoes {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+    gap: 0.375rem;
+    padding: 0;
+  }
+  .mf-segmentado--grade .mf-segmentado__opcao {
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-1);
+    text-align: left;
+  }
+  .mf-segmentado--grade .mf-segmentado__opcao:first-child,
+  .mf-segmentado--grade .mf-segmentado__opcao:last-child {
+    border-radius: var(--radius-1);
+  }
+  .mf-segmentado--grade .mf-segmentado__opcao svg {
+    flex: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    color: var(--mf-tinta-2);
+  }
+  .mf-segmentado--grade .mf-segmentado__opcao:has(input:checked) svg {
+    color: var(--mf-marca);
+  }
+  .mf-segmentado__opcao > span:not([class]) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* Glasgow: três eixos e a soma */
+  .mf-glasgow {
+    container-type: inline-size;
+  }
+  .mf-glasgow__grade {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 10rem;
+    gap: 1rem;
+    align-items: start;
+  }
+  .mf-glasgow__eixos {
+    grid-column: 1;
+    grid-row: 1;
+    display: grid;
+    gap: 0.875rem;
+  }
+  .mf-glasgow__eixo .mf-segmentado__opcao {
+    min-height: 3.5rem;
+    padding: 0.375rem 0.125rem;
+  }
+  .mf-glasgow__eixo .mf-segmentado__opcao > span:first-of-type {
+    font-size: 1.25rem;
+    font-weight: 720;
+    font-stretch: 76%;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .mf-glasgow__eixo .mf-segmentado__detalhe {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+  .mf-glasgow__total {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 1rem;
+    display: grid;
+    justify-items: start;
+    gap: 0.25rem;
+    padding: 0.75rem 0.875rem 0.875rem;
+    border: 1px solid var(--mf-fio-forte);
+    border-radius: var(--radius-1);
+    background-color: var(--mf-papel-2);
+  }
+  .mf-glasgow__numero {
+    font-size: 3.5rem;
+    font-weight: 720;
+    font-stretch: 76%;
+    font-variant-numeric: tabular-nums lining-nums;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--mf-tinta);
+  }
+  .mf-glasgow__composicao {
+    white-space: pre;
+    font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .mf-glasgow__falta {
+    color: var(--mf-tinta-2);
+    font-size: var(--mf-pequeno);
+  }
+  @container (width < 40rem) {
+    .mf-glasgow__grade {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .mf-glasgow__eixos {
+      grid-row: 2;
+    }
+    .mf-glasgow__total {
+      grid-column: 1;
+      position: static;
+      grid-template-columns: auto auto minmax(0, 1fr);
+      align-items: baseline;
+      column-gap: 0.875rem;
+      width: 100%;
+    }
+    .mf-glasgow__numero {
+      font-size: 2.5rem;
+    }
+    .mf-glasgow__falta {
+      justify-self: end;
+    }
+  }
+  /* Só a motora (6 respostas) quebra em 3 + 3; ocular e verbal cabem numa linha. */
+  @container (width < 26rem) {
+    .mf-glasgow__eixo:has(.mf-segmentado__opcao:nth-child(6)) .mf-segmentado__opcoes {
+      grid-auto-flow: row;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      padding-bottom: 1px;
+    }
+    .mf-glasgow__eixo:has(.mf-segmentado__opcao:nth-child(6)) .mf-segmentado__opcao {
+      margin-bottom: -1px;
+      border-radius: 0;
+    }
+    .mf-glasgow__falta {
+      grid-column: 1 / -1;
+      justify-self: start;
+    }
+  }
+
+  /* Tipo sanguíneo: grade ABO × Rh */
+  .mf-sangue__grade {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 26rem;
+    padding: 0 1px 1px 0;
+  }
+  .mf-sangue__opcao {
+    position: relative;
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.0625rem;
+    min-height: 3rem;
+    margin: 0 -1px -1px 0;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--mf-fio-forte);
+    background-color: var(--mf-papel);
+    color: var(--mf-tinta);
+    cursor: pointer;
+    transition: background-color var(--mf-duracao) var(--ease-seco);
+  }
+  .mf-sangue__opcao:nth-child(1) {
+    border-top-left-radius: var(--radius-1);
+  }
+  .mf-sangue__opcao:nth-child(4) {
+    border-top-right-radius: var(--radius-1);
+  }
+  .mf-sangue__opcao:hover {
+    background-color: var(--mf-papel-2);
+  }
+  .mf-sangue__opcao input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: inherit;
+  }
+  .mf-sangue__grupo {
+    font-size: 1.375rem;
+    font-weight: 720;
+    font-stretch: 80%;
+    line-height: 1;
+  }
+  .mf-sangue__fator {
+    font-size: 1rem;
+    font-weight: 750;
+    line-height: 1;
+    transform: translateY(-0.375rem);
+  }
+  .mf-sangue__opcao--nenhum {
+    grid-column: 1 / -1;
+    align-items: center;
+    min-height: var(--mf-alvo);
+    border-radius: 0 0 var(--radius-1) var(--radius-1);
+    color: var(--mf-tinta-2);
+    font-size: var(--mf-pequeno);
+    font-weight: 600;
+  }
+  .mf-sangue__opcao:has(input:checked) {
+    z-index: 1;
+    border-color: var(--mf-marca);
+    background-color: var(--mf-marca-suave);
+    box-shadow: inset 0 -2px 0 var(--mf-marca);
+    color: var(--mf-tinta);
+  }
+  .mf-sangue__opcao:has(input:focus-visible) {
+    z-index: 2;
+    outline: 3px solid var(--mf-foco);
+    outline-offset: 2px;
+  }
 }
 
 /* ───────── Movimento reduzido: estado sem deslocamento ───────── */
