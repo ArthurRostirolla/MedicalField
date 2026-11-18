@@ -34,4 +34,5 @@ sub: Como as peças do MedicalField se conectam e conversam entre si.
 - **Duas redes internas:** `app` (gateway e serviços) e `banco` (serviços e PostgreSQL, **sem acesso à internet**).
 - **Cada serviço valida o token sozinho**, com a chave pública do MikeBaguncinha guardada em cache. Se o login cair, quem já entrou continua trabalhando.
 - **O e-mail é assíncrono:** o pedido entra numa fila no banco e é enviado em segundo plano. Uma falha de SMTP não derruba a tela.
+- **Ficha automática ao encerrar:** quando um atendimento é encerrado, a DonaCida avisa o Jaiminho (sem esperar resposta), que gera a ficha e a envia ao e-mail do paciente, se ele tiver um cadastrado.
 - **Todo serviço registra cada requisição** (data/hora, IP, profissional, método, rota, status e tempo em ms).

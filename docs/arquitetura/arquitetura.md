@@ -58,6 +58,7 @@ flowchart LR
   cida -. "JWKS, porta de gestao" .-> mike
   jaiminho -. "JWKS, porta de gestao" .-> mike
   jaiminho -- "GET /ficha, com o JWT do usuario" --> cida
+  cida -. "ENCERRAMENTO: POST /documento/ficha-atendimento,<br/>sem esperar resposta" .-> jaiminho
 
   mike --> pg
   cida --> pg
@@ -240,6 +241,7 @@ Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, do
 | Subida da sincronização | HTTP síncrono, **um comando por requisição**, a partir da fila persistente no dispositivo | `apps/lucky-patcher/src/sync/motor.ts` (`subir`) |
 | Descida da sincronização | HTTP síncrono, *pull* por cursor | `motor.ts` (`descer`) → `GET /sync/alteracoes` |
 | Jaiminho → DonaCida | HTTP síncrono, com o JWT do usuário | `apps/jaiminho/src/jaiminho/infra/clinico.py` |
+| DonaCida → Jaiminho | HTTP **sem esperar resposta** (*fire-and-forget*), com o JWT do usuário, depois de gravar um `ENCERRAMENTO`; o Jaiminho gera a ficha e a põe na fila para o e-mail do paciente. Falha só vira log: a ficha ainda pode ser gerada pelo portal | `apps/dona-cida/src/infra/jaiminho.ts` (`AvisoDeEncerramento`), `aplicacao/documentos.py` (`_enviar_ao_paciente`) |
 | Validação de token | Chave pública em cache (5 min), sem chamada por requisição | `apps/dona-cida/src/infra/verificador-token.ts`, `apps/jaiminho/src/jaiminho/infra/jwks.py` |
 | Log de acesso | Inserção assíncrona em lote (1 s ou 100 linhas) | `infra/gravador_acesso.go`, `infra/log-acesso.ts`, `infra/log.py` |
 | Envio de e-mail | **Assíncrono**, fila em tabela | `documentos.envio_email` + `aplicacao/envios.py` (`WorkerEnvios`) |

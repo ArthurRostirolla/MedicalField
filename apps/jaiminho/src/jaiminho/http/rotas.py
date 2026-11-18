@@ -137,6 +137,10 @@ def criar_rotas(documentos: DocumentosUseCases, envios: EnviosUseCases) -> APIRo
         status_code=201,
         response_model=DocumentoSaida,
         summary="Gera a ficha de atendimento em PDF",
+        description=(
+            "Se o atendimento está ENCERRADO e o paciente tem e-mail, a ficha nova entra sozinha na fila de envio "
+            "para ele (uma vez por documento). A DonaCida chama esta rota ao registrar um ENCERRAMENTO."
+        ),
         responses={200: {"model": DocumentoSaida, "description": "Já existia documento com o mesmo conteúdo"}},
     )
     async def gerar_ficha(

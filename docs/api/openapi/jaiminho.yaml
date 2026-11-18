@@ -9,6 +9,8 @@ paths:
       tags:
       - documento
       summary: Gera a ficha de atendimento em PDF
+      description: Se o atendimento está ENCERRADO e o paciente tem e-mail, a ficha nova entra sozinha na fila de
+        envio para ele (uma vez por documento). A DonaCida chama esta rota ao registrar um ENCERRAMENTO.
       operationId: gerar_ficha_api_v1_documento_ficha_atendimento_post
       requestBody:
         content:

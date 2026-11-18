@@ -1,5 +1,5 @@
 // Gera os PDFs curtos da documentacao: docs/pdf/fontes/*.md -> docs/pdf/MedicalField-*.pdf
-//   node scripts/gerar-pdfs-docs.mjs
+//   node scripts/gerar-pdfs-docs.mjs [trecho-do-nome]   (ex.: 06 gera so o 06-*.md)
 // Identidade visual do guia (docs/apresentacao/guia-visual). {{svg nome}} no markdown vira o diagrama
 // docs/pdf/fontes/diagramas/nome.svg (extraidos do guia). Markdown via marked (CDN, precisa de rede), PDF via Playwright.
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
@@ -55,7 +55,7 @@ function montarHtml(md) {
 }
 
 const browser = await chromium.launch({ channel: 'chrome' });
-for (const arq of readdirSync(FONTES).filter((f) => f.endsWith('.md')).sort()) {
+for (const arq of readdirSync(FONTES).filter((f) => f.endsWith('.md') && f.includes(process.argv[2] ?? '')).sort()) {
   const { titulo, html } = montarHtml(readFileSync(join(FONTES, arq), 'utf8').replace(/\r\n/g, '\n'));
   const tmp = join(tmpdir(), arq.replace('.md', '.html'));
   writeFileSync(tmp, html);

@@ -25,7 +25,7 @@ Todos os dados são **fictícios e sem validade clínica**.
 | --- | --- | --- | --- |
 | `identidade` | MikeBaguncinha | `profissional`, `sessao` | `apps/mike-baguncinha/migrations/20261117000100_identidade_e_auditoria.sql` |
 | `auditoria` | MikeBaguncinha (os três gravam o log de acesso) | `log_acesso`, `log_cliente` | idem |
-| `clinico` | DonaCida | `medicamento`, `pessoa`, `prontuario`, `prontuario_item`, `atendimento`, `atendimento_evento`, `operacao_sync`, `auditoria_clinica` | `apps/dona-cida/migrations/20261117000200_clinico.sql` |
+| `clinico` | DonaCida | `medicamento`, `pessoa`, `prontuario`, `prontuario_item`, `atendimento`, `atendimento_evento`, `operacao_sync`, `auditoria_clinica` | `apps/dona-cida/migrations/20261117000200_clinico.sql` (+ `20261118000200_pessoa_email.sql`) |
 | `documentos` | Jaiminho | `documento`, `envio_email` | `apps/jaiminho/migrations/20261117000300_documentos.sql` |
 
 São **14 tabelas**. Cada schema tem ainda uma `schema_migrations`, do `dbmate`.
@@ -135,6 +135,7 @@ erDiagram
     text cpf "sem UNIQUE, de proposito"
     text cns
     text telefone
+    text email "do paciente: recebe a ficha ao encerrar"
     text contato_emergencia_nome
     text contato_emergencia_telefone
     text contato_emergencia_email
@@ -367,7 +368,7 @@ Atendimentos e eventos **não têm `seq`**: eles só sobem; não descem para out
 
 ## 2. Banco local (SQLite no app)
 
-Definido em `apps/lucky-patcher/src/banco/migracoes/001_inicial.sql`; a versão do esquema fica em `PRAGMA user_version` (`banco/banco.ts`, `migrar`).
+Definido em `apps/lucky-patcher/src/banco/migracoes/001_inicial.sql` (+ `002_pessoa_email.ts`, que acrescenta `pessoa.email`); a versão do esquema fica em `PRAGMA user_version` (`banco/banco.ts`, `migrar`).
 
 | Plataforma | Implementação | Onde ficam os dados |
 | --- | --- | --- |
@@ -404,6 +405,7 @@ erDiagram
     TEXT cpf
     TEXT cns
     TEXT telefone
+    TEXT email
     TEXT contato_emergencia_nome
     TEXT contato_emergencia_telefone
     TEXT contato_emergencia_email

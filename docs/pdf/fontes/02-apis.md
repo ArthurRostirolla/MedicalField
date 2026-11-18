@@ -31,7 +31,7 @@ sub: Como autenticar e chamar as rotas dos três serviços.
 | POST | `/atendimento` | Cida | Cadastra um atendimento. |
 | POST | `/atendimento-evento` | Cida | Registra sinais vitais, Glasgow, triagem, medicação etc. |
 | GET | `/sync/alteracoes` | Cida | Envia ao app o que mudou desde a última sincronização. |
-| POST | `/documento/ficha-atendimento` | Jaiminho | Gera a ficha de atendimento em PDF. |
+| POST | `/documento/ficha-atendimento` | Jaiminho | Gera a ficha de atendimento em PDF; se o atendimento está encerrado e o paciente tem e-mail, já o põe na fila. A DonaCida chama esta rota sozinha ao registrar um encerramento. |
 | GET | `/documento/{id}/pdf` | Jaiminho | Baixa o PDF. |
 | POST | `/documento/{id}/email` | Jaiminho | Envia o PDF por e-mail (fila; responde `202`). |
 

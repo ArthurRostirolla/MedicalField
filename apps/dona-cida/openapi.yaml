@@ -1012,6 +1012,10 @@ components:
           type:
             - string
             - "null"
+        email:
+          type:
+            - string
+            - "null"
         contatoEmergenciaNome:
           type:
             - string
@@ -1051,6 +1055,7 @@ components:
         - cpf
         - cns
         - telefone
+        - email
         - contatoEmergenciaNome
         - contatoEmergenciaTelefone
         - contatoEmergenciaEmail
@@ -1096,6 +1101,13 @@ components:
             - type: string
               minLength: 1
               maxLength: 30
+            - type: "null"
+        email:
+          anyOf:
+            - type: string
+              maxLength: 320
+              format: email
+              pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
             - type: "null"
         contatoEmergenciaNome:
           anyOf:
@@ -1175,6 +1187,13 @@ components:
                 - type: string
                   minLength: 1
                   maxLength: 30
+                - type: "null"
+            email:
+              anyOf:
+                - type: string
+                  maxLength: 320
+                  format: email
+                  pattern: ^(?:[A-Za-z0-9_'+\-]+\.)*[A-Za-z0-9_'+\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\-]*\.)+[A-Za-z]{2,}$
                 - type: "null"
             contatoEmergenciaNome:
               anyOf:
@@ -2958,6 +2977,10 @@ components:
               type:
                 - string
                 - "null"
+            email:
+              type:
+                - string
+                - "null"
             contatoEmergenciaNome:
               type:
                 - string
@@ -2997,6 +3020,7 @@ components:
             - cpf
             - cns
             - telefone
+            - email
             - contatoEmergenciaNome
             - contatoEmergenciaTelefone
             - contatoEmergenciaEmail
@@ -3813,6 +3837,10 @@ components:
                 type:
                   - string
                   - "null"
+              email:
+                type:
+                  - string
+                  - "null"
               contatoEmergenciaNome:
                 type:
                   - string
@@ -3852,6 +3880,7 @@ components:
               - cpf
               - cns
               - telefone
+              - email
               - contatoEmergenciaNome
               - contatoEmergenciaTelefone
               - contatoEmergenciaEmail
@@ -4037,6 +4066,10 @@ components:
                 type:
                   - string
                   - "null"
+              email:
+                type:
+                  - string
+                  - "null"
               contatoEmergenciaNome:
                 type:
                   - string
@@ -4076,6 +4109,7 @@ components:
               - cpf
               - cns
               - telefone
+              - email
               - contatoEmergenciaNome
               - contatoEmergenciaTelefone
               - contatoEmergenciaEmail

@@ -17,6 +17,8 @@ curl http://localhost:9092/health/ready
 
 `JWKS_URL` aponta para a porta de gestão do MikeBaguncinha. O serviço sobe sem ele; enquanto estiver fora, as rotas respondem 503.
 
+`JAIMINHO_URL` (opcional): ao registrar um `ENCERRAMENTO`, a Cida pede a ficha ao Jaiminho sem esperar a resposta; ele a envia ao e-mail do paciente, se houver. Sem a variável, ou com o Jaiminho fora, o atendimento é gravado normalmente e a ficha pode ser gerada pelo portal.
+
 | Comando (`-w @medicalfield/dona-cida`) | O que faz |
 | --- | --- |
 | `npm run dev` | empacota e sobe com as variáveis de `.env` |

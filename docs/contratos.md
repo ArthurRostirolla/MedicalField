@@ -90,6 +90,7 @@ Regra para o outbox do app: **4xx = rejeição definitiva (não reenviar); rede/
 | `PORTA_GESTAO` | 9090 | health (e JWKS no Mike) |
 | `DATABASE_URL` | — (obrigatória) | papel restrito do serviço |
 | `JWKS_URL` | — (obrigatória na Cida e no Jaiminho) | chave pública |
+| `JAIMINHO_URL` | — (opcional, só na Cida) | ao registrar um `ENCERRAMENTO`, a Cida pede a ficha ao Jaiminho, que a envia ao e-mail do paciente; sem ela, não há envio automático |
 | `PROXIES_CONFIAVEIS` | `127.0.0.1/32,::1/128,10.42.0.0/16` | CIDRs separados por vírgula |
 | `AMBIENTE` | `desenvolvimento` | ou `producao` |
 | `NIVEL_LOG` | `info` | — |
@@ -170,7 +171,7 @@ type Medicamento = { id: string; nome: string; principioAtivo: string | null; ap
                      observacao: string | null; ativo: boolean };
 
 type Pessoa = { id: string; nome: string; dataNascimento: string | null; sexo: 'M' | 'F' | 'I' | null;
-                cpf: string | null; cns: string | null; telefone: string | null;
+                cpf: string | null; cns: string | null; telefone: string | null; email: string | null; // e-mail do paciente: recebe a ficha ao encerrar
                 contatoEmergenciaNome: string | null; contatoEmergenciaTelefone: string | null; contatoEmergenciaEmail: string | null;
                 naoIdentificada: boolean; descricaoIdentificacao: string | null;
                 possivelDuplicataDe: string | null; criadoEm: string; atualizadoEm: string };

@@ -7,7 +7,7 @@ sub: Banco central no servidor e banco local no app (persistência dual).
 
 {{svg banco-central}}
 
-Uma **pessoa** tem um **prontuário** (com seus itens) e pode receber vários **atendimentos**. Cada atendimento é uma **linha do tempo de eventos**: sinais vitais, Glasgow, triagem, medicação, procedimento e observação. Eventos **nunca são apagados nem alterados**; uma correção é um novo evento. Do atendimento sai a **ficha em PDF**, que pode ser enviada por e-mail.
+Uma **pessoa** tem um **prontuário** (com seus itens) e pode receber vários **atendimentos**. Cada atendimento é uma **linha do tempo de eventos**: sinais vitais, Glasgow, triagem, medicação, procedimento e observação. Eventos **nunca são apagados nem alterados**; uma correção é um novo evento. Do atendimento sai a **ficha em PDF**, que pode ser enviada por e-mail; se a pessoa tem `email` cadastrado, a ficha vai sozinha para ela quando o atendimento é encerrado.
 
 ## Banco central — PostgreSQL
 
