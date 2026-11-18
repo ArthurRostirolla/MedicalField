@@ -106,3 +106,35 @@ Cada entrada: o que foi executado, o comando ou a ação, o resultado observado 
   - D-10: o topo fixo do app ficava por baixo da barra de status do Android. Corrigido em `packages/ui` (`.mf-app__topo` com `padding-top: env(safe-area-inset-top)`); conferido na captura `docs/testes/evidencias/android/03-reaberto-com-pendencias.png`.
 - **Evidências:** `docs/testes/evidencias/android/` (4 capturas do emulador + `resultado.md`).
 - **Limites:** emulador, não aparelho físico; APK de depuração (não assinado para publicação); tráfego HTTP sem TLS até o gateway local.
+
+## E-009 — QA independente no k3s local (OF-12..OF-14, BE-04, BE-06, BE-10, K8-05..K8-08)
+
+- **Data:** 2026-11-18
+- **Executado por:** agente de QA, sem acesso de escrita ao código. Relatório completo em [`testes/relatorio-qa.md`](testes/relatorio-qa.md), defeitos em [`testes/defeitos-qa.md`](testes/defeitos-qa.md), saídas em `testes/evidencias/qa/`, scripts reexecutáveis em `e2e/qa/`.
+- **Resultado:** 41 casos executados, 34 passaram, 7 falharam (viraram 21 defeitos: 3 de severidade Alta, nenhum Crítico); 9 não executados. Nenhuma perda nem duplicação de dado clínico em nenhum teste.
+- **Destaques do que passou:**
+  - Dois dispositivos offline: duas alergias novas ficaram ambas na central; dois prontuários locais viraram um; mesmo CPF aceito nos dois cadastros e sinalizado em "Possíveis duplicatas"; `PATCH /pessoa` com vitória por campo, valor anterior auditado e relógio adiantado limitado.
+  - 29 rotas → 401 sem token; 6 tipos de token forjado e um token realmente expirado recusados nos três serviços; PROFISSIONAL em `/auditoria/*` → 403; porta de gestão inalcançável pelo gateway; `X-Forwarded-For` forjado ignorado.
+  - 1.315 linhas de log dos pods e a tabela `log_acesso` sem senha, token nem dado de paciente.
+  - 36 tentativas de `UPDATE`/`DELETE`/`TRUNCATE`/`DROP` nas tabelas de trilha negadas aos papéis dos serviços.
+  - Pod da DonaCida morto no meio da subida, Postgres em 0 réplicas, Jaiminho fora, `rollout restart` de tudo: recuperação sem intervenção e contagens idênticas.
+  - NetworkPolicies: 20 de 20 acessos indevidos bloqueados. Backup e restauração com contagens, permissões e trigger preservados.
+  - E-mail com o SMTP fora: tentativas 1 e 2 com `ultimo_erro` sem dado de paciente; `ENVIADO` sozinho na 3ª, com o anexo.
+
+## E-010 — Regressão completa depois das correções do QA
+
+- **Data:** 2026-11-18
+- **Executado pelo agente principal**, com o cluster **destruído e recriado do zero** (`cluster-local.sh derrubar` → `subir` → `construir-imagens` → `implantar`) a partir do código corrigido:
+  - Banco novo com `DADOS_DEMO=on`: `show medicalfield.dados_demo` → `on`; 3 profissionais e 12 medicamentos carregados pelas migrações condicionais.
+  - **Roteiro de 17 passos: 17 de 17** (17,6 s).
+  - Scripts do QA: `seguranca-1-autenticacao.sh` 76/76, `seguranca-2-entradas.sh` 98/99, `auditoria.sh` 62/62. A única falha é `?desde=1;select` lido como `desde=1` (sem efeito; aceito).
+  - Conflitos com dois dispositivos (`conflitos.qa.ts`): 2 de 2.
+  - Coleção Postman com Newman: 31 requisições, 57 verificações, 0 falhas.
+  - **D-QA-01 retestado:** 32 logins simultâneos direto no pod → 32× 401, nenhum reinício (os 3 reinícios que todos os pods mostram vêm das três recriações do contêiner do cluster feitas durante o diagnóstico da porta).
+  - **D-QA-04 retestado:** 20 logins inválidos em sequência → 5× 401 e depois só 429.
+  - **D-QA-15 retestado:** Jaiminho em 0 réplicas → `503 application/json` com `{"codigo":"SERVICO_INDISPONIVEL",...}`.
+  - App Android: APK de depuração reconstruído do código corrigido (o pacote instalado não tem mais `ALLOW_BACKUP`; o bundle no APK é o atual) → 5 de 5 no emulador.
+  - Ambiente de desenvolvimento com as imagens corrigidas: e2e do app 14 de 14 (inclui 12 observações rápidas → 12 gravadas, e `window.__mf` ausente no build de produção); e2e do portal 12 de 12.
+  - Suítes de unidade/integração: Mike `ok` nos 3 pacotes; contratos 16, domínio 9, DonaCida 47; Jaiminho 57; app 34; design system 114; portal 40.
+- **Defeito de ambiente encontrado (D-12):** nesta máquina, `http://localhost:8088` deixou de responder por IPv6 (`::1`) — um repasse do WSL/Docker Desktop ficou preso na porta depois que o cluster foi recriado; `http://127.0.0.1:8088` responde normalmente. A regressão usou `MF_BASE=http://127.0.0.1:8088`. Não é defeito do sistema; ver `docs/operacao/troubleshooting.md`.
+- **Ajuste de teste:** dois testes do portal dependiam de o atendimento de demonstração estar na primeira página da lista; com o banco de desenvolvimento cheio de dados de teste, falharam. Foram tornados independentes do volume.

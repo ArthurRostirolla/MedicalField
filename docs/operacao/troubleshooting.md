@@ -53,3 +53,10 @@ Para a senha do administrador (`SENHA_POSTGRES_ADMIN`) é igual, com `\password 
 | Porta 8088 ou 6550 ocupada | `MF_PORTA_GATEWAY=8090 MF_PORTA_API=6551 deploy/scripts/cluster-local.sh subir` (só vale ao **criar** o cluster) |
 | Estado estranho depois de reiniciar o Docker | `cluster-local.sh derrubar && cluster-local.sh subir` — apaga os dados locais |
 | `kubectl` do sistema não enxerga o cluster | `export KUBECONFIG=<repo>/deploy/.local/kubeconfig`, ou use `cluster-local.sh kubectl …` |
+
+## `http://localhost:8088` não responde, mas os pods estão `Running` (cluster local no Windows)
+
+Sintoma: `curl http://localhost:8088/portal/` fica pendurado; `curl http://127.0.0.1:8088/portal/` devolve 200. Causa: depois de recriar o contêiner do cluster, o repasse de `localhost` do WSL/Docker Desktop pode ficar preso no endereço IPv6 (`::1`) da porta. Confirme com `netstat -ano | findstr :8088` (aparece um `[::1]:8088` do `wslrelay.exe`).
+
+- Contorno imediato: use `http://127.0.0.1:8088` no navegador e `MF_BASE=http://127.0.0.1:8088` nos testes (`npm run roteiro`, `e2e/qa`). O emulador Android não é afetado (`10.0.2.2` é IPv4).
+- Para limpar de vez: reiniciar o Docker Desktop (ou `wsl --shutdown`) — isso derruba todos os contêineres da máquina, então faça fora de uma demonstração. Alternativa sem reiniciar: outra porta, `MF_PORTA_GATEWAY=8090 deploy/scripts/cluster-local.sh subir` num cluster novo.
