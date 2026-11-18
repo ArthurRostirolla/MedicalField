@@ -22,4 +22,6 @@ Nenhum registrado ainda (onda 1 em andamento, nada integrado).
 
 ## Resolvidos
 
-Nenhum ainda.
+| ID | Problema | Correção |
+| --- | --- | --- |
+| D-01 | Cluster k3s local não voltava após `parar` (IP do contêiner mudava) | Rede Docker própria com IP fixo em `deploy/scripts/cluster-local.sh` |

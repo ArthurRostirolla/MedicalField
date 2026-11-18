@@ -6,7 +6,7 @@ Legenda: `Não implementado` · `Implementado` (código existe, não exercitado)
 
 Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOWN_ISSUES.md](KNOWN_ISSUES.md) · Andamento das tarefas: [acompanhamento.md](acompanhamento.md) (é o `IMPLEMENTATION_STATUS` do projeto).
 
-Última atualização: onda 1 em andamento — nada integrado ainda.
+Última atualização: backend integrado e validado em dev e no k3s local; portal e app em construção (onda 2).
 
 ## Roteiro acadêmico (17 passos)
 
@@ -54,22 +54,22 @@ Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOW
 
 | ID | O que precisa funcionar | Situação | Evidência |
 | --- | --- | --- | --- |
-| BE-01 | Três serviços em três linguagens no ar e se falando | Não implementado | — |
-| BE-02 | Login por CRM / COREN / ID de socorrista | Não implementado | — |
-| BE-03 | Toda rota sem token → 401 nos três serviços | Não implementado | — |
-| BE-04 | Token expirado → 401; papel insuficiente → 403 | Não implementado | — |
-| BE-05 | Log de acesso com os 7 campos em cada serviço | Não implementado | — |
-| BE-06 | IP do cliente correto atrás do gateway; cabeçalho forjado ignorado | Não implementado | — |
-| BE-07 | Idempotência: mesmo POST 2× → um registro | Não implementado | — |
+| BE-01 | Três serviços em três linguagens no ar e se falando | Validado | E-002, E-004 |
+| BE-02 | Login por CRM / COREN / ID de socorrista | Validado (CRM e COREN; socorrista só no teste do agente) | E-002, E-004 |
+| BE-03 | Toda rota sem token → 401 nos três serviços | Validado | E-004 |
+| BE-04 | Token expirado → 401; papel insuficiente → 403 | Testado | E-003 |
+| BE-05 | Log de acesso com os 7 campos em cada serviço | Validado | E-002, E-004 |
+| BE-06 | IP do cliente correto atrás do gateway; cabeçalho forjado ignorado | Testado (forja só em teste unitário; gateway validado em E-004) | E-003, E-004 |
+| BE-07 | Idempotência: mesmo POST 2× → um registro | Validado | E-002 |
 | BE-08 | Rotas do enunciado respondem pelo gateway (coleção Postman) | Não implementado | — |
-| BE-09 | PDF gerado, íntegro, com QR e passagem de caso | Não implementado | — |
-| BE-10 | E-mail com anexo entregue; falha → retentativa → recuperação | Não implementado | — |
+| BE-09 | PDF gerado, íntegro, com QR e passagem de caso | Validado (PDF de exemplo inspecionado; redesenho em andamento) | E-002 |
+| BE-10 | E-mail com anexo entregue; falha → retentativa → recuperação | Validado (entrega); retentativa só Testado | E-002, E-003 |
 
 ## Front-end
 
 | ID | O que precisa funcionar | Situação | Evidência |
 | --- | --- | --- | --- |
-| FE-01 | Design system revisado com Impeccable (registro real dos fluxos) | Não implementado | — |
+| FE-01 | Design system revisado com Impeccable (registro real dos fluxos) | Testado (114 testes; capturas inspecionadas) | `packages/ui/IMPECCABLE.md` |
 | FE-02 | Portal: todas as telas com estados de carregamento, vazio e erro | Não implementado | — |
 | FE-03 | App: fluxo de campo em largura de celular, temas claro e escuro | Não implementado | — |
 | FE-04 | Revisão visual Impeccable das telas renderizadas (portal e app) | Não implementado | — |
@@ -80,14 +80,14 @@ Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOW
 
 | ID | O que precisa funcionar | Situação | Evidência |
 | --- | --- | --- | --- |
-| K8-01 | Imagens constroem (3 serviços + web + migrações) | Não implementado | — |
-| K8-02 | Todos os pods `Ready` no k3s local | Não implementado | — |
-| K8-03 | Gateway roteia para os serviços e para o web | Não implementado | — |
+| K8-01 | Imagens constroem (3 serviços + web + migrações) | Validado para 4 de 5 (falta `web`) | E-004 |
+| K8-02 | Todos os pods `Ready` no k3s local | Validado para o backend (falta `web`) | E-004 |
+| K8-03 | Gateway roteia para os serviços e para o web | Validado para os serviços (falta `web`) | E-004 |
 | K8-04 | Roteiro de 17 passos contra o cluster | Não implementado | — |
-| K8-05 | Dados sobrevivem a reinício de pod e a reimplantação | Não implementado | — |
-| K8-06 | Serviços se recuperam sozinhos após `delete pod` | Não implementado | — |
-| K8-07 | NetworkPolicy bloqueia acesso indevido ao Postgres | Não implementado | — |
-| K8-08 | Backup e restauração | Não implementado | — |
+| K8-05 | Dados sobrevivem a reinício de pod e a reimplantação | Validado (reinício); reimplantação pendente | E-004 |
+| K8-06 | Serviços se recuperam sozinhos após `delete pod` | Validado (Postgres e DonaCida) | E-004 |
+| K8-07 | NetworkPolicy bloqueia acesso indevido ao Postgres | Testado (relato do agente; repetir) | — |
+| K8-08 | Backup e restauração | Testado (relato do agente; repetir) | — |
 | K8-09 | Consumo de recursos dentro do orçamento | Não implementado | — |
 | K8-10 | Argo CD sincroniza a partir do Git | Não implementado | — |
 | K8-11 | Implantação na VM da Univates | Bloqueio externo | Sem acesso à VM nesta sessão |

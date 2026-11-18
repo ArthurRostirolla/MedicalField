@@ -51,7 +51,10 @@ subir() {
   elif existe; then
     docker start "$CLUSTER" >/dev/null
   else
-    docker run -d --name "$CLUSTER" --hostname "$CLUSTER" --privileged \
+    # Rede propria com IP fixo: sem isso o Docker troca o IP ao reiniciar o conteiner e o k3s
+    # nao sobe mais ("failed to find interface with specified node ip").
+    docker network inspect "$CLUSTER" >/dev/null 2>&1       || docker network create --subnet 172.30.77.0/24 "$CLUSTER" >/dev/null
+    docker run -d --name "$CLUSTER" --hostname "$CLUSTER" --privileged       --network "$CLUSTER" --ip 172.30.77.10 \
       --tmpfs /run --tmpfs /var/run \
       -p "127.0.0.1:$PORTA_API:6443" -p "$PORTA_GATEWAY:80" \
       -v "$CLUSTER-dados:/var/lib/rancher/k3s" \
@@ -140,6 +143,7 @@ case "${1:-}" in
   derrubar)
     docker rm -f "$CLUSTER" >/dev/null 2>&1 || true
     docker volume rm "$CLUSTER-dados" >/dev/null 2>&1 || true
+    docker network rm "$CLUSTER" >/dev/null 2>&1 || true
     rm -rf "$DIR_LOCAL"
     echo "Cluster removido."
     ;;

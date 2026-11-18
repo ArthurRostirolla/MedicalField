@@ -31,3 +31,17 @@ Cada entrada: o que foi executado, o comando ou a ação, o resultado observado 
 - **MikeBaguncinha (Go, em contêiner `golang:1.27`):** `go vet` limpo; `go test ./...` → `ok` em `aplicacao`, `http` (integração contra Postgres real) e `infra`.
 - **Contratos / domínio / DonaCida:** 13 + 8 + 41 testes passaram (22 de integração contra Postgres real); `tsc --noEmit` sem erros.
 - **Jaiminho:** 40 testes relatados pelo agente (Ruff limpo); **ainda não reexecutados pelo agente principal** — o fluxo real da E-002 é a verificação independente até aqui.
+
+## E-004 — Backend no k3s local, pelo gateway (K8-01 parcial, K8-02 parcial, K8-03, K8-05, K8-06, K8-09 parcial, BE-03, BE-06)
+
+- **Data:** 2026-11-17
+- **Executado:** `deploy/scripts/cluster-local.sh subir`, `construir-imagens mike-baguncinha dona-cida jaiminho migracoes`, `implantar`; depois `curl` em `http://localhost:8088` (Traefik "freeway").
+- **Observado:**
+  - Pods `postgres-0`, `mike-baguncinha`, `dona-cida`, `jaiminho`, `mailpit` em `1/1 Running`; migrações aplicadas pelos initContainers. **`web` em `ErrImagePull`: a imagem ainda não existe (front-ends em construção).**
+  - Login pelo gateway devolveu token; 8 rotas testadas (`auth/me`, `medicamento`, `prontuario`, `atendimento`, `pessoa`, `sync/alteracoes`, `auditoria/acesso`, `documento`) → **200 com token, 401 sem token**, em todas.
+  - `POST /atendimento` → 201; ficha → PDF de 27.071 bytes; e-mail → 202 e depois `ENVIADO` (Mailpit do cluster).
+  - `auditoria.log_acesso`: linhas dos três serviços. As chamadas externas registram `172.30.77.1` (o par real visto pelo nó, que é o gateway da rede Docker); a chamada interna Jaiminho → DonaCida registra o IP do pod (`10.42.0.23`).
+  - `kubectl delete pod postgres-0` e do pod da DonaCida → voltaram sozinhos; a ficha criada antes continuou acessível (`GET /ficha/{id}` com o mesmo id e o evento).
+  - `kubectl top`: Jaiminho 85 Mi, Mike 42 Mi, Mailpit 10 Mi (Cida e Postgres tinham acabado de reiniciar e ainda não apareciam).
+- **Defeito encontrado e corrigido:** o cluster local não voltava depois de `parar` (o Docker trocava o IP do contêiner e o k3s falhava com "failed to find interface with specified node ip"). Corrigido com rede própria e IP fixo em `cluster-local.sh`; conferido com `parar` + `subir`.
+- **Resultado:** passou para o backend. Falta a imagem `web` e o roteiro de 17 passos contra o cluster.
