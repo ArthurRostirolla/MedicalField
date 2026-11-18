@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Android 12+: nada do app vai para backup na nuvem nem para transferencia entre aparelhos
-     (o banco local guarda a sessao e dados de pacientes). -->
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" />

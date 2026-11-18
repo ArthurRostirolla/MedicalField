@@ -1,0 +1,12 @@
+{
+  "name": "MedicalField",
+  "short_name": "MedicalField",
+  "description": "Prontuário de emergência Offline-First — dados demonstrativos",
+  "lang": "pt-BR",
+  "start_url": "/app/",
+  "scope": "/app/",
+  "display": "standalone",
+  "background_color": "#f6f7f9",
+  "theme_color": "#ffffff",
+  "icons": [{ "src": "icone.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Build de RELEASE: trafego em claro proibido. O servidor precisa de HTTPS.
-     A unica excecao e "localhost": e a origem interna do proprio WebView do Capacitor
-     (os arquivos do app, servidos de dentro do APK), nao e rede.
-     O build de DEPURACAO troca este arquivo por src/debug/res/xml/network_security_config.xml. -->
+<!-- Release: trafego em claro proibido. O servidor precisa de HTTPS. -->
 <network-security-config>
     <base-config cleartextTrafficPermitted="false" />
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="false">localhost</domain>
-    </domain-config>
 </network-security-config>

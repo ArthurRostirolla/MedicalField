@@ -1,4 +1,8 @@
 dist/
-dist-android/
 dist-diagnostico/
 e2e/resultados/
+public/sqlite.worker.js
+public/sqlite3.wasm
+.expo/
+android/
+ios/
