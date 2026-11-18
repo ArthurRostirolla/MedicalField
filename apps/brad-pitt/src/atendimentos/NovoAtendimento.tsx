@@ -1,33 +1,120 @@
-// Abre um atendimento pelo portal para uma pessoa ja cadastrada; os registros entram depois, na tela do atendimento.
-import { atendimentoEntradaSchema } from '@medicalfield/contratos';
-import { Botao, CampoTexto, Dialogo } from '@medicalfield/ui';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, Plus } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
-import { registrarAtendimento } from '../api/recursos';
+// Tela de novo atendimento, como no app: primeiro o paciente (buscar ou cadastrar), depois queixa e local.
+// O paciente escolhido fica na URL (?pessoa=), então voltar e recarregar não perdem o passo.
+import { atendimentoEntradaSchema, type Pessoa } from '@medicalfield/contratos';
+import { Botao, CampoTexto, EstadoErro, EstadoVazio, Esqueleto, Etiqueta, Secao, type Coluna } from '@medicalfield/ui';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, CircleAlert, ClipboardPlus, UserPlus, UserRoundX, Users } from 'lucide-react';
+import { useDeferredValue, useState, type FormEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router';
+import { buscarPessoas, obterPessoa, obterProntuario, registrarAtendimento } from '../api/recursos';
+import { CampoLeitura, CamposLeitura } from '../comum/CamposLeitura';
 import { useAvisar } from '../comum/avisos';
-import { descreverErro } from '../comum/formato';
+import { FolhaLista } from '../comum/FolhaLista';
+import { descreverErro, formatarCpf, formatarData, formatarDataHora, idadeEm } from '../comum/formato';
+import { useListaPorCursor } from '../comum/paginacao';
 
-export function BotaoNovoAtendimento({ pessoaId }: { pessoaId: string }) {
-  const [aberto, setAberto] = useState(false);
+const COLUNAS: Coluna<Pessoa>[] = [
+  {
+    id: 'pessoa',
+    titulo: 'Paciente',
+    quebra: true,
+    celula: (p) => (
+      <span className="flex flex-wrap items-center gap-2">
+        <strong className="font-[650]">{p.nome}</strong>
+        {p.naoIdentificada ? <Etiqueta>Não identificada</Etiqueta> : null}
+      </span>
+    ),
+  },
+  { id: 'nascimento', titulo: 'Nascimento', celula: (p) => <span className="mf-dado">{formatarData(p.dataNascimento)}</span> },
+  { id: 'cpf', titulo: 'CPF', celula: (p) => <span className="mf-dado">{formatarCpf(p.cpf)}</span> },
+  {
+    id: 'atualizado',
+    titulo: 'Atualizado',
+    alinhar: 'fim',
+    celula: (p) => (
+      <time className="mf-dado" dateTime={p.atualizadoEm}>
+        {formatarDataHora(p.atualizadoEm)}
+      </time>
+    ),
+  },
+];
+
+/** Duas colunas quando cabem; uma no celular (mesmo padrão dos filtros dos logs). */
+const GRADE = { gridTemplateColumns: 'repeat(auto-fit, minmax(min(16rem, 100%), 1fr))' };
+
+export function TelaNovoAtendimento() {
+  const [parametros] = useSearchParams();
+  const pessoaId = parametros.get('pessoa');
   return (
-    <>
-      <Botao icone={<Plus aria-hidden />} onClick={() => setAberto(true)}>
-        Novo atendimento
-      </Botao>
-      <Dialogo aberto={aberto} aoFechar={() => setAberto(false)} titulo="Novo atendimento">
-        {aberto ? <Formulario pessoaId={pessoaId} aoFechar={() => setAberto(false)} /> : null}
-      </Dialogo>
-    </>
+    <div className="grid max-w-5xl grid-cols-1 gap-6">
+      <Link to="/atendimentos" className="mf-botao mf-botao--fantasma justify-self-start">
+        <ArrowLeft aria-hidden />
+        Atendimentos
+      </Link>
+      {pessoaId ? <DadosDoAtendimento key={pessoaId} pessoaId={pessoaId} /> : <EscolherPaciente />}
+    </div>
   );
 }
 
-function Formulario({ pessoaId, aoFechar }: { pessoaId: string; aoFechar: () => void }) {
+/** Passo 1: quem é o paciente. Quem não estiver na central entra por "Novo paciente" e o atendimento abre ao salvar. */
+function EscolherPaciente() {
+  const navegar = useNavigate();
+  const [texto, setTexto] = useState('');
+  const busca = useDeferredValue(texto.trim());
+  const lista = useListaPorCursor(['pessoas', busca], (cursor) => buscarPessoas(busca, { limite: 20, cursor }));
+  const novo = busca ? `/prontuarios/novo?de=atendimento&nome=${encodeURIComponent(busca)}` : '/prontuarios/novo?de=atendimento';
+
+  return (
+    <FolhaLista
+      titulo="Novo atendimento"
+      descricao="Escolha o paciente. Quem ainda não está cadastrado entra por Novo paciente, e o atendimento abre ao salvar."
+      plural="pacientes"
+      acoes={
+        <>
+          <Link to="/prontuarios/novo?de=atendimento&naoIdentificado=1" className="mf-botao">
+            <UserRoundX aria-hidden />
+            Não identificado
+          </Link>
+          <Link to={novo} className="mf-botao mf-botao--primario">
+            <UserPlus aria-hidden />
+            Novo paciente
+          </Link>
+        </>
+      }
+      filtros={
+        <form className="border-b border-fio p-3" role="search" aria-label="Buscar paciente" onSubmit={(e) => e.preventDefault()}>
+          <CampoTexto rotulo="Buscar por nome ou CPF" type="search" value={texto} onChange={(e) => setTexto(e.target.value)} autoComplete="off" autoFocus />
+        </form>
+      }
+      lista={lista}
+      colunas={COLUNAS}
+      chave={(p) => p.id}
+      aoSelecionar={(p) => void navegar(`/atendimentos/novo?pessoa=${p.id}`)}
+      vazio={
+        <EstadoVazio
+          className="m-3"
+          icone={<Users aria-hidden />}
+          titulo={busca ? `Ninguém com “${busca}” na central` : 'Nenhum paciente na central'}
+          acao={
+            <Link to={novo} className="mf-botao mf-botao--primario">
+              <UserPlus aria-hidden />
+              {busca ? `Cadastrar “${busca}”` : 'Novo paciente'}
+            </Link>
+          }
+        />
+      }
+    />
+  );
+}
+
+/** Passo 2: o paciente escolhido (com o que o prontuário já registra) e os dados que abrem a linha do tempo. */
+function DadosDoAtendimento({ pessoaId }: { pessoaId: string }) {
   const navegar = useNavigate();
   const avisar = useAvisar();
   const consultas = useQueryClient();
-  // Um id por abertura: repetir depois de falha de rede devolve o mesmo atendimento (200), nao cria outro.
+  const pessoa = useQuery({ queryKey: ['pessoa', pessoaId], queryFn: () => obterPessoa(pessoaId) });
+  const prontuario = useQuery({ queryKey: ['prontuario', pessoaId], queryFn: () => obterProntuario(pessoaId), retry: false });
+  // Um id por paciente escolhido: repetir depois de falha de rede devolve o mesmo atendimento (200).
   const [id] = useState(() => crypto.randomUUID());
   const [queixa, setQueixa] = useState('');
   const [local, setLocal] = useState('');
@@ -38,9 +125,8 @@ function Formulario({ pessoaId, aoFechar }: { pessoaId: string; aoFechar: () => 
     onSuccess: () => {
       void consultas.invalidateQueries({ queryKey: ['atendimentos'] });
       void consultas.invalidateQueries({ queryKey: ['atendimentos-da-pessoa', pessoaId] });
-      avisar({ tom: 'sucesso', titulo: 'Atendimento aberto' });
-      aoFechar();
-      void navegar(`/atendimentos/${id}`);
+      avisar({ tom: 'sucesso', titulo: 'Atendimento aberto', descricao: pessoa.data?.nome });
+      void navegar(`/atendimentos/${id}`, { replace: true });
     },
     onError: (erro) => setFalha(descreverErro(erro, 'o atendimento').descricao),
   });
@@ -59,22 +145,76 @@ function Formulario({ pessoaId, aoFechar }: { pessoaId: string; aoFechar: () => 
     criacao.mutate(entrada.data);
   }
 
+  const trocar = (
+    <Link to="/atendimentos/novo" className="mf-botao">
+      <Users aria-hidden />
+      Trocar paciente
+    </Link>
+  );
+
+  if (pessoa.isPending) {
+    return (
+      <Secao titulo="Novo atendimento" acoes={trocar}>
+        <Esqueleto linhas={4} />
+      </Secao>
+    );
+  }
+  if (pessoa.isError) {
+    return <EstadoErro {...descreverErro(pessoa.error, 'o paciente')} aoTentarDeNovo={() => void pessoa.refetch()} />;
+  }
+
+  const p = pessoa.data;
+  const idade = idadeEm(p.dataNascimento);
+  const ativos = (prontuario.data?.itens ?? []).filter((item) => item.inativadoEm === null);
+  const doTipo = (tipo: string) => ativos.filter((item) => item.tipo === tipo).map((item) => item.descricao).join(', ') || null;
+
   return (
-    <form className="grid grid-cols-1 gap-3" onSubmit={aoEnviar} noValidate>
-      <CampoTexto rotulo="Queixa principal" value={queixa} onChange={(e) => setQueixa(e.target.value)} autoComplete="off" autoFocus />
-      <CampoTexto rotulo="Local" value={local} onChange={(e) => setLocal(e.target.value)} autoComplete="off" />
-      {falha ? (
-        <p className="mf-campo__erro m-0" role="alert">
-          <CircleAlert aria-hidden />
-          <span>{falha}</span>
-        </p>
-      ) : null}
-      <div className="flex justify-end gap-2">
-        <Botao onClick={aoFechar}>Cancelar</Botao>
-        <Botao type="submit" variante="primario" carregando={criacao.isPending}>
-          Abrir atendimento
-        </Botao>
-      </div>
-    </form>
+    <>
+      <Secao titulo={p.nome} descricao="Paciente deste atendimento" acoes={trocar} rente>
+        <CamposLeitura>
+          <CampoLeitura rotulo="Nascimento">
+            {p.dataNascimento ? (
+              <>
+                <span className="mf-dado">{formatarData(p.dataNascimento)}</span>
+                {idade !== null ? ` · ${idade} anos` : ''}
+              </>
+            ) : null}
+          </CampoLeitura>
+          <CampoLeitura rotulo="CPF">{p.cpf ? <span className="mf-dado">{formatarCpf(p.cpf)}</span> : null}</CampoLeitura>
+          <CampoLeitura rotulo="Tipo sanguíneo">{prontuario.data?.tipoSanguineo}</CampoLeitura>
+          <CampoLeitura rotulo="Alergias">{doTipo('ALERGIA')}</CampoLeitura>
+          <CampoLeitura rotulo="Comorbidades">{doTipo('COMORBIDADE')}</CampoLeitura>
+          <CampoLeitura rotulo="Medicações contínuas">{doTipo('MEDICACAO_CONTINUA')}</CampoLeitura>
+          {p.descricaoIdentificacao ? (
+            <CampoLeitura rotulo="Descrição para identificação" largo>
+              {p.descricaoIdentificacao}
+            </CampoLeitura>
+          ) : null}
+        </CamposLeitura>
+      </Secao>
+
+      <Secao titulo="Abertura" descricao="A linha do tempo começa com a hora de agora e o seu nome. Sinais vitais, triagem e o resto entram na tela do atendimento.">
+        <form className="grid grid-cols-1 gap-3" onSubmit={aoEnviar} noValidate>
+          <div className="mf-grade-campos" style={GRADE}>
+            <CampoTexto rotulo="Queixa principal" value={queixa} onChange={(e) => setQueixa(e.target.value)} autoComplete="off" autoFocus />
+            <CampoTexto rotulo="Local da ocorrência" value={local} onChange={(e) => setLocal(e.target.value)} autoComplete="off" />
+          </div>
+          {falha ? (
+            <p className="mf-campo__erro m-0" role="alert">
+              <CircleAlert aria-hidden />
+              <span>{falha}</span>
+            </p>
+          ) : null}
+          <div className="flex flex-wrap justify-end gap-2">
+            <Link to={`/prontuarios/${pessoaId}`} className="mf-botao">
+              Abrir prontuário
+            </Link>
+            <Botao type="submit" variante="primario" icone={<ClipboardPlus aria-hidden />} carregando={criacao.isPending}>
+              Abrir atendimento
+            </Botao>
+          </div>
+        </form>
+      </Secao>
+    </>
   );
 }

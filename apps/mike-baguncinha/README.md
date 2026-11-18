@@ -28,7 +28,7 @@ A senha é a mesma para os três:
 | PROFISSIONAL | Enf. Caio Brandão | COREN | 200002 | RS |
 | PROFISSIONAL | Soc. Lia Moura | SOCORRISTA | 300003 | (vazio) |
 
-Para cadastrar outro profissional, gere o hash Argon2id com o próprio binário e insira em `identidade.profissional`:
+Para cadastrar outro profissional, entre no portal como ADMIN e use **Administração → Novo profissional** (rota `POST /api/v1/auth/profissional`). Sem um ADMIN no banco (o primeiro de produção, por exemplo), gere o hash Argon2id com o próprio binário e insira em `identidade.profissional`:
 
 ```bash
 printf '%s' 'a-senha' | docker run --rm -i medicalfield/mike-baguncinha:dev hash

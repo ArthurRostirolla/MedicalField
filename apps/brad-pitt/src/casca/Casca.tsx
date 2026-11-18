@@ -1,5 +1,5 @@
 import { aplicarTema, Botao, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
-import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, Users } from 'lucide-react';
+import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, Users } from 'lucide-react';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Outlet, useHref, useLocation, useNavigate } from 'react-router';
 import { sair } from '../api/cliente';
@@ -13,7 +13,11 @@ const TITULOS: Record<string, string> = {
   acessos: 'Logs de acesso',
   duplicatas: 'Possíveis duplicatas',
   documentos: 'Verificação de documento',
+  profissionais: 'Novo profissional',
 };
+
+/** Telas de criação: o índice continua marcando a seção, o título diz o que se faz. */
+const NOVOS: Record<string, string> = { atendimentos: 'Novo atendimento', prontuarios: 'Novo paciente' };
 
 const PAPEL = { ADMIN: 'Administração', PROFISSIONAL: 'Profissional' } as const;
 
@@ -27,7 +31,7 @@ export function Casca() {
 
   const partes = local.pathname.split('/').filter(Boolean);
   const atual = (partes[0] === 'auditoria' ? partes[1] : partes[0]) ?? '';
-  const titulo = TITULOS[atual] ?? 'Portal';
+  const titulo = (partes[1] === 'novo' ? NOVOS[atual] : undefined) ?? TITULOS[atual] ?? 'Portal';
   useEffect(() => {
     document.title = titulo + ' — MedicalField';
   }, [titulo]);
@@ -43,6 +47,13 @@ export function Casca() {
       ? [
           { id: 'acessos', rotulo: 'Logs de acesso', icone: <ScrollText aria-hidden />, href: href('/auditoria/acessos'), grupo: 'Auditoria' },
           { id: 'duplicatas', rotulo: 'Possíveis duplicatas', icone: <Users aria-hidden />, href: href('/auditoria/duplicatas') },
+          {
+            id: 'profissionais',
+            rotulo: 'Novo profissional',
+            icone: <UserPlus aria-hidden />,
+            href: href('/profissionais/novo'),
+            grupo: 'Administração',
+          },
         ]
       : []),
     // O destino do QR não é uma seção: só aparece no índice enquanto se está nele.

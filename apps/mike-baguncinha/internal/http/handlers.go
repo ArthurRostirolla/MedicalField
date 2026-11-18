@@ -189,6 +189,73 @@ func (a *API) me(w http.ResponseWriter, r *http.Request) {
 	escreverJSON(w, http.StatusOK, paraProfissionalDTO(*dados(r).profissional))
 }
 
+// cadastrarProfissional cria um profissional novo (só ADMIN). Socorrista não tem UF;
+// CRM e COREN exigem a sigla, que é parte da chave de login.
+func (a *API) cadastrarProfissional(w http.ResponseWriter, r *http.Request) {
+	var corpo struct {
+		Nome         string `json:"nome"`
+		TipoRegistro string `json:"tipoRegistro"`
+		Registro     string `json:"registro"`
+		UF           string `json:"uf"`
+		Papel        string `json:"papel"`
+		Senha        string `json:"senha"`
+	}
+	if err := lerCorpo(w, r, limiteCorpoAuth, false, &corpo); err != nil {
+		a.erro(w, r, err)
+		return
+	}
+	corpo.Nome = strings.TrimSpace(corpo.Nome)
+	corpo.Registro = strings.TrimSpace(corpo.Registro)
+	corpo.UF = strings.ToUpper(strings.TrimSpace(corpo.UF))
+	var problemas []dominio.CampoInvalido
+	recusar := func(campo, mensagem string) {
+		problemas = append(problemas, dominio.CampoInvalido{Campo: campo, Mensagem: mensagem})
+	}
+	if corpo.Nome == "" {
+		recusar("nome", mensagemObrigatorio)
+	}
+	if !dominio.TipoRegistroValido(corpo.TipoRegistro) {
+		recusar("tipoRegistro", "deve ser CRM, COREN ou SOCORRISTA")
+	}
+	if corpo.Registro == "" {
+		recusar("registro", mensagemObrigatorio)
+	}
+	if corpo.TipoRegistro == "SOCORRISTA" {
+		corpo.UF = ""
+	} else if len(corpo.UF) != 2 || corpo.UF[0] < 'A' || corpo.UF[0] > 'Z' || corpo.UF[1] < 'A' || corpo.UF[1] > 'Z' {
+		recusar("uf", "sigla de 2 letras obrigatória para CRM e COREN")
+	}
+	if corpo.Papel != dominio.PapelAdmin && corpo.Papel != dominio.PapelProfissional {
+		recusar("papel", "deve ser ADMIN ou PROFISSIONAL")
+	}
+	if utf8.RuneCountInString(corpo.Senha) < dominio.MinimoSenha {
+		recusar("senha", fmt.Sprintf("mínimo de %d caracteres", dominio.MinimoSenha))
+	}
+	for _, c := range []struct {
+		campo, valor string
+		maximo       int
+	}{{"nome", corpo.Nome, dominio.MaximoNome}, {"registro", corpo.Registro, dominio.MaximoRegistro}, {"senha", corpo.Senha, dominio.MaximoSenha}} {
+		if utf8.RuneCountInString(c.valor) > c.maximo {
+			recusar(c.campo, fmt.Sprintf("máximo de %d caracteres", c.maximo))
+		}
+	}
+	if strings.ContainsRune(corpo.Nome+corpo.Registro, 0) {
+		recusar("corpo", "caractere nulo não é aceito")
+	}
+	if problemas != nil {
+		a.erro(w, r, &dominio.ErroValidacao{Detalhes: problemas})
+		return
+	}
+	p, err := a.Autenticacao.Cadastrar(r.Context(), dominio.Profissional{
+		Nome: corpo.Nome, TipoRegistro: corpo.TipoRegistro, Registro: corpo.Registro, UF: corpo.UF, Papel: corpo.Papel,
+	}, corpo.Senha)
+	if err != nil {
+		a.erro(w, r, err)
+		return
+	}
+	escreverJSON(w, http.StatusCreated, paraProfissionalDTO(p))
+}
+
 // lerRefresh pega o refresh token do corpo ou, na falta, do cookie mf_refresh.
 func lerRefresh(w http.ResponseWriter, r *http.Request) (string, error) {
 	var corpo struct {

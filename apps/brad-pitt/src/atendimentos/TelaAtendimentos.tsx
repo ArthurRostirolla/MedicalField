@@ -1,7 +1,7 @@
 import type { AtendimentoListado } from '@medicalfield/contratos';
 import { EstadoVazio, Etiqueta, type Coluna } from '@medicalfield/ui';
-import { ClipboardList } from 'lucide-react';
-import { useNavigate, useParams } from 'react-router';
+import { ClipboardList, ClipboardPlus } from 'lucide-react';
+import { Link, useNavigate, useParams } from 'react-router';
 import { listarAtendimentos } from '../api/recursos';
 import { FolhaLista } from '../comum/FolhaLista';
 import { formatarDataHora } from '../comum/formato';
@@ -49,6 +49,12 @@ export function TelaAtendimentos() {
       titulo="Livro de atendimentos"
       descricao="Mais recentes primeiro · clique para abrir"
       plural="atendimentos"
+      acoes={
+        <Link to="/atendimentos/novo" className="mf-botao mf-botao--primario">
+          <ClipboardPlus aria-hidden />
+          Novo atendimento
+        </Link>
+      }
       lista={lista}
       colunas={COLUNAS_ATENDIMENTO}
       chave={(a) => a.id}

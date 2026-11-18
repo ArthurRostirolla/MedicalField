@@ -87,6 +87,7 @@ func executar() error {
 			Vagas:          make(chan struct{}, verificacoesSimultaneas),
 			EsperaVaga:     esperaPorVaga,
 			HashFalso:      infra.GerarHashSenha(dominio.NovoUUID()),
+			GerarHash:      infra.GerarHashSenha,
 			Agora:          time.Now,
 		},
 		Auditoria:       &aplicacao.AuditoriaUseCase{Repositorio: banco},

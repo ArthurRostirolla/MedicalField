@@ -58,7 +58,7 @@ func novoAmbiente(t *testing.T) *ambiente {
 			Limitador:      aplicacao.NovoLimitadorTentativas(5, 15*time.Minute),
 			LimitadorConta: aplicacao.NovoLimitadorTentativas(20, 15*time.Minute),
 			Vagas:          make(chan struct{}, 2), EsperaVaga: 3 * time.Second,
-			HashFalso: infra.GerarHashSenha("falso"), Agora: time.Now,
+			HashFalso: infra.GerarHashSenha("falso"), GerarHash: infra.GerarHashSenha, Agora: time.Now,
 		},
 		Auditoria:    &aplicacao.AuditoriaUseCase{Repositorio: banco},
 		ValidarToken: tokens.Validar, RegistrarAcesso: gravador.Registrar, SaidaAcesso: io.Discard,
@@ -345,11 +345,34 @@ func TestAuditoriaSoAdminEPaginacao(t *testing.T) {
 	}
 }
 
+func TestCadastroDeProfissionalSoAdmin(t *testing.T) {
+	a := novoAmbiente(t)
+	_, registroComum := a.criarProfissional(dominio.PapelProfissional)
+	_, registroAdmin := a.criarProfissional(dominio.PapelAdmin)
+	comum := a.login(registroComum, senhaTeste).corpo["accessToken"].(string)
+	admin := a.login(registroAdmin, senhaTeste).corpo["accessToken"].(string)
+
+	registro := "N" + strings.ReplaceAll(dominio.NovoUUID(), "-", "")[:12]
+	novo := map[string]string{"nome": "Enf. Nova", "tipoRegistro": "COREN", "registro": registro, "uf": "sc", "papel": "PROFISSIONAL", "senha": "senha-nova-123"}
+	a.chamar("POST", "/api/v1/auth/profissional", comum, novo).exigir(t, 403, "SEM_PERMISSAO")
+	criado := a.chamar("POST", "/api/v1/auth/profissional", admin, novo)
+	criado.exigir(t, 201, "")
+	if criado.corpo["uf"] != "SC" || criado.corpo["papel"] != "PROFISSIONAL" || criado.corpo["id"] == "" {
+		t.Fatalf("profissional criado fora do contrato: %v", criado.corpo)
+	}
+	a.chamar("POST", "/api/v1/auth/profissional", admin, novo).exigir(t, 422, "VALIDACAO") // registro repetido
+	a.chamar("POST", "/api/v1/auth/profissional", admin, map[string]string{"tipoRegistro": "CRM", "senha": "curta"}).exigir(t, 422, "VALIDACAO")
+
+	// O cadastrado entra com a senha definida pelo ADMIN.
+	entrada := a.chamar("POST", "/api/v1/auth/login", "", map[string]string{"tipoRegistro": "COREN", "registro": registro, "uf": "SC", "senha": "senha-nova-123"})
+	entrada.exigir(t, 200, "")
+}
+
 func TestTodaRotaSemTokenResponde401(t *testing.T) {
 	a := novoAmbiente(t)
 	rotas := [][2]string{
 		{"POST", "/api/v1/auth/refresh"}, {"POST", "/api/v1/auth/logout"}, {"GET", "/api/v1/auth/me"}, {"POST", "/api/v1/log"},
-		{"GET", "/api/v1/auditoria/acesso"}, {"GET", "/api/v1/auditoria/cliente"},
+		{"GET", "/api/v1/auditoria/acesso"}, {"GET", "/api/v1/auditoria/cliente"}, {"POST", "/api/v1/auth/profissional"},
 		{"GET", "/api/v1/nao-existe"}, {"GET", "/api/v1/auth/login"}, {"DELETE", "/api/v1/log"},
 	}
 	for _, rota := range rotas {

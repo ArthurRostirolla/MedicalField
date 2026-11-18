@@ -400,3 +400,43 @@ describe('Prontuários', () => {
     expect(para(`/atendimento/${f.pessoa.id}`)).toHaveLength(1);
   });
 });
+
+describe('Novo profissional', () => {
+  it('ADMIN cadastra; socorrista vai sem UF; registro repetido aparece no campo', async () => {
+    let repetido = false;
+    const { para } = simularApi((c) => {
+      if (c.caminho !== '/auth/profissional') return undefined;
+      if (repetido) return erro(422, 'VALIDACAO', 'Dados inválidos.', [{ campo: 'registro', mensagem: 'já cadastrado' }]);
+      repetido = true;
+      return json({ id: uuid(9), nome: 'Soc. Novo', tipoRegistro: 'SOCORRISTA', registro: '900', uf: '', papel: 'PROFISSIONAL' }, 201);
+    });
+    montar('/profissionais/novo', HELENA);
+    await userEvent.type(await screen.findByLabelText('Nome'), 'Soc. Novo');
+    await userEvent.selectOptions(screen.getByLabelText('Tipo de registro'), 'SOCORRISTA');
+    expect(screen.queryByLabelText('UF')).not.toBeInTheDocument();
+    await userEvent.type(screen.getByLabelText('Número do registro'), '900');
+    await userEvent.type(screen.getByLabelText('Senha inicial'), 'curta');
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    expect(await screen.findByText('mínimo de 8 caracteres')).toBeInTheDocument();
+    expect(para('/auth/profissional', 'POST')).toHaveLength(0);
+
+    await userEvent.type(screen.getByLabelText('Senha inicial'), '-mais-longa');
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    expect(await screen.findByText('Profissional cadastrado')).toBeInTheDocument();
+    expect(para('/auth/profissional', 'POST')[0]?.corpo).toEqual({
+      nome: 'Soc. Novo', tipoRegistro: 'SOCORRISTA', registro: '900', papel: 'PROFISSIONAL', senha: 'curta-mais-longa',
+    });
+
+    await userEvent.type(screen.getByLabelText('Nome'), 'Outro');
+    await userEvent.type(screen.getByLabelText('Número do registro'), '900');
+    await userEvent.type(screen.getByLabelText('Senha inicial'), 'outra-senha');
+    await userEvent.click(screen.getByRole('button', { name: 'Cadastrar' }));
+    expect(await screen.findByText('já cadastrado')).toBeInTheDocument();
+  });
+
+  it('PROFISSIONAL não chega à tela', async () => {
+    simularApi(() => undefined);
+    montar('/profissionais/novo', CAIO);
+    expect(screen.queryByLabelText('Senha inicial')).not.toBeInTheDocument();
+  });
+});

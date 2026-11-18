@@ -41,6 +41,22 @@ export const profissionalSchema = z.object({
 });
 export type Profissional = z.infer<typeof profissionalSchema>;
 
+/** Corpo de `POST /auth/profissional` (so ADMIN). Socorrista nao tem UF; CRM e COREN exigem. */
+export const profissionalEntradaSchema = z
+  .strictObject({
+    nome: texto(120),
+    tipoRegistro: tipoRegistroSchema,
+    registro: texto(40),
+    uf: textoLivre().max(2).optional(),
+    papel: papelSchema,
+    senha: textoLivre().min(8, 'mínimo de 8 caracteres').max(200),
+  })
+  .refine((p) => p.tipoRegistro === 'SOCORRISTA' || /^[A-Za-z]{2}$/.test(p.uf ?? ''), {
+    path: ['uf'],
+    message: 'sigla de 2 letras obrigatória para CRM e COREN',
+  });
+export type ProfissionalEntrada = z.infer<typeof profissionalEntradaSchema>;
+
 export const sessaoSchema = z.object({
   accessToken: z.string(),
   /** Validade do access token, em segundos. */

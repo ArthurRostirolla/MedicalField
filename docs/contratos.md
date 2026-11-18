@@ -106,6 +106,7 @@ Encerramento gracioso em `SIGTERM`. Contêiner roda como usuário não-root, com
 | POST | `/api/v1/auth/refresh` | refresh token |
 | POST | `/api/v1/auth/logout` | sim |
 | GET | `/api/v1/auth/me` | sim |
+| POST | `/api/v1/auth/profissional` | ADMIN |
 | POST | `/api/v1/log` | sim |
 | GET | `/api/v1/auditoria/acesso` | ADMIN |
 | GET | `/api/v1/auditoria/cliente` | ADMIN |
@@ -121,6 +122,12 @@ type Sessao = { accessToken: string; expiraEm: number /* segundos */; refreshTok
 // POST /auth/refresh — corpo { refreshToken?: string } (ou cookie mf_refresh) → 200 Sessao (refresh rotacionado)
 // POST /auth/logout  — corpo { refreshToken?: string } (ou cookie) → 204
 // GET  /auth/me      → 200 Profissional
+
+// POST /auth/profissional (ADMIN) — cadastro; o profissional nasce ativo
+type ProfissionalEntrada = { nome: string; tipoRegistro: 'CRM' | 'COREN' | 'SOCORRISTA'; registro: string;
+                             uf?: string /* obrigatória p/ CRM e COREN; ignorada p/ SOCORRISTA */;
+                             papel: 'ADMIN' | 'PROFISSIONAL'; senha: string /* 8 a 200 */ };
+// → 201 Profissional. Registro repetido → 422 VALIDACAO com detalhe { campo: 'registro', mensagem: 'já cadastrado' }.
 
 // POST /log — logs gerados offline pelo app (máx. 500 por chamada); idempotente por id
 type LogCliente = { id: string; ocorridoEm: string; acao: string; entidade?: string; entidadeId?: string;

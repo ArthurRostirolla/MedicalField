@@ -11,6 +11,11 @@ import {
   pessoaSchema,
   prontuarioComPessoaSchema,
   prontuarioSchema,
+  profissionalSchema,
+  prontuarioItemSchema,
+  type PessoaEntrada,
+  type ProntuarioEntrada,
+  type ProntuarioItemEntrada,
   CABECALHOS,
   atendimentoSchema,
   eventoSchema,
@@ -18,6 +23,7 @@ import {
   type EventoEntrada,
   type EnvioEntrada,
   type Medicamento,
+  type ProfissionalEntrada,
 } from '@medicalfield/contratos';
 import { z } from 'zod';
 import { api, apiComStatus, baixar } from './cliente';
@@ -48,6 +54,24 @@ export const listarProntuarios = (pagina: Pagina) =>
 
 export const obterProntuario = (pessoaId: string) => api(`/prontuario/${pessoaId}`, prontuarioSchema);
 export const obterPessoa = (id: string) => api(`/pessoa/${id}`, pessoaSchema);
+
+/** Busca por parte do nome ou do CPF (a lista de prontuários não filtra). */
+export const buscarPessoas = (busca: string, pagina: Pagina) =>
+  api('/pessoa', paginaSchema(pessoaSchema), { consulta: { ...pagina, ...(busca ? { busca } : {}) } });
+
+/* Escritas do cadastro: os mesmos comandos do app, com id gerado aqui (repetir = 200, não duplica). */
+export const cadastrarPessoa = (entrada: PessoaEntrada) => api('/pessoa', pessoaSchema, { metodo: 'POST', corpo: entrada });
+
+/** Pessoa que já tem prontuário: o servidor devolve o existente com os itens unidos. */
+export const cadastrarProntuario = (entrada: ProntuarioEntrada) =>
+  api('/prontuario', prontuarioSchema, { metodo: 'POST', corpo: entrada });
+
+export const acrescentarItem = (entrada: ProntuarioItemEntrada) =>
+  api('/prontuario-item', prontuarioItemSchema, { metodo: 'POST', corpo: entrada });
+
+/** Inativar é um ato registrado: o item continua no prontuário, marcado. */
+export const inativarItem = (id: string) =>
+  api(`/prontuario-item/${id}/inativacao`, prontuarioItemSchema, { metodo: 'POST', corpo: { inativadoEm: new Date().toISOString() } });
 
 export const listarDuplicatas = (pagina: Pagina) =>
   api('/pessoa', paginaSchema(pessoaSchema), { consulta: { ...pagina, somenteDuplicatas: true } });
@@ -104,3 +128,7 @@ export const enviarPorEmail = (documentoId: string, envio: EnvioEntrada, chaveId
 
 export const reenviar = (envioId: string) =>
   api(`/documento/email/${envioId}/reenvio`, envioSchema, { metodo: 'POST' });
+
+/** Cadastro de profissional (só ADMIN). Registro repetido volta como VALIDACAO no campo `registro`. */
+export const cadastrarProfissional = (entrada: ProfissionalEntrada) =>
+  api('/auth/profissional', profissionalSchema, { metodo: 'POST', corpo: entrada });

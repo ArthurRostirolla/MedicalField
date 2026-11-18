@@ -50,6 +50,8 @@ type AutenticacaoUseCase struct {
 	// HashFalso é verificado quando o registro não existe, para o tempo de
 	// resposta não revelar se o profissional está cadastrado.
 	HashFalso string
+	// GerarHash produz o Argon2id de uma senha nova (cadastro); também ocupa uma vaga.
+	GerarHash func(senha string) string
 	Agora     func() time.Time
 }
 
@@ -94,18 +96,34 @@ func (a *AutenticacaoUseCase) Entrar(ctx context.Context, e EntradaLogin) (Sessa
 // verificarSenha é o único caminho até o Argon2id (hash real ou falso) e só roda com uma
 // vaga. Sem vaga dentro do prazo, devolve ErrIndisponivel (503): o cliente tenta de novo
 // e o processo nunca aloca mais do que cap(Vagas) verificações ao mesmo tempo.
-func (a *AutenticacaoUseCase) verificarSenha(ctx context.Context, senha, hash string) (bool, error) {
+func (a *AutenticacaoUseCase) verificarSenha(ctx context.Context, senha, hash string) (ok bool, err error) {
+	err = a.comVaga(ctx, func() { ok = a.Senhas.Verificar(senha, hash) })
+	return ok, err
+}
+
+// comVaga roda fn (que usa Argon2id) só depois de conseguir uma vaga.
+func (a *AutenticacaoUseCase) comVaga(ctx context.Context, fn func()) error {
 	prazo := time.NewTimer(a.EsperaVaga)
 	defer prazo.Stop()
 	select {
 	case a.Vagas <- struct{}{}:
 		defer func() { <-a.Vagas }()
-		return a.Senhas.Verificar(senha, hash), nil
+		fn()
+		return nil
 	case <-prazo.C:
-		return false, fmt.Errorf("%w: verificação de senha sem vaga", dominio.ErrIndisponivel)
+		return fmt.Errorf("%w: Argon2id sem vaga", dominio.ErrIndisponivel)
 	case <-ctx.Done():
-		return false, fmt.Errorf("%w: requisição cancelada à espera de vaga", dominio.ErrIndisponivel)
+		return fmt.Errorf("%w: requisição cancelada à espera de vaga", dominio.ErrIndisponivel)
 	}
+}
+
+// Cadastrar grava um profissional novo (rota só de ADMIN) com o hash da senha informada.
+func (a *AutenticacaoUseCase) Cadastrar(ctx context.Context, p dominio.Profissional, senha string) (dominio.Profissional, error) {
+	if err := a.comVaga(ctx, func() { p.SenhaHash = a.GerarHash(senha) }); err != nil {
+		return dominio.Profissional{}, err
+	}
+	p.Ativo = true
+	return a.Profissionais.Inserir(ctx, p)
 }
 
 // Renovar troca um refresh token válido por uma sessão nova (o antigo deixa de valer).

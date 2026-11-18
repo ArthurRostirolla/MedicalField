@@ -47,6 +47,8 @@ func (a *API) Handler() http.Handler {
 	mux.HandleFunc("POST /api/v1/auth/refresh", a.refresh) // exige refresh token válido
 	mux.Handle("POST /api/v1/auth/logout", a.autenticar("", a.logout))
 	mux.Handle("GET /api/v1/auth/me", a.autenticar("", a.me))
+	// Sob /auth para seguir o roteamento já existente do gateway e do proxy do portal.
+	mux.Handle("POST /api/v1/auth/profissional", a.autenticar(dominio.PapelAdmin, a.cadastrarProfissional))
 	mux.Handle("POST /api/v1/log", a.autenticar("", a.receberLogs))
 	mux.Handle("GET /api/v1/auditoria/acesso", a.autenticar(dominio.PapelAdmin, a.listarAcessos))
 	mux.Handle("GET /api/v1/auditoria/cliente", a.autenticar(dominio.PapelAdmin, a.listarLogsCliente))

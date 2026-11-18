@@ -45,6 +45,8 @@ const (
 	MaximoRegistro     = 40
 	MaximoUF           = 2
 	MaximoSenha        = 200
+	MinimoSenha        = 8
+	MaximoNome         = 120
 	MaximoTextoLog     = 100
 	MaximoDetalheBytes = 8 << 10
 )
@@ -81,6 +83,9 @@ func TipoRegistroValido(t string) bool {
 type ProfissionalRepository interface {
 	// BuscarPorRegistro devolve ErrNaoEncontrado quando não existe.
 	BuscarPorRegistro(ctx context.Context, tipoRegistro, registro, uf string) (Profissional, error)
+	// Inserir grava um profissional novo e devolve-o com o id; registro repetido
+	// (tipo + registro + UF) vira ErroValidacao.
+	Inserir(ctx context.Context, p Profissional) (Profissional, error)
 }
 
 // SessaoRepository guarda sessões de refresh token (somente o hash).

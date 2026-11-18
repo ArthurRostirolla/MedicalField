@@ -21,6 +21,10 @@ func (repositorioFalso) BuscarPorRegistro(_ context.Context, _, registro, _ stri
 	}
 	return dominio.Profissional{ID: "1", Registro: registro, SenhaHash: "hash-real", Ativo: true}, nil
 }
+func (repositorioFalso) Inserir(_ context.Context, p dominio.Profissional) (dominio.Profissional, error) {
+	p.ID = "novo"
+	return p, nil
+}
 func (repositorioFalso) Criar(context.Context, string, string, *string, time.Time) error { return nil }
 func (repositorioFalso) Rotacionar(context.Context, string, string, time.Time) (dominio.Profissional, error) {
 	return dominio.Profissional{}, dominio.ErrNaoAutenticado

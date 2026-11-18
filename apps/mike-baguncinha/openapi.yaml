@@ -75,6 +75,27 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/Profissional' }
         '401': { $ref: '#/components/responses/Erro' }
+  /api/v1/auth/profissional:
+    post:
+      summary: Cadastra um profissional (só ADMIN)
+      description: >-
+        Socorrista não tem UF (a enviada é descartada); CRM e COREN exigem a sigla. Senha de 8 a 200 caracteres.
+        Registro já cadastrado (tipo + registro + UF) responde 422 com detalhe no campo `registro`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ProfissionalEntrada' }
+      responses:
+        '201':
+          description: Profissional criado, já ativo
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profissional' }
+        '401': { $ref: '#/components/responses/Erro' }
+        '403': { $ref: '#/components/responses/Erro' }
+        '422': { $ref: '#/components/responses/Erro' }
+        '503': { $ref: '#/components/responses/Erro' }
   /api/v1/log:
     post:
       summary: Recebe logs gerados pelo app (idempotente por id; máx. 500)
@@ -236,6 +257,17 @@ components:
       type: object
       properties:
         refreshToken: { type: string }
+    ProfissionalEntrada:
+      type: object
+      additionalProperties: false
+      required: [nome, tipoRegistro, registro, papel, senha]
+      properties:
+        nome: { type: string, minLength: 1, maxLength: 120 }
+        tipoRegistro: { type: string, enum: [CRM, COREN, SOCORRISTA] }
+        registro: { type: string, minLength: 1, maxLength: 40 }
+        uf: { type: string, maxLength: 2 }
+        papel: { type: string, enum: [ADMIN, PROFISSIONAL] }
+        senha: { type: string, minLength: 8, maxLength: 200 }
     Profissional:
       type: object
       required: [id, nome, tipoRegistro, registro, uf, papel]

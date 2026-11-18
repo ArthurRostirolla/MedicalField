@@ -44,6 +44,20 @@ func (pg *Postgres) BuscarPorRegistro(ctx context.Context, tipoRegistro, registr
 	return p, traduzir(err)
 }
 
+// Inserir implementa dominio.ProfissionalRepository.
+func (pg *Postgres) Inserir(ctx context.Context, p dominio.Profissional) (dominio.Profissional, error) {
+	err := pg.Pool.QueryRow(ctx, `
+		INSERT INTO identidade.profissional (tipo_registro, registro, uf, nome, papel, senha_hash, ativo)
+		VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id::text`,
+		p.TipoRegistro, p.Registro, p.UF, p.Nome, p.Papel, p.SenhaHash, p.Ativo,
+	).Scan(&p.ID)
+	var erroSQL *pgconn.PgError
+	if errors.As(err, &erroSQL) && erroSQL.Code == "23505" {
+		return p, &dominio.ErroValidacao{Detalhes: []dominio.CampoInvalido{{Campo: "registro", Mensagem: "já cadastrado"}}}
+	}
+	return p, traduzir(err)
+}
+
 // Criar implementa dominio.SessaoRepository.
 func (pg *Postgres) Criar(ctx context.Context, profissionalID, refreshHash string, dispositivoID *string, expiraEm time.Time) error {
 	_, err := pg.Pool.Exec(ctx, `

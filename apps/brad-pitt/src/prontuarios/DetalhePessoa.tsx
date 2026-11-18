@@ -1,23 +1,18 @@
-import type { ProntuarioItem, TipoItem } from '@medicalfield/contratos';
-import { Esqueleto, EstadoErro, EstadoVazio, Etiqueta, Secao, Tabela, type Coluna } from '@medicalfield/ui';
+import type { ProntuarioItem } from '@medicalfield/contratos';
+import { Botao, Esqueleto, EstadoErro, EstadoVazio, Etiqueta, Secao, Tabela, type Coluna } from '@medicalfield/ui';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, ClipboardList } from 'lucide-react';
+import { useState } from 'react';
+import { ArrowLeft, ClipboardList, ClipboardPlus } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ErroApi } from '../api/cliente';
 import { listarAtendimentosDaPessoa, obterPessoa, obterProntuario } from '../api/recursos';
-import { BotaoNovoAtendimento } from '../atendimentos/NovoAtendimento';
 import { COLUNAS_ATENDIMENTO } from '../atendimentos/TelaAtendimentos';
 import { CampoLeitura, CamposLeitura } from '../comum/CamposLeitura';
 import { BotaoAtualizar, FolhaLista } from '../comum/FolhaLista';
 import { descreverErro, formatarCpf, formatarData, formatarDataHora, formatarDataHoraLonga, idadeEm } from '../comum/formato';
 import { useListaPorCursor } from '../comum/paginacao';
 import { RegiaoRolavel } from '../comum/RegiaoRolavel';
-
-const TIPO_ITEM: Record<TipoItem, string> = {
-  ALERGIA: 'Alergia',
-  COMORBIDADE: 'Comorbidade',
-  MEDICACAO_CONTINUA: 'Medicação contínua',
-};
+import { ConfirmarInativacao, NovoItem, TIPO_ITEM } from './ItensProntuario';
 
 const COLUNAS_ITEM: Coluna<ProntuarioItem>[] = [
   { id: 'tipo', titulo: 'Tipo', celula: (item) => <span className="mf-rotulo">{TIPO_ITEM[item.tipo]}</span> },
@@ -54,6 +49,7 @@ export function DetalhePessoa() {
     queryFn: () => obterProntuario(pessoaId),
     retry: false,
   });
+  const [inativar, setInativar] = useState<ProntuarioItem | null>(null);
   const atendimentos = useListaPorCursor(['atendimentos-da-pessoa', pessoaId], (cursor) =>
     listarAtendimentosDaPessoa(pessoaId, { limite: 20, cursor }),
   );
@@ -152,7 +148,10 @@ export function DetalhePessoa() {
             <Esqueleto linhas={4} />
           </div>
         ) : semProntuario ? (
-          <EstadoVazio className="m-3" titulo="Pessoa sem prontuário" />
+          <>
+            <EstadoVazio className="m-3" titulo="Pessoa sem prontuário" />
+            <NovoItem pessoaId={pessoaId} semProntuario />
+          </>
         ) : prontuario.isError ? (
           <EstadoErro
             {...descreverErro(prontuario.error, 'o prontuário')}
@@ -168,12 +167,27 @@ export function DetalhePessoa() {
             <RegiaoRolavel rotulo="Itens do prontuário">
               <Tabela
                 legenda="Itens do prontuário"
-                colunas={COLUNAS_ITEM}
+                colunas={[
+                  ...COLUNAS_ITEM,
+                  {
+                    id: 'acao',
+                    titulo: 'Ação',
+                    alinhar: 'fim',
+                    celula: (item) =>
+                      item.inativadoEm ? null : (
+                        <Botao variante="fantasma" onClick={() => setInativar(item)}>
+                          Inativar
+                        </Botao>
+                      ),
+                  },
+                ]}
                 linhas={itens}
                 chave={(item) => item.id}
                 vazio={<EstadoVazio className="m-3" titulo="Nenhum item registrado" />}
               />
             </RegiaoRolavel>
+            <NovoItem pessoaId={pessoaId} />
+            <ConfirmarInativacao pessoaId={pessoaId} item={inativar} aoFechar={() => setInativar(null)} />
           </>
         )}
       </Secao>
@@ -181,7 +195,12 @@ export function DetalhePessoa() {
       <FolhaLista
         titulo="Atendimentos desta pessoa"
         plural="atendimentos"
-        acoes={<BotaoNovoAtendimento pessoaId={pessoaId} />}
+        acoes={
+          <Link to={`/atendimentos/novo?pessoa=${pessoaId}`} className="mf-botao mf-botao--primario">
+            <ClipboardPlus aria-hidden />
+            Novo atendimento
+          </Link>
+        }
         lista={atendimentos}
         colunas={COLUNAS_ATENDIMENTO}
         chave={(a) => a.id}
