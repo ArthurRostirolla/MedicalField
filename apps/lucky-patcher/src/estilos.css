@@ -1,0 +1,354 @@
+/* O arquivo do design system ja traz Tailwind v4, fontes, tokens e componentes. */
+@import '@medicalfield/ui/estilos.css';
+
+/*
+ * Composicao das telas do app. Nao e outro sistema visual: so arranjo (coluna, pauta de lista,
+ * faixa de aviso) feito com os tokens de @medicalfield/ui.
+ */
+
+/* O que recebe foco pelo teclado nunca fica atras do topo nem da barra de abas (ambos fixos). */
+html {
+  scroll-padding-block: 10.5rem 5rem;
+}
+
+/*
+ * Contorno de defeitos de @medicalfield/ui (relatados; aqui so o app):
+ * 1. a caixa do campo tem 63 px mas so os 32 px do <input> respondiam ao toque -> rotulo e entrada
+ *    passam a preencher a caixa inteira;
+ * 2. o "x" nativo do campo de busca (azul, 14 px) sai; a tela poe um botao do sistema no lugar.
+ */
+[data-contexto='campo'] .mf-campo:not(.mf-campo--numerico) .mf-campo__caixa {
+  padding-block: 0;
+}
+[data-contexto='campo'] .mf-campo:not(.mf-campo--numerico) .mf-campo__caixa > .mf-rotulo {
+  padding-top: 0.375rem;
+}
+[data-contexto='campo'] .mf-campo:not(.mf-campo--numerico) .mf-campo__entrada {
+  min-height: calc(var(--mf-alvo) - 1.5rem + 0.4375rem);
+  padding-bottom: 0.4375rem;
+}
+input[type='search']::-webkit-search-cancel-button {
+  display: none;
+}
+
+/* No desktop (projetor) cabecalho, tira de conectividade e abas ficam na mesma coluna do conteudo. */
+@media (width >= 64rem) {
+  .mf-app__topo > *,
+  .mf-app__barra {
+    width: 100%;
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+  .mf-app:has(.lp-pagina--dupla) .mf-app__topo > *,
+  .mf-app:has(.lp-pagina--dupla) .mf-app__barra {
+    max-width: 78rem;
+  }
+  .mf-app__topo {
+    border-bottom: 1px solid var(--mf-fio);
+  }
+}
+
+/* Pular para o conteudo: so aparece com foco de teclado. */
+.lp-pular {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  z-index: 20;
+  transform: translateY(-200%);
+}
+.lp-pular:focus-visible {
+  transform: none;
+}
+.lp-pagina:focus {
+  outline: none;
+}
+
+/* Coluna de conteudo: polegar no celular, coluna de ficha no desktop. */
+.lp-pagina {
+  display: grid;
+  gap: 1rem;
+  width: 100%;
+  max-width: 44rem;
+  margin-inline: auto;
+  padding: 1rem;
+  align-content: start;
+}
+.lp-pagina > * {
+  min-width: 0;
+}
+@media (width >= 64rem) {
+  /* Atendimento no desktop: registrar a esquerda, linha do tempo a direita. */
+  .lp-pagina--dupla {
+    max-width: 78rem;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    gap: 1.5rem;
+    align-items: start;
+  }
+  .lp-pagina--dupla > .lp-toda {
+    grid-column: 1 / -1;
+  }
+  .lp-pagina--dupla > .lp-fixa {
+    position: sticky;
+    top: 9.5rem;
+  }
+}
+
+/* Linha de navegacao do detalhe: voltar a esquerda, acao da tela a direita. */
+.lp-trilha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin: -0.5rem 0 -0.25rem -0.75rem;
+}
+.lp-span-2 {
+  grid-column: span 2;
+}
+.lp-cresce {
+  flex: 3 1 12rem;
+}
+
+.lp-bloco {
+  display: grid;
+  gap: 0.75rem;
+}
+.lp-bloco > * {
+  min-width: 0;
+}
+
+/* Cabecalho de um grupo: titulo de secao sobre o fio grosso da pauta. */
+.lp-cabecalho {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.375rem;
+}
+
+/* Pauta: lista de linhas grandes separadas por fio, como as linhas de uma ficha. */
+.lp-lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 2px solid var(--mf-tinta);
+  background-color: var(--mf-papel);
+}
+.lp-lista > li {
+  border-bottom: 1px solid var(--mf-fio);
+}
+.lp-linha {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: var(--mf-alvo);
+  padding: 0.5rem var(--mf-recuo);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+a.lp-linha,
+button.lp-linha {
+  cursor: pointer;
+  transition: background-color var(--mf-duracao) var(--ease-seco);
+}
+a.lp-linha:hover,
+button.lp-linha:hover {
+  background-color: var(--mf-papel-2);
+}
+a.lp-linha:focus-visible,
+button.lp-linha:focus-visible {
+  outline: 2px solid var(--mf-foco);
+  outline-offset: -2px;
+}
+.lp-linha__texto {
+  flex: 1;
+  min-width: 0;
+}
+.lp-linha__titulo {
+  display: block;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.lp-linha__apoio {
+  display: block;
+  color: var(--mf-tinta-2);
+  font-size: var(--mf-pequeno);
+  line-height: var(--mf-pequeno-altura);
+  overflow-wrap: anywhere;
+}
+.lp-linha > svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--mf-tinta-2);
+}
+.lp-linha__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0 var(--mf-recuo) 0.75rem;
+}
+.lp-inativo .lp-linha__titulo {
+  color: var(--mf-tinta-2);
+  text-decoration: line-through;
+  text-decoration-thickness: 2px;
+}
+
+/* Fatos em duas colunas (rotulo / valor), na mesma pauta. */
+.lp-fatos {
+  margin: 0;
+  border-top: 2px solid var(--mf-tinta);
+  background-color: var(--mf-papel);
+}
+.lp-fatos > div {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, 2fr) minmax(0, 3fr);
+  gap: 0.75rem;
+  align-items: baseline;
+  padding: 0.625rem var(--mf-recuo);
+  border-bottom: 1px solid var(--mf-fio);
+}
+.lp-fatos dt {
+  margin: 0;
+}
+.lp-fatos dd {
+  margin: 0;
+  font-weight: 550;
+  overflow-wrap: anywhere;
+}
+.lp-fatos dd small {
+  display: block;
+  color: var(--mf-tinta-2);
+  font-size: var(--mf-pequeno);
+  line-height: var(--mf-pequeno-altura);
+  font-weight: 400;
+}
+
+/* Aviso que pede acao (sessao expirada, outra aba, erro de envio): contorno carmim, icone e texto. */
+.lp-aviso {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  padding: 0.625rem var(--mf-recuo);
+  border: 1px solid var(--mf-carmim);
+  background-color: var(--mf-papel);
+}
+.lp-aviso > svg {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  color: var(--mf-carmim);
+}
+.lp-aviso > p {
+  flex: 1 1 14rem;
+  margin: 0;
+}
+
+.lp-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.lp-acoes > * {
+  flex: 1 1 9rem;
+}
+/* Campo + botao na mesma linha: mesma altura, mesma base. */
+.lp-acoes--campo {
+  align-items: stretch;
+  margin-top: 0.5rem;
+}
+.lp-acoes--campo > .mf-botao {
+  flex: 1 1 8rem;
+  min-height: 0;
+}
+.lp-acoes--campo > .mf-campo .mf-campo__caixa {
+  height: 100%;
+}
+.lp-linha--vazia {
+  min-height: 3rem;
+  color: var(--mf-tinta-2);
+}
+
+.lp-nota {
+  margin: 0;
+  color: var(--mf-tinta-2);
+  font-size: var(--mf-pequeno);
+  line-height: var(--mf-pequeno-altura);
+}
+.lp-registrado {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 550;
+}
+.lp-registrado:empty {
+  display: none;
+}
+.lp-junto {
+  white-space: nowrap;
+}
+
+/* Seletor de registro em tres colunas (seis tipos em duas linhas, sem abreviar). */
+.lp-tipos .mf-segmentado__opcoes {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding-bottom: 1px;
+}
+.lp-tipos .mf-segmentado__opcao {
+  margin-bottom: -1px;
+  border-radius: 0;
+  font-stretch: 84%;
+}
+
+/* Texto longo no mesmo campo em caixa. */
+textarea.mf-campo__entrada {
+  grid-column: 1 / -1;
+  min-height: 4.5rem;
+  resize: none;
+  line-height: 1.5rem;
+}
+
+details.lp-mais > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: var(--mf-alvo);
+  padding: 0 var(--mf-recuo);
+  border: 1px solid var(--mf-fio-forte);
+  border-radius: var(--radius-1);
+  background-color: var(--mf-papel);
+  list-style: none;
+  cursor: pointer;
+  font-weight: 650;
+  color: var(--mf-tinta);
+}
+details.lp-mais > summary:focus-visible {
+  outline: 2px solid var(--mf-foco);
+  outline-offset: 2px;
+}
+details.lp-mais > summary::-webkit-details-marker {
+  display: none;
+}
+details.lp-mais > summary > svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  transition: transform var(--mf-duracao) var(--ease-seco);
+}
+details.lp-mais[open] > summary > svg {
+  transform: rotate(180deg);
+}
+details.lp-mais[open] > summary {
+  margin-bottom: 0.75rem;
+}
+
+/* Tela de entrada e telas de bloqueio: uma coluna estreita. */
+.lp-estreita {
+  max-width: 28rem;
+}

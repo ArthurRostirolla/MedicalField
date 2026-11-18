@@ -1,0 +1,30 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>durabilidade: jeep-sqlite (caminho web do plugin)</title>
+<jeep-sqlite wasmpath="/app/e2e/durabilidade"></jeep-sqlite>
+<script type="module">
+  import { CapacitorSQLite, SQLiteConnection } from '@capacitor-community/sqlite';
+  import { defineCustomElements } from 'jeep-sqlite/loader';
+  defineCustomElements(window);
+  await customElements.whenDefined('jeep-sqlite');
+  const sqlite = new SQLiteConnection(CapacitorSQLite);
+  await sqlite.initWebStore();
+  const banco = await sqlite.createConnection('prova', false, 'no-encryption', 1, false);
+  await banco.open();
+  await banco.execute('CREATE TABLE IF NOT EXISTS prova (id TEXT PRIMARY KEY, valor TEXT)');
+  await sqlite.saveToStore('prova');
+  // Uma transacao por chamada; `salvar` = aguardar tambem o saveToStore (despejo do banco inteiro no IndexedDB).
+  window.gravar = async (id, linhas, salvar) => {
+    await banco.executeSet(
+      Array.from({ length: linhas }, (_, i) => ({
+        statement: 'INSERT INTO prova VALUES (?, ?)',
+        values: [`${id}-${i}`, 'x'.repeat(200)],
+      })),
+      true,
+    );
+    if (salvar) await sqlite.saveToStore('prova');
+  };
+  window.contar = async (id) =>
+    (await banco.query('SELECT count(*) AS n FROM prova WHERE id LIKE ?', [`${id}-%`])).values[0].n;
+  window.pronto = true;
+</script>

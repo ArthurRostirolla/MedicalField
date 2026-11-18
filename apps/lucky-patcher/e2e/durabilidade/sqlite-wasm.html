@@ -1,0 +1,18 @@
+<!doctype html>
+<meta charset="utf-8" />
+<title>durabilidade: sqlite-wasm + OPFS</title>
+<script type="module">
+  import { abrirExecutorWeb } from '/src/banco/executorWeb.ts';
+  const executor = await abrirExecutorWeb();
+  await executor.transacao([{ sql: 'CREATE TABLE IF NOT EXISTS prova (id TEXT PRIMARY KEY, valor TEXT)' }]);
+  window.gravar = (id, linhas) =>
+    executor.transacao(
+      Array.from({ length: linhas }, (_, i) => ({
+        sql: 'INSERT INTO prova VALUES (?, ?)',
+        params: [`${id}-${i}`, 'x'.repeat(200)],
+      })),
+    );
+  window.contar = async (id) =>
+    (await executor.consultar('SELECT count(*) AS n FROM prova WHERE id LIKE ?', [`${id}-%`]))[0].n;
+  window.pronto = true;
+</script>
