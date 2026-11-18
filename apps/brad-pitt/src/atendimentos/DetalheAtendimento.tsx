@@ -13,13 +13,14 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, FileDown } from 'lucide-react';
 import { Link } from 'react-router';
-import { gerarFicha, obterFicha } from '../api/recursos';
-import { useAvisar } from '../comum/avisos';
+import { baixarPdf, gerarFicha, obterFicha } from '../api/recursos';
+import { salvarArquivo, useAvisar } from '../comum/avisos';
 import { CampoLeitura, CamposLeitura } from '../comum/CamposLeitura';
 import { BotaoAtualizar } from '../comum/FolhaLista';
 import { descreverErro, formatarDataHoraLonga, idadeEm } from '../comum/formato';
 import { useProfissional } from '../sessao/sessao';
 import { FichaPdfEnvios } from './FichaPdfEnvios';
+import { RegistroPortal } from './RegistroPortal';
 
 /** "58 anos · F", na data do atendimento. Sem data de nascimento, só o que houver. */
 function identificacao(pessoa: Pessoa, iniciadoEm: string): string | undefined {
@@ -28,14 +29,26 @@ function identificacao(pessoa: Pessoa, iniciadoEm: string): string | undefined {
   return partes.filter(Boolean).join(' · ') || undefined;
 }
 
-function Voltar() {
+/** Caminho de volta ao livro, com o nome do paciente quando já carregou. */
+function Voltar({ nome }: { nome?: string }) {
   return (
-    <Link to="/atendimentos" className="mf-botao mf-botao--fantasma justify-self-start xl:hidden">
-      <ArrowLeft aria-hidden />
-      Lista de atendimentos
-    </Link>
+    <nav aria-label="Caminho" className="flex items-center gap-2 text-pequeno text-tinta-2">
+      <Link to="/atendimentos" className="mf-botao mf-botao--fantasma">
+        <ArrowLeft aria-hidden />
+        Atendimentos
+      </Link>
+      {nome ? (
+        <>
+          <span aria-hidden>/</span>
+          <span className="text-tinta">{nome}</span>
+        </>
+      ) : null}
+    </nav>
   );
 }
+
+/** Coluna única: passagem, linha do tempo, novo registro, ficha e dados do atendimento, nessa ordem. */
+const COLUNA = 'mx-auto grid w-full max-w-[60rem] grid-cols-1 gap-6';
 
 export function DetalheAtendimento({ id }: { id: string }) {
   const eu = useProfissional();
@@ -45,20 +58,27 @@ export function DetalheAtendimento({ id }: { id: string }) {
 
   const geracao = useMutation({
     mutationFn: () => gerarFicha(id),
-    onSuccess: ({ status, dado }) => {
+    // Gerar já baixa: o botão fica carregando até o arquivo chegar (onSuccess é aguardado).
+    onSuccess: async ({ status, dado }) => {
       void consultas.invalidateQueries({ queryKey: ['documentos', id] });
       avisar(
         status === 201
           ? { tom: 'sucesso', titulo: 'Ficha gerada', descricao: `Código ${dado.codigoVerificacao}` }
           : { titulo: 'A ficha já estava em dia', descricao: `Nada mudou no atendimento desde a ficha ${dado.codigoVerificacao}.` },
       );
+      try {
+        const { arquivo, nome } = await baixarPdf(dado.id);
+        salvarArquivo(arquivo, nome ?? `ficha-${dado.codigoVerificacao}.pdf`);
+      } catch (erro) {
+        avisar({ tom: 'erro', ...descreverErro(erro, 'o PDF'), titulo: 'O PDF não foi baixado' });
+      }
     },
     onError: (erro) => avisar({ tom: 'erro', ...descreverErro(erro, 'a ficha'), titulo: 'A ficha não foi gerada' }),
   });
 
   if (ficha.isPending) {
     return (
-      <div className="grid grid-cols-1 gap-6" aria-busy="true">
+      <div className={COLUNA} aria-busy="true">
         <Voltar />
         <p className="mf-so-leitor" role="status">
           Carregando o atendimento…
@@ -74,7 +94,7 @@ export function DetalheAtendimento({ id }: { id: string }) {
   }
   if (ficha.isError) {
     return (
-      <div className="grid grid-cols-1 gap-6">
+      <div className={COLUNA}>
         <Voltar />
         <EstadoErro {...descreverErro(ficha.error, 'o atendimento')} aoTentarDeNovo={() => void ficha.refetch()} />
       </div>
@@ -90,8 +110,8 @@ export function DetalheAtendimento({ id }: { id: string }) {
   ]);
 
   return (
-    <div className="grid grid-cols-1 gap-6">
-      <Voltar />
+    <div className={COLUNA}>
+      <Voltar nome={pessoa.nome} />
       <PainelPassagemDeCaso
         resumo={resumo}
         paciente={{ nome: pessoa.nome, identificacao: identificacao(pessoa, atendimento.iniciadoEm) }}
@@ -102,8 +122,6 @@ export function DetalheAtendimento({ id }: { id: string }) {
           </Botao>
         }
       />
-
-      <FichaPdfEnvios atendimentoId={id} nomeDe={(profissionalId) => nomes.get(profissionalId)} />
 
       <Secao
         titulo="Linha do tempo"
@@ -117,6 +135,10 @@ export function DetalheAtendimento({ id }: { id: string }) {
           <EstadoVazio className="m-3" titulo="Nenhum evento registrado" />
         )}
       </Secao>
+
+      <RegistroPortal atendimentoId={id} encerrado={atendimento.status === 'ENCERRADO'} eventos={eventos} />
+
+      <FichaPdfEnvios atendimentoId={id} nomeDe={(profissionalId) => nomes.get(profissionalId)} />
 
       <Secao titulo="Registro do atendimento" rente>
         <CamposLeitura>

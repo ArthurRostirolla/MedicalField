@@ -113,7 +113,10 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
       quebra: true,
       celula: (envio) => (
         <>
-          <SeloSync {...SITUACAO[envio.status]} />
+          <SeloSync
+            {...SITUACAO[envio.status]}
+            className={envio.status === 'ENVIADO' ? '[&_svg]:text-[var(--mf-tri-verde)]' : undefined}
+          />
           <div className="mf-num text-pequeno text-tinta-2">{detalheDoEnvio(envio)}</div>
         </>
       ),

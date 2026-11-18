@@ -274,10 +274,9 @@ test('roteiro acadêmico de 17 passos', async () => {
     await expect(portal).toHaveURL(new RegExp(`/atendimentos/${atendimentoOffline}$`));
     await expect(portal.getByText('Passagem de caso')).toBeVisible();
     await expect(portal.getByText(alergiaOffline, { exact: false }).first()).toBeVisible();
-    await portal.getByRole('button', { name: 'Gerar PDF' }).click();
+    const [download] = await Promise.all([portal.waitForEvent('download'), portal.getByRole('button', { name: 'Gerar PDF' }).click()]);
     const ficha = portal.getByRole('region', { name: 'Ficha em PDF e envios' });
     await expect(ficha.getByText('Íntegra')).toBeVisible();
-    const [download] = await Promise.all([portal.waitForEvent('download'), ficha.getByRole('button', { name: 'Baixar PDF' }).click()]);
     const destino = resolve(EVIDENCIAS, 'ficha-do-roteiro.pdf');
     await download.saveAs(destino);
     const pdf = readFileSync(destino);

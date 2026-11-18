@@ -197,7 +197,8 @@ export function CampoNumerico({
             onChangeText={(novo) => escrever(novo.replace(/[^\d.,-]/g, ''))}
             onFocus={() => setFocado(true)}
             onBlur={() => setFocado(false)}
-            style={{ flex: 1, minWidth: 0, color: cores.tinta, paddingVertical: 0, ...estiloNumeral, outlineStyle: 'none' } as object}
+            // lineHeight do numeral (= fontSize) corta o topo/base dos digitos dentro do input; aqui a linha ganha folga.
+            style={{ flex: 1, minWidth: 0, color: cores.tinta, paddingVertical: 0, ...estiloNumeral, lineHeight: estiloNumeral.fontSize! + 12, height: estiloNumeral.fontSize! + 12, includeFontPadding: false, outlineStyle: 'none' } as object}
           />
           {unidade ? (
             <Texto tom="tinta2" aria-hidden style={{ paddingBottom: 6 }}>

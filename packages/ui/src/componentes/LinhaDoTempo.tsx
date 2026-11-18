@@ -33,6 +33,9 @@ export interface EventoLinha {
   retificaEventoId?: string;
 }
 
+/** Nome do tipo de evento, como aparece na linha do tempo. */
+export const rotuloEvento = (tipo: TipoEvento): string => TIPO[tipo].rotulo;
+
 const TIPO: Record<TipoEvento, { rotulo: string; icone: LucideIcon }> = {
   SINAIS_VITAIS: { rotulo: 'Sinais vitais', icone: Activity },
   GLASGOW: { rotulo: 'Glasgow', icone: Brain },

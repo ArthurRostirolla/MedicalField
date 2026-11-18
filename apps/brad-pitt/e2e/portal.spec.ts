@@ -98,10 +98,9 @@ test('abre um atendimento, gera o PDF, baixa e envia por e-mail', async ({ page 
   await expect(linhaDoTempo.getByText(/Retifica nº\s*2/i)).toBeVisible();
 
   // Passo 16: gerar e baixar.
-  await page.getByRole('button', { name: 'Gerar PDF' }).click();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Gerar PDF' }).click()]);
   const ficha = page.getByRole('region', { name: 'Ficha em PDF e envios' });
   await expect(ficha.getByText('Íntegra')).toBeVisible();
-  const [download] = await Promise.all([page.waitForEvent('download'), ficha.getByRole('button', { name: 'Baixar PDF' }).click()]);
   expect(download.suggestedFilename()).toMatch(/^ficha-.+\.pdf$/);
   const pdf = await readFile(await download.path());
   expect(pdf.subarray(0, 4).toString('latin1')).toBe('%PDF');

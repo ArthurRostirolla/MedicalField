@@ -5,6 +5,7 @@ import { ArrowLeft, ClipboardList } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ErroApi } from '../api/cliente';
 import { listarAtendimentosDaPessoa, obterPessoa, obterProntuario } from '../api/recursos';
+import { BotaoNovoAtendimento } from '../atendimentos/NovoAtendimento';
 import { COLUNAS_ATENDIMENTO } from '../atendimentos/TelaAtendimentos';
 import { CampoLeitura, CamposLeitura } from '../comum/CamposLeitura';
 import { BotaoAtualizar, FolhaLista } from '../comum/FolhaLista';
@@ -180,6 +181,7 @@ export function DetalhePessoa() {
       <FolhaLista
         titulo="Atendimentos desta pessoa"
         plural="atendimentos"
+        acoes={<BotaoNovoAtendimento pessoaId={pessoaId} />}
         lista={atendimentos}
         colunas={COLUNAS_ATENDIMENTO}
         chave={(a) => a.id}

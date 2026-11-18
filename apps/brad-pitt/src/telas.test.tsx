@@ -108,14 +108,42 @@ describe('Atendimentos', () => {
     linha.focus();
     await userEvent.keyboard('{Enter}');
 
-    expect(await screen.findByText('Marlene Fictícia')).toBeInTheDocument();
-    expect(screen.getByText('Passagem de caso')).toBeInTheDocument();
+    // O livro sai de cena: o atendimento ocupa a página, com o caminho de volta.
+    const passagem = await screen.findByRole('region', { name: 'Passagem de caso' });
+    expect(within(passagem).getByText('Marlene Fictícia')).toBeInTheDocument();
+    expect(screen.queryByRole('table', { name: 'Livro de atendimentos' })).not.toBeInTheDocument();
+    const caminho = screen.getByRole('navigation', { name: 'Caminho' });
+    expect(within(caminho).getByRole('link', { name: 'Atendimentos' })).toHaveAttribute('href', '/atendimentos');
     expect(screen.getByText('Dipirona')).toBeInTheDocument();
     const linhaDoTempo = screen.getByRole('region', { name: 'Linha do tempo' });
     expect(within(linhaDoTempo).getByText(/2 entradas/)).toBeInTheDocument();
     expect(within(linhaDoTempo).getByText(/Retificado pela nº\s*2/i)).toBeInTheDocument();
     expect(within(linhaDoTempo).getByText(/Retifica nº\s*1/i)).toBeInTheDocument();
     expect(await screen.findByText('Ficha ainda não gerada')).toBeInTheDocument();
+  });
+
+  it('registra sinais vitais pelo portal: vazio avisa, preenchido vira POST /atendimento-evento', async () => {
+    const f = ficha();
+    const { chamadas } = simularApi((c) => {
+      if (c.caminho === `/ficha/${f.atendimento.id}`) return json(f);
+      if (c.caminho === '/documento') return json({ itens: [] });
+      if (c.caminho === '/atendimento-evento' && c.metodo === 'POST')
+        return json({ ...(c.corpo as object), profissionalId: HELENA.id, profissionalNome: HELENA.nome, dispositivoId: null, recebidoEm: f.atendimento.recebidoEm }, 201);
+      return undefined;
+    });
+    montar(`/atendimentos/${f.atendimento.id}`, HELENA);
+    const registro = await screen.findByRole('region', { name: 'Registrar no atendimento' });
+    await userEvent.click(within(registro).getByRole('button', { name: 'Registrar sinais vitais' }));
+    expect(within(registro).getByRole('alert')).toHaveTextContent('Informe ao menos um sinal vital.');
+
+    await userEvent.type(within(registro).getByLabelText(/Saturação/), '94');
+    await userEvent.click(within(registro).getByRole('button', { name: 'Registrar sinais vitais' }));
+    await waitFor(() => expect(chamadas.some((c) => c.caminho === '/atendimento-evento')).toBe(true));
+    expect(chamadas.find((c) => c.caminho === '/atendimento-evento')?.corpo).toMatchObject({
+      atendimentoId: f.atendimento.id,
+      tipo: 'SINAIS_VITAIS',
+      dados: { saturacao: 94 },
+    });
   });
 });
 
@@ -137,13 +165,16 @@ describe('Ficha em PDF e envios', () => {
     });
   }
 
-  it('gera o PDF e passa a mostrar código, integridade e as ações', async () => {
+  it('gera o PDF, já baixa e passa a mostrar código, integridade e as ações', async () => {
     const estado = { documentos: [] as unknown[], envios: [] };
+    const criarUrl = vi.fn(() => 'blob:ficha');
+    vi.stubGlobal('URL', Object.assign(URL, { createObjectURL: criarUrl, revokeObjectURL: vi.fn() }));
     const { para } = api((c) => {
       if (c.caminho === '/documento/ficha-atendimento') {
         estado.documentos = [doc];
         return json(doc, 201);
       }
+      if (c.caminho === `/documento/${doc.id}/pdf`) return new Response('%PDF', { headers: { 'Content-Type': 'application/pdf' } });
       return undefined;
     }, estado);
     montar(caminhoFicha, HELENA);
@@ -158,6 +189,7 @@ describe('Ficha em PDF e envios', () => {
     expect(within(bloco).getByText('Nenhum envio desta ficha')).toBeInTheDocument();
     expect(para('/documento/ficha-atendimento', 'POST')[0]?.corpo).toEqual({ atendimentoId: f.atendimento.id });
     expect(await screen.findByText('Ficha gerada')).toBeInTheDocument();
+    await waitFor(() => expect(criarUrl).toHaveBeenCalledOnce());
   });
 
   it('PDF que não confere aparece como tal', async () => {

@@ -12,6 +12,10 @@ import {
   prontuarioComPessoaSchema,
   prontuarioSchema,
   CABECALHOS,
+  atendimentoSchema,
+  eventoSchema,
+  type AtendimentoEntrada,
+  type EventoEntrada,
   type EnvioEntrada,
   type Medicamento,
 } from '@medicalfield/contratos';
@@ -28,6 +32,14 @@ export const listarAtendimentos = (pagina: Pagina) =>
 
 export const listarAtendimentosDaPessoa = (pessoaId: string, pagina: Pagina) =>
   api(`/atendimento/${pessoaId}`, paginaSchema(atendimentoListadoSchema), { consulta: { ...pagina } });
+
+/** Atendimento aberto pelo portal (mesma rota do app; o id vem do cliente para a repeticao ser idempotente). */
+export const registrarAtendimento = (entrada: AtendimentoEntrada) =>
+  api('/atendimento', atendimentoSchema, { metodo: 'POST', corpo: entrada });
+
+/** Acrescenta um evento a linha do tempo; corrigir = evento RETIFICACAO, nada se reescreve. */
+export const registrarEvento = (entrada: EventoEntrada) =>
+  api('/atendimento-evento', eventoSchema, { metodo: 'POST', corpo: entrada });
 
 export const obterFicha = (atendimentoId: string) => api(`/ficha/${atendimentoId}`, fichaSchema);
 
