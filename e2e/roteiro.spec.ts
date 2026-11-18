@@ -23,12 +23,20 @@ import {
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const EVIDENCIAS = resolve(RAIZ, 'docs/testes/evidencias/roteiro');
+// "compose" (local), "dev" (scripts/dev-*.sh) ou "vm": SQL por SSH (MF_VM_SSH) e o Mailpit por um tunel
+// aberto antes (ssh -L <MF_PORTA_MAILPIT>:127.0.0.1:18025).
 const ALVO = process.env.MF_ALVO ?? 'compose';
-const PORTA_MAILPIT = ALVO === 'compose' ? 18025 : 8025;
-const MAILPIT = `http://localhost:${PORTA_MAILPIT}`;
+const VM_SSH = process.env.MF_VM_SSH ?? 'univates@177.44.248.60';
+const PORTA_MAILPIT = Number(process.env.MF_PORTA_MAILPIT ?? (ALVO === 'dev' ? 8025 : 18025));
+const MAILPIT = `http://127.0.0.1:${PORTA_MAILPIT}`;
 
 /** SQL direto no banco central, como o roteiro pede no passo 9 ("via Banco de Dados"). */
 function sql(consulta: string): string {
+  if (ALVO === 'vm') {
+    // A consulta vai pelo stdin: nada dela passa pelo shell remoto.
+    const remoto = 'cd /opt/medicalfield/deploy && sudo docker compose exec -T postgres psql -U postgres -d medicalfield -At -v ON_ERROR_STOP=1';
+    return execFileSync('ssh', ['-o', 'BatchMode=yes', VM_SSH, remoto], { input: consulta, encoding: 'utf8' }).trim();
+  }
   const psql = ['psql', '-U', 'postgres', '-d', 'medicalfield', '-At', '-c', consulta];
   const args = ALVO === 'compose' ? ['compose', 'exec', '-T', 'postgres', ...psql] : ['exec', 'medicalfield-dev-pg', ...psql];
   return execFileSync('docker', args, { cwd: resolve(RAIZ, 'deploy'), encoding: 'utf8' }).trim();
@@ -52,7 +60,7 @@ const requisicoesDoCliente: Request[] = [];
 
 test.beforeAll(async ({ browser }) => {
   mkdirSync(EVIDENCIAS, { recursive: true });
-  if (ALVO === 'compose') {
+  if (ALVO !== 'dev') {
     // Mailpit publicado so no host (127.0.0.1:18025)
     await expect.poll(async () => (await fetch(`${MAILPIT}/api/v1/info`).catch(() => null))?.ok ?? false, { timeout: 30_000 }).toBe(true);
   }
