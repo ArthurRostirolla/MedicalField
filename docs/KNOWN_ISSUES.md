@@ -9,7 +9,7 @@ Severidade: `Crítica` (impede o roteiro acadêmico ou perde dado) · `Alta` (re
 | D-04 | Baixa | Jaiminho grava `rota: "(rota desconhecida)"` no log de acesso em alguns 401 sem token | Aberto |
 | D-05 | Baixa | `GET /documento?atendimentoId=` devolve `{ itens }` sem `proximoCursor`; `packages/contratos` não tem esquema para essa lista | Aberto |
 | D-06 | Baixa | Logs e documentos mostram só o id do profissional (não há rota para resolver nomes) | Aceito: fora do escopo |
-| D-07 | Média | `npm install` relata 5 vulnerabilidades "high" em dependências | A investigar |
+| D-07 | Baixa | `npm audit` aponta 13 vulnerabilidades (glob, minimatch, picomatch) — **só em ferramentas de build/teste**; `npm audit --omit=dev` devolve 0 | Aceito: não chega às imagens; corrigir exigiria `--force` com quebra de versões |
 | D-08 | Baixa | E2E do portal deixa dados de teste no banco de dev (atendimentos `e2e00000-…`, envios) | Aceito em dev |
 
 Decisão registrada: "mais recentes primeiro" em `GET /atendimento` ordena por `recebidoEm` (o atendimento feito offline sobe ao topo quando sincroniza — é o comportamento desejado no passo 15).
