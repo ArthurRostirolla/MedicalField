@@ -1,12 +1,13 @@
 import type { TipoItem } from '@medicalfield/contratos';
-import { Botao, CampoTexto, EstadoErro, Esqueleto, Select, SeletorSegmentado } from '@medicalfield/ui';
-import { ChevronDown } from 'lucide-react';
-import { useEffect, useState, type FormEvent } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Pressable, View } from 'react-native';
 import { FORMULARIO_PESSOA_VAZIO, type FormularioPessoa } from '../dados/pessoas.ts';
-import { CampoArea } from '../ui/CampoArea.tsx';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useAvisar, useConsulta, useGravar } from '../ui/contexto.tsx';
+import { Botao, CampoArea, CampoTexto, EstadoErro, Esqueleto, Icone, MEDIDA, Mensagens, Rotulo, Select, SeletorSegmentado, Texto, useTema } from '../ui/ds/index.ts';
+import { Cabecalho } from './Inicio.tsx';
 
 const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((tipo) => ({ valor: tipo, rotulo: tipo }));
 
@@ -18,6 +19,27 @@ const separar = (texto: string, tipo: TipoItem) =>
     .filter(Boolean)
     .map((descricao) => ({ tipo, descricao }));
 
+/** Secao recolhivel (o antigo <details>). `aberto` forca abrir (ex.: erro dentro dela). */
+export function Recolhivel({ titulo, aberto, children }: { titulo: string; aberto?: boolean; children: ReactNode }) {
+  const { cores } = useTema();
+  const [mostrar, setMostrar] = useState(false);
+  const visivel = mostrar || !!aberto;
+  return (
+    <View>
+      <Pressable
+        role="button"
+        aria-expanded={visivel}
+        onPress={() => setMostrar(!visivel)}
+        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: MEDIDA.alvo, borderBottomWidth: 1, borderBottomColor: cores.fio }}
+      >
+        <Texto forte>{titulo}</Texto>
+        <Icone icone={visivel ? ChevronUp : ChevronDown} cor={cores.tinta2} />
+      </Pressable>
+      {visivel ? <View style={{ gap: 16, paddingTop: 12 }}>{children}</View> : null}
+    </View>
+  );
+}
+
 interface CamposProps {
   formulario: FormularioPessoa;
   mudar: (parte: Partial<FormularioPessoa>) => void;
@@ -28,9 +50,10 @@ interface CamposProps {
 function CamposCadastro({ formulario, mudar, erros }: CamposProps) {
   const texto = (campo: keyof FormularioPessoa) => ({
     value: formulario[campo] as string,
-    onChange: (e: { target: { value: string } }) => mudar({ [campo]: e.target.value }),
+    onChangeText: (valor: string) => mudar({ [campo]: valor }),
     erro: erros[campo],
   });
+  const metade = { flexGrow: 1, flexBasis: 160 };
   return (
     <>
       <SeletorSegmentado
@@ -50,14 +73,11 @@ function CamposCadastro({ formulario, mudar, erros }: CamposProps) {
         {...texto('nome')}
       />
       {formulario.naoIdentificada ? (
-        <CampoArea
-          rotulo="Como reconhecer"
-          ajuda="Sexo aparente, idade aparente, roupa, sinais particulares, onde foi encontrado."
-          {...texto('descricaoIdentificacao')}
-        />
+        <CampoArea rotulo="Como reconhecer" ajuda="Sexo aparente, idade aparente, roupa, sinais particulares, onde foi encontrado." {...texto('descricaoIdentificacao')} />
       ) : null}
-      <div className="mf-grade-campos">
-        <CampoTexto rotulo="Nascimento" type="date" {...texto('dataNascimento')} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+        {/* ponytail: sem seletor de data nativo; digita AAAA-MM-DD (o formato que o cadastro grava). */}
+        <CampoTexto rotulo="Nascimento" placeholder="AAAA-MM-DD" inputMode="numeric" maxLength={10} style={metade} {...texto('dataNascimento')} />
         <Select
           rotulo="Sexo"
           vazio="Não informado"
@@ -66,46 +86,40 @@ function CamposCadastro({ formulario, mudar, erros }: CamposProps) {
             { valor: 'M', rotulo: 'Masculino' },
             { valor: 'I', rotulo: 'Indeterminado' },
           ]}
-          value={formulario.sexo}
-          onChange={(e) => mudar({ sexo: e.target.value as FormularioPessoa['sexo'] })}
+          valor={formulario.sexo}
+          aoMudar={(valor) => mudar({ sexo: valor as FormularioPessoa['sexo'] })}
           erro={erros.sexo}
+          style={metade}
         />
-        <CampoTexto rotulo="CPF" inputMode="numeric" autoComplete="off" placeholder="11 dígitos" {...texto('cpf')} />
-        <CampoTexto rotulo="Cartão SUS (CNS)" inputMode="numeric" autoComplete="off" placeholder="15 dígitos" {...texto('cns')} />
-      </div>
-      <CampoTexto rotulo="Telefone" type="tel" inputMode="tel" autoComplete="off" {...texto('telefone')} />
-      <details className="lp-mais" open={Boolean(erros.contatoEmergenciaNome || erros.contatoEmergenciaTelefone || erros.contatoEmergenciaEmail) || undefined}>
-        <summary>
-          Contato de emergência
-          <ChevronDown aria-hidden />
-        </summary>
-        <div className="lp-bloco">
-          <CampoTexto rotulo="Nome do contato" autoComplete="off" {...texto('contatoEmergenciaNome')} />
-          <CampoTexto rotulo="Telefone do contato" type="tel" inputMode="tel" autoComplete="off" {...texto('contatoEmergenciaTelefone')} />
-          <CampoTexto
-            rotulo="E-mail do contato"
-            type="email"
-            inputMode="email"
-            autoComplete="off"
-            autoCapitalize="none"
-            ajuda="Para onde a ficha em PDF pode ser enviada depois."
-            {...texto('contatoEmergenciaEmail')}
-          />
-        </div>
-      </details>
+        <CampoTexto rotulo="CPF" inputMode="numeric" autoComplete="off" placeholder="11 dígitos" style={metade} {...texto('cpf')} />
+        <CampoTexto rotulo="Cartão SUS (CNS)" inputMode="numeric" autoComplete="off" placeholder="15 dígitos" style={metade} {...texto('cns')} />
+      </View>
+      <CampoTexto rotulo="Telefone" inputMode="tel" autoComplete="off" {...texto('telefone')} />
+      <Recolhivel titulo="Contato de emergência" aberto={Boolean(erros.contatoEmergenciaNome || erros.contatoEmergenciaTelefone || erros.contatoEmergenciaEmail)}>
+        <CampoTexto rotulo="Nome do contato" autoComplete="off" {...texto('contatoEmergenciaNome')} />
+        <CampoTexto rotulo="Telefone do contato" inputMode="tel" autoComplete="off" {...texto('contatoEmergenciaTelefone')} />
+        <CampoTexto
+          rotulo="E-mail do contato"
+          inputMode="email"
+          autoComplete="off"
+          autoCapitalize="none"
+          ajuda="Para onde a ficha em PDF pode ser enviada depois."
+          {...texto('contatoEmergenciaEmail')}
+        />
+      </Recolhivel>
     </>
   );
 }
 
 export function NovoPaciente() {
   const app = useApp();
-  const navegar = useNavigate();
-  const [parametros] = useSearchParams();
+  const roteador = useRouter();
+  const parametros = useLocalSearchParams<{ nome?: string; naoIdentificado?: string }>();
   const { gravar, gravando, campos } = useGravar();
   const [formulario, setFormulario] = useState<FormularioPessoa>({
     ...FORMULARIO_PESSOA_VAZIO,
-    nome: parametros.get('nome') ?? '',
-    naoIdentificada: parametros.has('naoIdentificado'),
+    nome: parametros.nome ?? '',
+    naoIdentificada: parametros.naoIdentificado !== undefined,
   });
   const [alergias, setAlergias] = useState('');
   const [comorbidades, setComorbidades] = useState('');
@@ -114,8 +128,7 @@ export function NovoPaciente() {
   const [local, setLocal] = useState('');
   const mudar = (parte: Partial<FormularioPessoa>) => setFormulario((atual) => ({ ...atual, ...parte }));
 
-  async function salvar(evento: FormEvent, iniciarAtendimento: boolean) {
-    evento.preventDefault();
+  async function salvar(iniciarAtendimento: boolean) {
     let pessoaId = '';
     let atendimentoId = '';
     const ok = await gravar(async () => {
@@ -125,53 +138,41 @@ export function NovoPaciente() {
       });
       if (iniciarAtendimento) atendimentoId = await app.atendimentos.iniciar({ pessoaId, queixaPrincipal: queixa, localDescricao: local });
     });
-    if (ok) navegar(atendimentoId ? `/atendimentos/${atendimentoId}` : `/pacientes/${pessoaId}`, { replace: true });
+    if (ok) roteador.replace(atendimentoId ? `/atendimentos/${atendimentoId}` : `/pacientes/${pessoaId}`);
   }
 
   const temErro = Object.keys(campos).length > 0;
   return (
     <Casca titulo="Novo paciente" subtitulo="Grava neste aparelho; sobe quando houver rede" atual="pacientes" voltar={{ para: '/pacientes', rotulo: 'Pacientes' }}>
-      <form className="lp-bloco" noValidate onSubmit={(e) => void salvar(e, true)}>
+      <View role="form" style={{ gap: 16 }}>
         <CamposCadastro formulario={formulario} mudar={mudar} erros={campos} />
 
-        <CampoArea rotulo="Alergias" ajuda="Separe por vírgula. Ex.: dipirona, látex." value={alergias} onChange={(e) => setAlergias(e.target.value)} linhas={2} />
-        <details className="lp-mais" open={campos.observacoes ? true : undefined}>
-          <summary>
-            Mais do prontuário
-            <ChevronDown aria-hidden />
-          </summary>
-          <div className="lp-bloco">
-            <CampoArea rotulo="Comorbidades" ajuda="Separe por vírgula." value={comorbidades} onChange={(e) => setComorbidades(e.target.value)} linhas={2} />
-            <CampoArea rotulo="Medicações contínuas" ajuda="Separe por vírgula." value={medicacoes} onChange={(e) => setMedicacoes(e.target.value)} linhas={2} />
-            <Select
-              rotulo="Tipo sanguíneo"
-              vazio="Não informado"
-              opcoes={TIPOS_SANGUINEOS}
-              value={formulario.tipoSanguineo}
-              onChange={(e) => mudar({ tipoSanguineo: e.target.value })}
-            />
-            <CampoArea rotulo="Observações do prontuário" value={formulario.observacoes} onChange={(e) => mudar({ observacoes: e.target.value })} erro={campos.observacoes} />
-          </div>
-        </details>
+        <CampoArea rotulo="Alergias" ajuda="Separe por vírgula. Ex.: dipirona, látex." value={alergias} onChangeText={setAlergias} linhas={2} />
+        <Recolhivel titulo="Mais do prontuário" aberto={!!campos.observacoes}>
+          <CampoArea rotulo="Comorbidades" ajuda="Separe por vírgula." value={comorbidades} onChangeText={setComorbidades} linhas={2} />
+          <CampoArea rotulo="Medicações contínuas" ajuda="Separe por vírgula." value={medicacoes} onChangeText={setMedicacoes} linhas={2} />
+          <Select
+            rotulo="Tipo sanguíneo"
+            vazio="Não informado"
+            opcoes={TIPOS_SANGUINEOS}
+            valor={formulario.tipoSanguineo}
+            aoMudar={(valor) => mudar({ tipoSanguineo: valor })}
+          />
+          <CampoArea rotulo="Observações do prontuário" value={formulario.observacoes} onChangeText={(valor) => mudar({ observacoes: valor })} erro={campos.observacoes} />
+        </Recolhivel>
 
-        <div className="lp-cabecalho">
-          <h2 className="mf-secao__titulo">Atendimento</h2>
-        </div>
-        <CampoTexto rotulo="Queixa principal" value={queixa} onChange={(e) => setQueixa(e.target.value)} autoComplete="off" erro={campos.queixaPrincipal} />
-        <CampoTexto rotulo="Local da ocorrência" value={local} onChange={(e) => setLocal(e.target.value)} autoComplete="off" erro={campos.localDescricao} />
+        <Cabecalho titulo="Atendimento" />
+        <CampoTexto rotulo="Queixa principal" value={queixa} onChangeText={setQueixa} autoComplete="off" erro={campos.queixaPrincipal} />
+        <CampoTexto rotulo="Local da ocorrência" value={local} onChangeText={setLocal} autoComplete="off" erro={campos.localDescricao} />
 
-        {temErro ? (
-          <p className="mf-campo__erro" role="alert" style={{ margin: 0 }}>
-            Nada foi gravado: confira os campos marcados.
-          </p>
-        ) : null}
-        <Botao type="submit" variante="primario" largo carregando={gravando}>
+        {temErro ? <Mensagens erro="Nada foi gravado: confira os campos marcados." /> : null}
+        <Botao variante="primario" largo carregando={gravando} onPress={() => void salvar(true)}>
           Salvar e iniciar atendimento
         </Botao>
-        <Botao largo disabled={gravando} onClick={(e) => void salvar(e, false)}>
+        <Botao largo disabled={gravando} onPress={() => void salvar(false)}>
           Só salvar o cadastro
         </Botao>
-      </form>
+      </View>
     </Casca>
   );
 }
@@ -179,9 +180,10 @@ export function NovoPaciente() {
 /** Corrige um cadastro que o servidor rejeitou e devolve a operacao para a fila. */
 export function CorrigirPaciente() {
   const app = useApp();
-  const navegar = useNavigate();
+  const roteador = useRouter();
   const avisar = useAvisar();
-  const { opId = '' } = useParams();
+  const { cores } = useTema();
+  const { opId = '' } = useLocalSearchParams<{ opId: string }>();
   const { gravar, gravando, campos } = useGravar();
   const [formulario, setFormulario] = useState<FormularioPessoa | null>(null);
 
@@ -195,12 +197,11 @@ export function CorrigirPaciente() {
     if (inicial) setFormulario((atual) => atual ?? inicial);
   }, [inicial]);
 
-  async function salvar(evento: FormEvent) {
-    evento.preventDefault();
+  async function salvar() {
     if (!formulario) return;
     if (await gravar(() => app.pessoas.corrigirRejeitada(opId, formulario))) {
       avisar({ tom: 'sucesso', titulo: 'Correção gravada', descricao: 'O cadastro voltou para a fila de envio.' });
-      navegar('/pendencias', { replace: true });
+      roteador.replace('/pendencias');
     }
   }
 
@@ -209,28 +210,21 @@ export function CorrigirPaciente() {
       {pendencia.erro ? (
         <EstadoErro titulo="Não foi possível ler o banco local" descricao={pendencia.erro.message} aoTentarDeNovo={pendencia.recarregar} />
       ) : pendencia.dados === undefined ? (
-        <Esqueleto linhas={5} altura="2.5rem" />
+        <Esqueleto linhas={5} altura={40} />
       ) : pendencia.dados === null || !formulario ? (
         <EstadoErro titulo="Esta pendência não está mais rejeitada" descricao="Ela pode ter sido enviada, corrigida ou descartada. Volte para a lista de pendências." />
       ) : (
-        <form className="lp-bloco" noValidate onSubmit={(e) => void salvar(e)}>
-          <div className="lp-aviso">
-            <p>
-              <span className="mf-rotulo">Motivo informado pelo servidor</span>
-              <br />
-              {pendencia.dados.comando.ultimoErro}
-            </p>
-          </div>
+        <View role="form" style={{ gap: 16 }}>
+          <View style={{ padding: 12, gap: 4, borderWidth: 1, borderColor: cores.carmim, backgroundColor: cores.carmimSuave, borderRadius: MEDIDA.raio }}>
+            <Rotulo>Motivo informado pelo servidor</Rotulo>
+            <Texto>{pendencia.dados.comando.ultimoErro}</Texto>
+          </View>
           <CamposCadastro formulario={formulario} mudar={(parte) => setFormulario((atual) => (atual ? { ...atual, ...parte } : atual))} erros={campos} />
-          {Object.keys(campos).length > 0 ? (
-            <p className="mf-campo__erro" role="alert" style={{ margin: 0 }}>
-              Nada foi gravado: confira os campos marcados.
-            </p>
-          ) : null}
-          <Botao type="submit" variante="primario" largo carregando={gravando}>
+          {Object.keys(campos).length > 0 ? <Mensagens erro="Nada foi gravado: confira os campos marcados." /> : null}
+          <Botao variante="primario" largo carregando={gravando} onPress={() => void salvar()}>
             Salvar correção e reenviar
           </Botao>
-        </form>
+        </View>
       )}
     </Casca>
   );

@@ -1,26 +1,40 @@
-import { Botao, CampoTexto, Dialogo, SeletorSegmentado } from '@medicalfield/ui';
-import { LogOut } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router';
+import { useRouter } from 'expo-router';
+import { LogOut } from 'lucide-react-native';
+import { useState, type ReactNode } from 'react';
+import { View } from 'react-native';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useAvisar, useConectividade, useConsulta, useSessao } from '../ui/contexto.tsx';
-import { definirPreferenciaTema, lerPreferenciaTema, type PreferenciaTema } from '../ui/tema.ts';
+import { Botao, CampoTexto, Dialogo, Rotulo, SeletorSegmentado, Texto, Titulo, useTema } from '../ui/ds/index.ts';
+
+function Fato({ rotulo, children, apoio }: { rotulo: string; children: ReactNode; apoio?: ReactNode }) {
+  const { cores } = useTema();
+  return (
+    <View style={{ gap: 2, paddingVertical: 10, borderTopWidth: 1, borderTopColor: cores.fio }}>
+      <Rotulo>{rotulo}</Rotulo>
+      <Texto>{children}</Texto>
+      {apoio ? (
+        <Texto tamanho="pequeno" tom="tinta3">
+          {apoio}
+        </Texto>
+      ) : null}
+    </View>
+  );
+}
 
 export function Ajustes() {
   const app = useApp();
   const avisar = useAvisar();
-  const navegar = useNavigate();
+  const roteador = useRouter();
   const sessao = useSessao();
   const conexao = useConectividade();
-  const [tema, setTema] = useState<PreferenciaTema>(lerPreferenciaTema);
+  const { preferencia, definirPreferencia } = useTema();
   const [servidor, setServidor] = useState(app.enderecoServidor() ?? '');
   const [erroServidor, setErroServidor] = useState<string | null>(null);
   const [confirmarSaida, setConfirmarSaida] = useState<number | null>(null);
   const [saindo, setSaindo] = useState(false);
   const banco = useConsulta(async () => (await app.banco.consultar<{ user_version: number }>('PRAGMA user_version'))[0]?.user_version ?? 0, []);
 
-  async function salvarServidor(evento: FormEvent) {
-    evento.preventDefault();
+  async function salvarServidor() {
     try {
       await app.definirEnderecoServidor(servidor);
       setErroServidor(null);
@@ -42,7 +56,7 @@ export function Ajustes() {
     try {
       await app.registrarLog('LOGOUT');
       await app.sessao.sair();
-      navegar('/entrar', { replace: true });
+      roteador.replace('/entrar');
     } catch (erro) {
       avisar({ tom: 'erro', titulo: 'Não foi possível sair', descricao: erro instanceof Error ? erro.message : String(erro) });
     } finally {
@@ -51,15 +65,15 @@ export function Ajustes() {
     }
   }
 
+  const servidorMudou = servidor.trim() !== (app.enderecoServidor() ?? '');
+  const profissional = sessao?.profissional;
+
   return (
     <Casca titulo="Ajustes" atual="ajustes">
       <SeletorSegmentado
         rotulo="Tema"
-        valor={tema}
-        aoMudar={(novo) => {
-          setTema(novo);
-          definirPreferenciaTema(novo);
-        }}
+        valor={preferencia}
+        aoMudar={definirPreferencia}
         opcoes={[
           { valor: 'claro', rotulo: 'Claro', detalhe: 'sol' },
           { valor: 'escuro', rotulo: 'Escuro', detalhe: 'noite' },
@@ -67,7 +81,7 @@ export function Ajustes() {
         ]}
       />
 
-      <div className="lp-bloco">
+      <View style={{ gap: 8 }}>
         <SeletorSegmentado
           rotulo="Simular conectividade"
           valor={conexao.simulandoOffline ? 'offline' : 'online'}
@@ -77,62 +91,55 @@ export function Ajustes() {
             { valor: 'offline', rotulo: 'Offline' },
           ]}
         />
-        <p className="lp-nota">
-          Em Offline o app não emite nenhuma requisição: tudo fica no aparelho. A escolha é lembrada ao reabrir. É a mesma chave
-          da tira no alto da tela.
-        </p>
-      </div>
+        <Texto tamanho="pequeno" tom="tinta2">
+          Em Offline o app não emite nenhuma requisição: tudo fica no aparelho. A escolha é lembrada ao reabrir. É a mesma chave da
+          tira no alto da tela.
+        </Texto>
+      </View>
 
-      <form className="lp-bloco" noValidate onSubmit={(e) => void salvarServidor(e)}>
+      <View style={{ gap: 8 }}>
         <CampoTexto
           rotulo="Endereço do servidor"
           value={servidor}
-          onChange={(e) => setServidor(e.target.value)}
+          onChangeText={setServidor}
+          onSubmitEditing={() => {
+            if (servidorMudou) void salvarServidor();
+          }}
           placeholder={app.exigeEnderecoServidor ? 'https://medicalfield.exemplo.org' : 'O mesmo endereço deste app'}
           inputMode="url"
           autoCapitalize="none"
+          autoCorrect={false}
           autoComplete="off"
           erro={erroServidor ?? undefined}
-          ajuda={app.exigeEnderecoServidor ? 'Obrigatório no aplicativo Android.' : 'Em branco, usa o endereço de onde o app foi aberto.'}
+          ajuda={app.exigeEnderecoServidor ? 'Obrigatório no aplicativo instalado no aparelho.' : 'Em branco, usa o endereço de onde o app foi aberto.'}
         />
-        <Botao type="submit" disabled={servidor.trim() === (app.enderecoServidor() ?? '')}>
+        <Botao disabled={!servidorMudou} onPress={() => void salvarServidor()}>
           Gravar endereço
         </Botao>
-      </form>
+      </View>
 
-      <section aria-label="Este aparelho">
-        <div className="lp-cabecalho">
-          <h2 className="mf-secao__titulo">Este aparelho</h2>
-        </div>
-        <dl className="lp-fatos">
-          <div>
-            <dt className="mf-rotulo">Dispositivo</dt>
-            <dd>
-              <span className="mf-dado">{app.dispositivoId.slice(0, 8)}</span>
-              <small className="mf-dado">{app.dispositivoId}</small>
-            </dd>
-          </div>
-          <div>
-            <dt className="mf-rotulo">Banco local</dt>
-            <dd>
-              SQLite, versão <span className="mf-num">{banco.dados ?? '…'}</span>
-              <small>{app.exigeEnderecoServidor ? 'Cifrado (SQLCipher) no armazenamento do aplicativo.' : 'Guardado no armazenamento privado deste navegador (OPFS).'}</small>
-            </dd>
-          </div>
-          <div>
-            <dt className="mf-rotulo">Profissional</dt>
-            <dd>
-              {sessao?.profissional.nome}
-              <small>
-                {sessao?.profissional.tipoRegistro} {sessao?.profissional.registro}
-                {sessao?.profissional.uf ? `/${sessao.profissional.uf}` : ''}
-              </small>
-            </dd>
-          </div>
-        </dl>
-      </section>
+      <View role="region" aria-label="Este aparelho">
+        <Titulo nivel={2} style={{ marginBottom: 4 }}>
+          Este aparelho
+        </Titulo>
+        <Fato rotulo="Dispositivo" apoio={app.dispositivoId}>
+          <Texto dado>{app.dispositivoId.slice(0, 8)}</Texto>
+        </Fato>
+        <Fato
+          rotulo="Banco local"
+          apoio={app.exigeEnderecoServidor ? 'Cifrado (SQLCipher) no armazenamento do aplicativo.' : 'Guardado no armazenamento privado deste navegador (OPFS).'}
+        >
+          SQLite, versão <Texto dado>{String(banco.dados ?? '…')}</Texto>
+        </Fato>
+        <Fato
+          rotulo="Profissional"
+          apoio={profissional ? `${profissional.tipoRegistro} ${profissional.registro}${profissional.uf ? `/${profissional.uf}` : ''}` : undefined}
+        >
+          {profissional?.nome}
+        </Fato>
+      </View>
 
-      <Botao variante="perigo" largo carregando={saindo} icone={<LogOut aria-hidden />} onClick={() => void pedirSaida()}>
+      <Botao variante="perigo" largo carregando={saindo} icone={LogOut} onPress={() => void pedirSaida()}>
         Sair
       </Botao>
 
@@ -142,17 +149,17 @@ export function Ajustes() {
         titulo="Sair com registros não enviados?"
         acoes={
           <>
-            <Botao onClick={() => setConfirmarSaida(null)}>Continuar logado</Botao>
-            <Botao variante="perigo" carregando={saindo} onClick={() => void sair()}>
+            <Botao onPress={() => setConfirmarSaida(null)}>Continuar logado</Botao>
+            <Botao variante="perigo" carregando={saindo} onPress={() => void sair()}>
               Sair mesmo assim
             </Botao>
           </>
         }
       >
-        <p style={{ margin: 0 }}>
+        <Texto>
           {confirmarSaida === 1 ? 'Há 1 registro seu que ainda não foi' : `Há ${confirmarSaida} registros seus que ainda não foram`} para a
           central. Eles ficam guardados neste aparelho e só sobem quando você entrar de novo aqui.
-        </p>
+        </Texto>
       </Dialogo>
     </Casca>
   );

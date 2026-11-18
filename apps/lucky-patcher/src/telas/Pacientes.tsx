@@ -1,13 +1,17 @@
-import { Botao, CampoTexto, EstadoErro, EstadoVazio, Esqueleto, SeloSync } from '@medicalfield/ui';
-import { ChevronRight, Search, UserPlus, UserRoundX, X } from 'lucide-react';
+import { useRouter } from 'expo-router';
+import { Search, UserPlus, UserRoundX, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { Link } from 'react-router';
+import { View } from 'react-native';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConsulta } from '../ui/contexto.tsx';
+import { Botao, CampoTexto, EstadoErro, EstadoVazio, Esqueleto, Icone, useTema } from '../ui/ds/index.ts';
 import { formatarCpf, formatarMomento, identificacaoCurta } from '../ui/formato.ts';
+import { Cabecalho, LinhaLista, Lista } from './Inicio.tsx';
 
 export function Pacientes() {
   const app = useApp();
+  const roteador = useRouter();
+  const { cores } = useTema();
   const [busca, setBusca] = useState('');
   const pessoas = useConsulta(() => app.pessoas.buscar(busca), [busca]);
   const termo = busca.trim();
@@ -16,39 +20,49 @@ export function Pacientes() {
     <Casca titulo="Pacientes" subtitulo="Escolha ou crie o paciente para iniciar o atendimento" atual="pacientes">
       <CampoTexto
         rotulo="Buscar por nome ou CPF"
-        type="search"
+        inputMode="search"
         value={busca}
-        onChange={(e) => setBusca(e.target.value)}
+        onChangeText={setBusca}
         autoComplete="off"
+        autoCorrect={false}
         enterKeyHint="search"
         sufixo={
           busca ? (
-            <Botao variante="fantasma" somenteIcone aria-label="Limpar busca" icone={<X aria-hidden />} onClick={() => setBusca('')} />
+            <Botao variante="fantasma" somenteIcone aria-label="Limpar busca" icone={X} onPress={() => setBusca('')} />
           ) : (
-            <Search aria-hidden style={{ width: '1.25rem', height: '1.25rem' }} />
+            <Icone icone={Search} cor={cores.tinta3} />
           )
         }
       />
-      <div className="lp-acoes">
-        <Link className="mf-botao mf-botao--primario" to={termo ? `/pacientes/novo?nome=${encodeURIComponent(termo)}` : '/pacientes/novo'}>
-          <UserPlus aria-hidden />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <Botao
+          variante="primario"
+          icone={UserPlus}
+          role="link"
+          style={{ flexGrow: 1 }}
+          onPress={() => roteador.navigate(termo ? { pathname: '/pacientes/novo', params: { nome: termo } } : '/pacientes/novo')}
+        >
           Novo paciente
-        </Link>
-        <Link className="mf-botao" to="/pacientes/novo?naoIdentificado=1">
-          <UserRoundX aria-hidden />
+        </Botao>
+        <Botao
+          icone={UserRoundX}
+          role="link"
+          style={{ flexGrow: 1 }}
+          onPress={() => roteador.navigate({ pathname: '/pacientes/novo', params: { naoIdentificado: '1' } })}
+        >
           Não identificado
-        </Link>
-      </div>
+        </Botao>
+      </View>
 
-      <section aria-label="Resultado da busca" aria-busy={pessoas.carregando}>
-        <div className="lp-cabecalho">
-          <h2 className="mf-secao__titulo">{termo ? 'Encontrados' : 'Mais recentes'}</h2>
-          {pessoas.dados ? <span className="mf-rotulo">{pessoas.dados.length === 50 ? '50 primeiros' : pessoas.dados.length}</span> : null}
-        </div>
+      <View role="region" aria-label="Resultado da busca" aria-busy={pessoas.carregando}>
+        <Cabecalho
+          titulo={termo ? 'Encontrados' : 'Mais recentes'}
+          contagem={pessoas.dados ? (pessoas.dados.length === 50 ? '50 primeiros' : pessoas.dados.length) : undefined}
+        />
         {pessoas.erro ? (
           <EstadoErro titulo="Não foi possível ler o banco local" descricao={pessoas.erro.message} aoTentarDeNovo={pessoas.recarregar} />
         ) : !pessoas.dados ? (
-          <Esqueleto linhas={4} altura="2.5rem" />
+          <Esqueleto linhas={4} altura={40} />
         ) : pessoas.dados.length === 0 ? (
           termo ? (
             <EstadoVazio
@@ -62,30 +76,27 @@ export function Pacientes() {
             />
           )
         ) : (
-          <ul className="lp-lista">
+          <Lista>
             {pessoas.dados.map((pessoa) => (
-              <li key={pessoa.id}>
-                <Link className="lp-linha" to={`/pacientes/${pessoa.id}`}>
-                  <span className="lp-linha__texto">
-                    <span className="lp-linha__titulo">{pessoa.nome}</span>
-                    <span className="lp-linha__apoio">
-                      {[
-                        identificacaoCurta(pessoa),
-                        formatarCpf(pessoa.cpf) ? `CPF ${formatarCpf(pessoa.cpf)}` : null,
-                        pessoa.naoIdentificada ? pessoa.descricaoIdentificacao : null,
-                      ]
-                        .filter(Boolean)
-                        .join(' · ') || `Cadastrado em ${formatarMomento(pessoa.criadoEm)}`}
-                    </span>
-                  </span>
-                  {pessoa.envio !== 'confirmado' ? <SeloSync estado={pessoa.envio} /> : null}
-                  <ChevronRight aria-hidden />
-                </Link>
-              </li>
+              <LinhaLista
+                key={pessoa.id}
+                para={`/pacientes/${pessoa.id}`}
+                titulo={pessoa.nome}
+                apoio={
+                  [
+                    identificacaoCurta(pessoa),
+                    formatarCpf(pessoa.cpf) ? `CPF ${formatarCpf(pessoa.cpf)}` : null,
+                    pessoa.naoIdentificada ? pessoa.descricaoIdentificacao : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ') || `Cadastrado em ${formatarMomento(pessoa.criadoEm)}`
+                }
+                envio={pessoa.envio}
+              />
             ))}
-          </ul>
+          </Lista>
         )}
-      </section>
+      </View>
     </Casca>
   );
 }

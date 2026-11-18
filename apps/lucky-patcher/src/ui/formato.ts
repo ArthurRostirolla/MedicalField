@@ -1,7 +1,11 @@
 // Formatacao para a tela. Nada aqui interpreta valor clinico.
-import { formatarHora } from '@medicalfield/ui';
 
-export { formatarHora };
+/** Hora local (HH:MM) de um instante ISO. `fusoHorario` fixa o fuso (testes). */
+export function formatarHora(iso: string, fusoHorario?: string): string {
+  const data = new Date(iso);
+  if (Number.isNaN(data.getTime())) return '--:--';
+  return new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: fusoHorario }).format(data);
+}
 
 const doisDigitos = (n: number) => String(n).padStart(2, '0');
 

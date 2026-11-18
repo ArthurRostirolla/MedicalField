@@ -1,11 +1,12 @@
 import type { TipoItem } from '@medicalfield/contratos';
-import { Botao, CampoTexto, Dialogo, EstadoErro, Esqueleto, Etiqueta, SeloSync } from '@medicalfield/ui';
-import { ClipboardPlus, Plus } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ClipboardPlus, Plus } from 'lucide-react-native';
+import { useState, type ReactNode } from 'react';
+import { View } from 'react-native';
 import { ROTULO_ITEM, type ItemLocal } from '../dados/pessoas.ts';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConsulta, useGravar } from '../ui/contexto.tsx';
+import { Botao, CampoTexto, Dialogo, EstadoErro, Esqueleto, Etiqueta, MEDIDA, Rotulo, SeloSync, Texto, Titulo, useEstilos } from '../ui/ds/index.ts';
 import { formatarCpf, formatarData, formatarMomento, identificacaoCurta } from '../ui/formato.ts';
 import { LinhaAtendimento } from './Inicio.tsx';
 
@@ -14,6 +15,30 @@ const GRUPOS: Array<{ tipo: TipoItem; titulo: string; rotuloCampo: string; vazio
   { tipo: 'COMORBIDADE', titulo: 'Comorbidades', rotuloCampo: 'Nova comorbidade', vazio: 'Nenhuma comorbidade registrada.' },
   { tipo: 'MEDICACAO_CONTINUA', titulo: 'Medicações contínuas', rotuloCampo: 'Nova medicação', vazio: 'Nenhuma medicação contínua registrada.' },
 ];
+
+function useEstilosTela() {
+  return useEstilos((c) => ({
+    cabecalho: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 },
+    lista: { backgroundColor: c.papel, borderWidth: 1, borderColor: c.fio, borderRadius: MEDIDA.raio },
+    linha: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: MEDIDA.alvo, paddingVertical: 8, paddingHorizontal: MEDIDA.recuo, borderTopWidth: 1, borderTopColor: c.fio },
+    primeira: { borderTopWidth: 0 },
+    bloco: { gap: 12, padding: MEDIDA.recuo, backgroundColor: c.papel, borderWidth: 1, borderColor: c.fio, borderRadius: MEDIDA.raio },
+  }));
+}
+
+/** Secao com titulo h2 e contagem opcional. */
+function Grupo({ titulo, contagem, children }: { titulo: string; contagem?: number; children: ReactNode }) {
+  const s = useEstilosTela();
+  return (
+    <View role="region" aria-label={titulo}>
+      <View style={s.cabecalho}>
+        <Titulo nivel={2}>{titulo}</Titulo>
+        {contagem !== undefined ? <Rotulo>{contagem}</Rotulo> : null}
+      </View>
+      {children}
+    </View>
+  );
+}
 
 function GrupoItens({
   grupo,
@@ -27,62 +52,60 @@ function GrupoItens({
   aoPedirInativacao: (item: ItemLocal) => void;
 }) {
   const app = useApp();
+  const s = useEstilosTela();
   const { gravar, gravando, campos } = useGravar();
   const [descricao, setDescricao] = useState('');
 
-  async function adicionar(evento: FormEvent) {
-    evento.preventDefault();
+  async function adicionar() {
     if (await gravar(() => app.prontuarios.adicionarItem(pessoaId, grupo.tipo, descricao))) setDescricao('');
   }
 
   return (
-    <section aria-label={grupo.titulo}>
-      <div className="lp-cabecalho">
-        <h2 className="mf-secao__titulo">{grupo.titulo}</h2>
-        <span className="mf-rotulo">{itens.filter((item) => !item.inativadoEm).length}</span>
-      </div>
-      <ul className="lp-lista">
+    <Grupo titulo={grupo.titulo} contagem={itens.filter((item) => !item.inativadoEm).length}>
+      <View role="list" style={s.lista}>
         {itens.length === 0 ? (
-          <li>
-            <span className="lp-linha lp-linha--vazia">{grupo.vazio}</span>
-          </li>
+          <View role="listitem" style={[s.linha, s.primeira]}>
+            <Texto tom="tinta3">{grupo.vazio}</Texto>
+          </View>
         ) : null}
-        {itens.map((item) => (
-          <li key={item.id} className={item.inativadoEm ? 'lp-inativo' : undefined}>
-            <div className="lp-linha">
-              <span className="lp-linha__texto">
-                <span className="lp-linha__titulo">{item.descricao}</span>
-                <span className="lp-linha__apoio">
-                  {item.inativadoEm ? `Inativado em ${formatarMomento(item.inativadoEm)}` : `Registrado em ${formatarMomento(item.registradoEm)}`}
-                </span>
-              </span>
-              {item.envio !== 'confirmado' ? <SeloSync estado={item.envio} /> : null}
-              {item.inativadoEm ? <Etiqueta>Inativo</Etiqueta> : <Botao onClick={() => aoPedirInativacao(item)}>Inativar</Botao>}
-            </div>
-          </li>
+        {itens.map((item, indice) => (
+          <View key={item.id} role="listitem" style={[s.linha, indice === 0 && s.primeira, item.inativadoEm ? { opacity: 0.6 } : null]}>
+            <View style={{ flex: 1 }}>
+              <Texto forte style={item.inativadoEm ? { textDecorationLine: 'line-through' } : undefined}>
+                {item.descricao}
+              </Texto>
+              <Texto tamanho="pequeno" tom="tinta2">
+                {item.inativadoEm ? `Inativado em ${formatarMomento(item.inativadoEm)}` : `Registrado em ${formatarMomento(item.registradoEm)}`}
+              </Texto>
+            </View>
+            {item.envio !== 'confirmado' ? <SeloSync estado={item.envio} /> : null}
+            {item.inativadoEm ? <Etiqueta>Inativo</Etiqueta> : <Botao onPress={() => aoPedirInativacao(item)}>Inativar</Botao>}
+          </View>
         ))}
-      </ul>
-      <form className="lp-acoes lp-acoes--campo" noValidate onSubmit={(e) => void adicionar(e)}>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginTop: 8 }}>
         <CampoTexto
           rotulo={grupo.rotuloCampo}
           value={descricao}
-          onChange={(e) => setDescricao(e.target.value)}
+          onChangeText={setDescricao}
+          onSubmitEditing={() => void adicionar()}
           autoComplete="off"
           erro={campos.descricao ? 'Escreva o que registrar.' : undefined}
-          className="lp-cresce"
+          style={{ flex: 1 }}
         />
-        <Botao type="submit" carregando={gravando} icone={<Plus aria-hidden />}>
+        <Botao carregando={gravando} icone={Plus} onPress={() => void adicionar()} style={{ minHeight: 64 }}>
           Adicionar
         </Botao>
-      </form>
-    </section>
+      </View>
+    </Grupo>
   );
 }
 
 export function Prontuario() {
   const app = useApp();
-  const navegar = useNavigate();
-  const { pessoaId = '' } = useParams();
+  const roteador = useRouter();
+  const s = useEstilosTela();
+  const { pessoaId = '' } = useLocalSearchParams<{ pessoaId: string }>();
   const { gravar, gravando, campos } = useGravar();
   const [queixa, setQueixa] = useState('');
   const [local, setLocal] = useState('');
@@ -98,16 +121,15 @@ export function Prontuario() {
     [pessoaId],
   );
 
-  async function iniciar(evento: FormEvent) {
-    evento.preventDefault();
+  async function iniciar() {
     let atendimentoId = '';
     const ok = await gravar(async () => {
       atendimentoId = await app.atendimentos.iniciar({ pessoaId, queixaPrincipal: queixa, localDescricao: local });
     });
-    if (ok) navegar(`/atendimentos/${atendimentoId}`);
+    if (ok) roteador.navigate(`/atendimentos/${atendimentoId}`);
   }
 
-  const voltar = { para: '/pacientes', rotulo: 'Pacientes' };
+  const voltar = { para: '/pacientes' as const, rotulo: 'Pacientes' };
   if (dados.erro) {
     return (
       <Casca titulo="Prontuário" atual="pacientes" voltar={voltar}>
@@ -118,7 +140,7 @@ export function Prontuario() {
   if (!dados.dados) {
     return (
       <Casca titulo="Prontuário" atual="pacientes" voltar={voltar}>
-        <Esqueleto linhas={6} altura="2.5rem" />
+        <Esqueleto linhas={6} altura={40} />
       </Casca>
     );
   }
@@ -130,7 +152,7 @@ export function Prontuario() {
       </Casca>
     );
   }
-  // Só as linhas que têm dado: sete travessões não informam nada.
+  // So as linhas que tem dado: sete travessoes nao informam nada.
   const fatos = (
     [
       ['Como reconhecer', pessoa.naoIdentificada ? (pessoa.descricaoIdentificacao ?? 'Sem descrição') : null],
@@ -153,38 +175,29 @@ export function Prontuario() {
   return (
     <Casca
       titulo={pessoa.nome}
-      subtitulo={
-        <>
-          Prontuário{identificacaoCurta(pessoa) ? ` · ${identificacaoCurta(pessoa)}` : ''}
-        </>
-      }
+      subtitulo={`Prontuário${identificacaoCurta(pessoa) ? ` · ${identificacaoCurta(pessoa)}` : ''}`}
       acaoTopo={pessoa.envio !== 'confirmado' ? <SeloSync estado={pessoa.envio} /> : undefined}
       atual="pacientes"
       voltar={voltar}
     >
       {abertos.length > 0 ? (
-        <section aria-label="Atendimento em aberto">
-          <div className="lp-cabecalho">
-            <h2 className="mf-secao__titulo">Atendimento em aberto</h2>
-          </div>
-          <ul className="lp-lista">
+        <Grupo titulo="Atendimento em aberto">
+          <View role="list" style={s.lista}>
             {abertos.map((atendimento) => (
               <LinhaAtendimento key={atendimento.id} atendimento={atendimento} />
             ))}
-          </ul>
-        </section>
+          </View>
+        </Grupo>
       ) : null}
 
-      <form className="lp-bloco" noValidate onSubmit={(e) => void iniciar(e)}>
-        <div className="lp-cabecalho" style={{ marginBottom: 0 }}>
-          <h2 className="mf-secao__titulo">Novo atendimento</h2>
-        </div>
-        <CampoTexto rotulo="Queixa principal" value={queixa} onChange={(e) => setQueixa(e.target.value)} autoComplete="off" erro={campos.queixaPrincipal} />
-        <CampoTexto rotulo="Local da ocorrência" value={local} onChange={(e) => setLocal(e.target.value)} autoComplete="off" erro={campos.localDescricao} />
-        <Botao type="submit" variante="primario" largo carregando={gravando} icone={<ClipboardPlus aria-hidden />}>
+      <View style={s.bloco}>
+        <Titulo nivel={2}>Novo atendimento</Titulo>
+        <CampoTexto rotulo="Queixa principal" value={queixa} onChangeText={setQueixa} autoComplete="off" erro={campos.queixaPrincipal} />
+        <CampoTexto rotulo="Local da ocorrência" value={local} onChangeText={setLocal} autoComplete="off" erro={campos.localDescricao} />
+        <Botao variante="primario" largo carregando={gravando} icone={ClipboardPlus} onPress={() => void iniciar()}>
           Iniciar atendimento
         </Botao>
-      </form>
+      </View>
 
       {GRUPOS.map((grupo) => (
         <GrupoItens
@@ -196,42 +209,36 @@ export function Prontuario() {
         />
       ))}
 
-      <section aria-label="Cadastro">
-        <div className="lp-cabecalho">
-          <h2 className="mf-secao__titulo">Cadastro</h2>
-        </div>
+      <Grupo titulo="Cadastro">
         {fatos.length === 0 ? (
-          <ul className="lp-lista">
-            <li>
-              <span className="lp-linha lp-linha--vazia">Só o nome foi informado neste cadastro.</span>
-            </li>
-          </ul>
+          <View style={[s.lista, s.linha, s.primeira]}>
+            <Texto tom="tinta3">Só o nome foi informado neste cadastro.</Texto>
+          </View>
         ) : (
-          <dl className="lp-fatos">
+          <View style={[s.lista, { padding: MEDIDA.recuo, gap: 12 }]}>
             {fatos.map(([rotulo, valor, apoio]) => (
-              <div key={rotulo}>
-                <dt className="mf-rotulo">{rotulo}</dt>
-                <dd>
-                  {valor}
-                  {apoio ? <small>{apoio}</small> : null}
-                </dd>
-              </div>
+              <View key={rotulo}>
+                <Rotulo>{rotulo}</Rotulo>
+                <Texto>{valor}</Texto>
+                {apoio ? (
+                  <Texto tamanho="pequeno" tom="tinta2">
+                    {apoio}
+                  </Texto>
+                ) : null}
+              </View>
             ))}
-          </dl>
+          </View>
         )}
-      </section>
+      </Grupo>
 
       {anteriores.length > 0 ? (
-        <section aria-label="Atendimentos encerrados neste aparelho">
-          <div className="lp-cabecalho">
-            <h2 className="mf-secao__titulo">Encerrados neste aparelho</h2>
-          </div>
-          <ul className="lp-lista">
+        <Grupo titulo="Encerrados neste aparelho">
+          <View role="list" style={s.lista}>
             {anteriores.map((atendimento) => (
               <LinhaAtendimento key={atendimento.id} atendimento={atendimento} />
             ))}
-          </ul>
-        </section>
+          </View>
+        </Grupo>
       ) : null}
 
       <Dialogo
@@ -240,11 +247,11 @@ export function Prontuario() {
         titulo={inativar ? `Inativar ${ROTULO_ITEM[inativar.tipo].toLowerCase()}?` : ''}
         acoes={
           <>
-            <Botao onClick={() => setInativar(null)}>Manter ativo</Botao>
+            <Botao onPress={() => setInativar(null)}>Manter ativo</Botao>
             <Botao
               variante="perigo"
               carregando={inativacao.gravando}
-              onClick={async () => {
+              onPress={async () => {
                 if (inativar && (await inativacao.gravar(() => app.prontuarios.inativarItem(inativar)))) setInativar(null);
               }}
             >
@@ -253,10 +260,10 @@ export function Prontuario() {
           </>
         }
       >
-        <p style={{ margin: 0 }}>
-          <strong>{inativar?.descricao}</strong> deixa de aparecer na passagem de caso. O item continua no prontuário, marcado
+        <Texto>
+          <Texto forte>{inativar?.descricao}</Texto> deixa de aparecer na passagem de caso. O item continua no prontuário, marcado
           como inativo, com a hora e o seu nome.
-        </p>
+        </Texto>
       </Dialogo>
     </Casca>
   );

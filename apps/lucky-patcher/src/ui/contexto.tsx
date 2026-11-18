@@ -1,5 +1,5 @@
 // Liga a interface ao nucleo: as telas so enxergam repositorios locais e estados publicados.
-import { Botao, Dialogo, PilhaToasts, useToasts, type ToastProps } from '@medicalfield/ui';
+import { Botao, Dialogo, PilhaToasts, Texto, useToasts, type ToastProps } from './ds/index.ts';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
 import type { App } from '../app.ts';
 import { ErroValidacao } from '../dados/contexto.ts';
@@ -43,18 +43,18 @@ export function ProvedorApp({ app, children }: { app: App; children: ReactNode }
         aoFechar={() => setFalha(null)}
         titulo="O registro NÃO foi gravado"
         acoes={
-          <Botao variante="primario" onClick={() => setFalha(null)}>
+          <Botao variante="primario" onPress={() => setFalha(null)}>
             Entendi
           </Botao>
         }
       >
-        <p style={{ margin: 0 }}>
+        <Texto>
           O aparelho não conseguiu gravar no banco local e nada foi salvo. Anote o dado em papel, confira o espaço livre do
           aparelho e tente de novo.
-        </p>
-        <p className="mf-dado" style={{ margin: '0.75rem 0 0', overflowWrap: 'anywhere' }}>
+        </Texto>
+        <Texto dado tamanho="pequeno">
           {falha}
-        </p>
+        </Texto>
       </Dialogo>
       <PilhaToasts toasts={toasts} aoDispensar={dispensar} />
     </Contexto.Provider>

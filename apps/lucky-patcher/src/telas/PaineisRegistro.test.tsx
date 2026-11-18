@@ -2,7 +2,10 @@
 // D-QA-16: o que o profissional digita enquanto o registro anterior ainda grava nao pode ser apagado.
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
+import { ProvedorTema } from '../ui/ds/index.ts';
 import { PainelSinais, PainelTexto, type Registrar } from './PaineisRegistro.tsx';
+
+const montar = (ui: Parameters<typeof render>[0]) => render(ui, { wrapper: ProvedorTema });
 
 afterEach(cleanup);
 
@@ -20,7 +23,7 @@ const digitar = (texto: string) => fireEvent.change(campo(), { target: { value: 
 describe('PainelTexto (observacao e procedimento)', () => {
   it('esvazia o campo na hora do envio e nao mexe no que foi digitado depois', async () => {
     const { chamadas, registrar } = gravacaoLenta();
-    render(<PainelTexto registrar={registrar} gravando={false} erros={{}} tipo="OBSERVACAO" />);
+    montar(<PainelTexto registrar={registrar} gravando={false} erros={{}} tipo="OBSERVACAO" />);
 
     digitar('primeira');
     fireEvent.click(botao());
@@ -34,7 +37,7 @@ describe('PainelTexto (observacao e procedimento)', () => {
 
   it('12 observacoes em sequencia rapida, com a gravacao sempre atrasada: as 12 sao enviadas, em ordem', async () => {
     const { chamadas, registrar } = gravacaoLenta();
-    render(<PainelTexto registrar={registrar} gravando={true} erros={{}} tipo="OBSERVACAO" />); // "gravando" o tempo todo
+    montar(<PainelTexto registrar={registrar} gravando={true} erros={{}} tipo="OBSERVACAO" />); // "gravando" o tempo todo
 
     for (let n = 1; n <= 12; n++) {
       digitar(`observação ${n}`);
@@ -50,7 +53,7 @@ describe('PainelTexto (observacao e procedimento)', () => {
 
   it('se a gravacao falha, o texto volta ao campo, na frente do que foi digitado depois', async () => {
     const { chamadas, registrar } = gravacaoLenta();
-    render(<PainelTexto registrar={registrar} gravando={false} erros={{}} tipo="PROCEDIMENTO" />);
+    montar(<PainelTexto registrar={registrar} gravando={false} erros={{}} tipo="PROCEDIMENTO" />);
     const procedimento = () => screen.getByRole('textbox', { name: 'Procedimento realizado' }) as HTMLTextAreaElement;
 
     fireEvent.change(procedimento(), { target: { value: 'acesso venoso' } });
@@ -70,7 +73,7 @@ describe('PainelTexto (observacao e procedimento)', () => {
 describe('PainelSinais', () => {
   it('so limpa a grade se ela ainda for a que foi enviada', async () => {
     const { chamadas, registrar } = gravacaoLenta();
-    render(<PainelSinais registrar={registrar} gravando={false} erros={{}} />);
+    montar(<PainelSinais registrar={registrar} gravando={false} erros={{}} />);
     const sistolica = () => screen.getByLabelText(/PA sistólica/) as HTMLInputElement;
 
     fireEvent.change(sistolica(), { target: { value: '120' } });

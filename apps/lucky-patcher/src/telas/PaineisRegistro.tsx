@@ -2,10 +2,10 @@
 // quem grava e o repositorio (validacao + transacao local). Nenhum painel avalia valor clinico.
 import { CLASSIFICACOES_TRIAGEM, type Medicamento, type TipoEvento } from '@medicalfield/contratos';
 import { calcularTotalGlasgow } from '@medicalfield/dominio';
-import { Botao, CampoNumerico, CampoTexto, Select, SeletorSegmentado, SeletorTriagem, type CorTriagem } from '@medicalfield/ui';
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
+import { View } from 'react-native';
 import type { EventoLocal } from '../dados/atendimentos.ts';
-import { CampoArea } from '../ui/CampoArea.tsx';
+import { Botao, CampoArea, CampoNumerico, CampoTexto, Mensagens, Rotulo, Select, SeletorSegmentado, SeletorTriagem, Texto, type CorTriagem } from '../ui/ds/index.ts';
 import { formatarHora } from '../ui/formato.ts';
 
 export type Registrar = (tipo: TipoEvento, dados: Record<string, unknown>, retificaEventoId?: string) => Promise<boolean>;
@@ -24,6 +24,17 @@ interface PainelProps {
   erros: Record<string, string>;
 }
 
+const BLOCO = { gap: 12 } as const;
+
+/** Nota explicativa em tom secundario. */
+function Nota({ children }: { children: string }) {
+  return (
+    <Texto tamanho="pequeno" tom="tinta2">
+      {children}
+    </Texto>
+  );
+}
+
 /* ───────── Sinais vitais ───────── */
 
 const VITAIS = [
@@ -40,7 +51,7 @@ type Vitais = Partial<Record<(typeof VITAIS)[number]['campo'], number | null>>;
 
 function GradeVitais({ valores, mudar }: { valores: Vitais; mudar: (valores: Vitais) => void }) {
   return (
-    <div className="mf-grade-campos">
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
       {VITAIS.map((vital) => (
         <CampoNumerico
           key={vital.campo}
@@ -50,12 +61,12 @@ function GradeVitais({ valores, mudar }: { valores: Vitais; mudar: (valores: Vit
           max={vital.max}
           casas={'casas' in vital ? vital.casas : undefined}
           passo={'passo' in vital ? vital.passo : undefined}
-          className={vital.campo === 'glicemia' ? 'lp-span-2' : undefined}
+          style={vital.campo === 'glicemia' ? { width: '100%' } : { flexGrow: 1, flexBasis: '45%' }}
           valor={valores[vital.campo] ?? null}
           aoMudar={(valor) => mudar({ ...valores, [vital.campo]: valor })}
         />
       ))}
-    </div>
+    </View>
   );
 }
 
@@ -66,8 +77,7 @@ export function PainelSinais({ registrar, gravando }: PainelProps) {
   const [valores, setValores] = useState<Vitais>({});
   const [faltou, setFaltou] = useState(false);
 
-  async function enviar(evento: FormEvent) {
-    evento.preventDefault();
+  async function enviar() {
     const dados = vitaisPreenchidos(valores);
     setFaltou(Object.keys(dados).length === 0);
     if (Object.keys(dados).length === 0) return;
@@ -76,17 +86,13 @@ export function PainelSinais({ registrar, gravando }: PainelProps) {
   }
 
   return (
-    <form className="lp-bloco" noValidate onSubmit={(e) => void enviar(e)}>
+    <View style={BLOCO}>
       <GradeVitais valores={valores} mudar={setValores} />
-      {faltou && Object.keys(vitaisPreenchidos(valores)).length === 0 ? (
-        <p className="mf-campo__erro" role="alert" style={{ margin: 0 }}>
-          Preencha ao menos um sinal vital para registrar.
-        </p>
-      ) : null}
-      <Botao type="submit" variante="primario" largo carregando={gravando}>
+      {faltou && Object.keys(vitaisPreenchidos(valores)).length === 0 ? <Mensagens erro="Preencha ao menos um sinal vital para registrar." /> : null}
+      <Botao variante="primario" largo carregando={gravando} onPress={() => void enviar()}>
         Registrar sinais vitais
       </Botao>
-    </form>
+    </View>
   );
 }
 
@@ -107,27 +113,22 @@ export function PainelGlasgow({ registrar, gravando }: PainelProps) {
   const [faltou, setFaltou] = useState(false);
 
   return (
-    <div className="lp-bloco">
+    <View style={BLOCO}>
       {(Object.keys(GLASGOW) as Eixo[]).map((eixo) => (
         <SeletorSegmentado
           key={eixo}
-          className={eixo === 'motora' ? 'lp-tipos' : undefined}
           rotulo={`Resposta ${eixo}`}
           valor={respostas[eixo]}
           aoMudar={(valor) => setRespostas((atual) => ({ ...atual, [eixo]: valor }))}
-          opcoes={GLASGOW[eixo].map((detalhe, indice) => ({ valor: String(indice + 1), rotulo: indice + 1, detalhe }))}
+          opcoes={GLASGOW[eixo].map((detalhe, indice) => ({ valor: String(indice + 1), rotulo: String(indice + 1), detalhe }))}
         />
       ))}
-      {faltou && total === null ? (
-        <p className="mf-campo__erro" role="alert" style={{ margin: 0 }}>
-          Escolha as três respostas para registrar.
-        </p>
-      ) : null}
+      {faltou && total === null ? <Mensagens erro="Escolha as três respostas para registrar." /> : null}
       <Botao
         variante="primario"
         largo
         carregando={gravando}
-        onClick={async () => {
+        onPress={async () => {
           setFaltou(total === null);
           const enviadas = respostas;
           if (total !== null && (await registrar('GLASGOW', { ...componentes, total }))) {
@@ -137,7 +138,7 @@ export function PainelGlasgow({ registrar, gravando }: PainelProps) {
       >
         {total === null ? 'Registrar Glasgow' : `Registrar Glasgow ${total}`}
       </Botao>
-    </div>
+    </View>
   );
 }
 
@@ -150,7 +151,7 @@ export function PainelTriagem({ registrar, gravando }: PainelProps) {
   const [faltou, setFaltou] = useState(false);
 
   return (
-    <div className="lp-bloco">
+    <View style={BLOCO}>
       <SeletorSegmentado
         rotulo="Protocolo"
         valor={protocolo}
@@ -164,16 +165,12 @@ export function PainelTriagem({ registrar, gravando }: PainelProps) {
         ]}
       />
       <SeletorTriagem protocolo={protocolo} valor={cor} aoMudar={setCor} rotulo={`Classificação ${protocolo === 'START' ? 'START' : 'Manchester'}`} />
-      {faltou && !valida ? (
-        <p className="mf-campo__erro" role="alert" style={{ margin: 0 }}>
-          Escolha a classificação para registrar.
-        </p>
-      ) : null}
+      {faltou && !valida ? <Mensagens erro="Escolha a classificação para registrar." /> : null}
       <Botao
         variante="primario"
         largo
         carregando={gravando}
-        onClick={async () => {
+        onPress={async () => {
           setFaltou(!valida);
           const enviada = cor;
           if (valida && (await registrar('TRIAGEM', { protocolo, classificacao: cor }))) setCor((atual) => (atual === enviada ? null : atual));
@@ -181,7 +178,7 @@ export function PainelTriagem({ registrar, gravando }: PainelProps) {
       >
         Registrar triagem
       </Botao>
-    </div>
+    </View>
   );
 }
 
@@ -208,8 +205,7 @@ export function PainelMedicacao({
   const doCatalogo = catalogo.find((medicamento) => medicamento.id === escolha);
   const nome = livre ? nomeLivre.trim() : (doCatalogo?.nome ?? '');
 
-  async function enviar(evento: FormEvent) {
-    evento.preventDefault();
+  async function enviar() {
     setFaltou(!nome);
     if (!nome) return;
     const ok = await registrar('MEDICACAO', { medicamentoId: livre ? null : escolha, nome, dose: dose.trim(), unidade: unidade.trim(), via: via.trim() });
@@ -225,123 +221,127 @@ export function PainelMedicacao({
   }
 
   return (
-    <form className="lp-bloco" noValidate onSubmit={(e) => void enviar(e)}>
+    <View style={BLOCO}>
       {/* Fatos, sem alerta nem interpretacao: o que ja foi dado e o que esta registrado como alergia. */}
-      <dl className="lp-fatos">
-        <div>
-          <dt className="mf-rotulo">Já administrado neste atendimento</dt>
-          <dd>
-            {administradas.length === 0 ? (
-              <small>Nenhuma medicação registrada.</small>
-            ) : (
-              <ul style={{ margin: 0, padding: 0, listStyle: 'none' }}>
-                {administradas.map((evento) => {
-                  const d = evento.dados as Record<string, string>;
-                  return (
-                    <li key={evento.id}>
-                      <time className="mf-dado" dateTime={evento.ocorridoEm}>
-                        {formatarHora(evento.ocorridoEm)}
-                      </time>{' '}
-                      {d.nome}{' '}
-                      <span className="lp-junto">
-                        · {d.dose} {d.unidade} · {d.via}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            )}
-          </dd>
-        </div>
-        <div>
-          <dt className="mf-rotulo">Alergias registradas</dt>
-          <dd>{alergias.length === 0 ? <small>Nenhuma alergia no prontuário.</small> : <span style={{ textTransform: 'uppercase' }}>{alergias.join(' · ')}</span>}</dd>
-        </div>
-      </dl>
+      <View>
+        <Rotulo>Já administrado neste atendimento</Rotulo>
+        {administradas.length === 0 ? (
+          <Texto tamanho="pequeno" tom="tinta2">
+            Nenhuma medicação registrada.
+          </Texto>
+        ) : (
+          <View role="list">
+            {administradas.map((evento) => {
+              const d = evento.dados as Record<string, string>;
+              return (
+                <Texto key={evento.id} role="listitem">
+                  <Texto dado>{formatarHora(evento.ocorridoEm)}</Texto> {d.nome} · {d.dose} {d.unidade} · {d.via}
+                </Texto>
+              );
+            })}
+          </View>
+        )}
+      </View>
+      <View>
+        <Rotulo>Alergias registradas</Rotulo>
+        {alergias.length === 0 ? (
+          <Texto tamanho="pequeno" tom="tinta2">
+            Nenhuma alergia no prontuário.
+          </Texto>
+        ) : (
+          <Texto style={{ textTransform: 'uppercase' }}>{alergias.join(' · ')}</Texto>
+        )}
+      </View>
 
       {semCatalogo ? (
-        <p className="lp-nota">O catálogo de medicamentos ainda não foi baixado neste aparelho: registre pelo nome, como texto livre.</p>
+        <Nota>O catálogo de medicamentos ainda não foi baixado neste aparelho: registre pelo nome, como texto livre.</Nota>
       ) : (
         <Select
           rotulo="Medicamento"
           vazio="Escolha no catálogo"
-          value={escolha}
-          onChange={(e) => setEscolha(e.target.value)}
+          valor={escolha}
+          aoMudar={setEscolha}
           erro={faltou && !nome && !livre ? 'Escolha o medicamento ou “Fora do catálogo”.' : undefined}
-        >
-          {catalogo.map((medicamento) => (
-            <option key={medicamento.id} value={medicamento.id}>
-              {[medicamento.nome, medicamento.apresentacao].filter(Boolean).join(' — ')}
-            </option>
-          ))}
-          <option value={FORA}>Fora do catálogo (texto livre)</option>
-        </Select>
+          opcoes={[
+            ...catalogo.map((medicamento) => ({
+              valor: medicamento.id,
+              rotulo: [medicamento.nome, medicamento.apresentacao].filter(Boolean).join(' — '),
+            })),
+            { valor: FORA, rotulo: 'Fora do catálogo (texto livre)' },
+          ]}
+        />
       )}
       {livre ? (
         <CampoTexto
           rotulo="Nome do medicamento (fora do catálogo)"
           value={nomeLivre}
-          onChange={(e) => setNomeLivre(e.target.value)}
+          onChangeText={setNomeLivre}
           autoComplete="off"
           erro={faltou && !nome ? 'Escreva o nome do medicamento.' : erros['dados.nome']}
         />
       ) : null}
-      <div className="mf-grade-campos" style={{ ['--mf-colunas' as string]: 3 }}>
-        <CampoTexto rotulo="Dose" inputMode="decimal" value={dose} onChange={(e) => setDose(e.target.value)} autoComplete="off" erro={erros['dados.dose'] ? 'Obrigatória' : undefined} />
-        <CampoTexto rotulo="Unidade" value={unidade} onChange={(e) => setUnidade(e.target.value)} list="lp-unidades" autoComplete="off" autoCapitalize="none" erro={erros['dados.unidade'] ? 'Obrigatória' : undefined} />
-        <CampoTexto rotulo="Via" value={via} onChange={(e) => setVia(e.target.value)} list="lp-vias" autoComplete="off" autoCapitalize="characters" erro={erros['dados.via'] ? 'Obrigatória' : undefined} />
-      </div>
-      <datalist id="lp-unidades">
-        {['mg', 'mL', 'g', 'mcg', 'UI', 'gotas', 'comprimido'].map((opcao) => (
-          <option key={opcao} value={opcao} />
-        ))}
-      </datalist>
-      <datalist id="lp-vias">
-        {['EV', 'IM', 'VO', 'SC', 'SL', 'IN', 'IO', 'Inalatória'].map((opcao) => (
-          <option key={opcao} value={opcao} />
-        ))}
-      </datalist>
-      <Botao type="submit" variante="primario" largo carregando={gravando}>
+      {/* ponytail: sem a lista de sugestoes (datalist) de unidade e via; o campo continua livre. */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        <CampoTexto
+          rotulo="Dose"
+          inputMode="decimal"
+          value={dose}
+          onChangeText={setDose}
+          autoComplete="off"
+          erro={erros['dados.dose'] ? 'Obrigatória' : undefined}
+          style={{ flexGrow: 1, flexBasis: '30%' }}
+        />
+        <CampoTexto
+          rotulo="Unidade"
+          value={unidade}
+          onChangeText={setUnidade}
+          autoComplete="off"
+          autoCapitalize="none"
+          erro={erros['dados.unidade'] ? 'Obrigatória' : undefined}
+          style={{ flexGrow: 1, flexBasis: '30%' }}
+        />
+        <CampoTexto
+          rotulo="Via"
+          value={via}
+          onChangeText={setVia}
+          autoComplete="off"
+          autoCapitalize="characters"
+          erro={erros['dados.via'] ? 'Obrigatória' : undefined}
+          style={{ flexGrow: 1, flexBasis: '30%' }}
+        />
+      </View>
+      <Botao variante="primario" largo carregando={gravando} onPress={() => void enviar()}>
         Registrar medicação
       </Botao>
-    </form>
+    </View>
   );
 }
 
 /* ───────── Procedimento e observacao ───────── */
 
-export function PainelTexto({
-  registrar,
-  gravando,
-  erros,
-  tipo,
-}: PainelProps & { tipo: 'PROCEDIMENTO' | 'OBSERVACAO' }) {
+export function PainelTexto({ registrar, gravando, erros, tipo }: PainelProps & { tipo: 'PROCEDIMENTO' | 'OBSERVACAO' }) {
   const [texto, setTexto] = useState('');
   const campo = tipo === 'PROCEDIMENTO' ? 'descricao' : 'texto';
+  async function enviar() {
+    const enviado = texto;
+    setTexto(''); // na hora: o proximo registro ja pode ser digitado
+    const gravou = await registrar(tipo, { [campo]: enviado });
+    // Falhou: o texto volta, sem apagar o que foi digitado enquanto isso.
+    if (!gravou) setTexto((atual) => (atual.trim() ? `${enviado}\n${atual}` : enviado));
+  }
   return (
-    <form
-      className="lp-bloco"
-      noValidate
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const enviado = texto;
-        setTexto(''); // na hora: o proximo registro ja pode ser digitado
-        const gravou = await registrar(tipo, { [campo]: enviado });
-        // Falhou: o texto volta, sem apagar o que foi digitado enquanto isso.
-        if (!gravou) setTexto((atual) => (atual.trim() ? `${enviado}\n${atual}` : enviado));
-      }}
-    >
+    <View style={BLOCO}>
       <CampoArea
         rotulo={tipo === 'PROCEDIMENTO' ? 'Procedimento realizado' : 'Observação'}
         value={texto}
-        onChange={(e) => setTexto(e.target.value)}
+        onChangeText={setTexto}
         erro={erros[`dados.${campo}`] ? 'Escreva o que registrar.' : undefined}
       />
       {/* Sem `carregando`: travar o botao durante a gravacao descartava o envio seguinte. */}
-      <Botao type="submit" variante="primario" largo aria-busy={gravando || undefined}>
+      <Botao variante="primario" largo aria-busy={gravando || undefined} onPress={() => void enviar()}>
         {tipo === 'PROCEDIMENTO' ? 'Registrar procedimento' : 'Registrar observação'}
       </Botao>
-    </form>
+    </View>
   );
 }
 
@@ -369,8 +369,7 @@ export function PainelRetificacao({ registrar, gravando, erros, eventos }: Paine
   const alvo = eventos.find((evento) => evento.id === alvoId);
   const [faltouAlvo, setFaltouAlvo] = useState(false);
 
-  async function enviar(evento: FormEvent) {
-    evento.preventDefault();
+  async function enviar() {
     setFaltouAlvo(!alvo);
     if (!alvo) return;
     const valores = alvo.tipo === 'SINAIS_VITAIS' ? vitaisPreenchidos(corrigidos) : {};
@@ -390,15 +389,15 @@ export function PainelRetificacao({ registrar, gravando, erros, eventos }: Paine
   }
 
   return (
-    <form className="lp-bloco" noValidate onSubmit={(e) => void enviar(e)}>
-      <p className="lp-nota">Nada é apagado: o registro original continua na linha do tempo, riscado, e esta retificação cita o número dele.</p>
+    <View style={BLOCO}>
+      <Nota>Nada é apagado: o registro original continua na linha do tempo, riscado, e esta retificação cita o número dele.</Nota>
       <Select
         rotulo="Registro a retificar"
         vazio={candidatos.length ? 'Escolha o registro' : 'Nenhum registro para retificar'}
-        value={alvoId}
-        onChange={(e) => {
-          setAlvoId(e.target.value);
-          const escolhido = eventos.find((evento) => evento.id === e.target.value);
+        valor={alvoId}
+        aoMudar={(id) => {
+          setAlvoId(id);
+          const escolhido = eventos.find((evento) => evento.id === id);
           setCorrigidos(escolhido?.tipo === 'SINAIS_VITAIS' ? (escolhido.dados as Vitais) : {});
         }}
         erro={faltouAlvo && !alvo ? 'Escolha qual registro está errado.' : undefined}
@@ -413,25 +412,23 @@ export function PainelRetificacao({ registrar, gravando, erros, eventos }: Paine
       <CampoArea
         rotulo="Motivo da retificação"
         value={motivo}
-        onChange={(e) => setMotivo(e.target.value)}
+        onChangeText={setMotivo}
         linhas={2}
         erro={erros['dados.motivo'] ? 'Diga por que o registro está errado.' : undefined}
       />
       {alvo?.tipo === 'SINAIS_VITAIS' ? (
         <>
-          <p className="mf-rotulo" style={{ margin: 0 }}>
-            Valores corretos (confira todos)
-          </p>
+          <Rotulo>Valores corretos (confira todos)</Rotulo>
           <GradeVitais valores={corrigidos} mudar={setCorrigidos} />
-          <p className="lp-nota">Entram dois registros: a retificação e os sinais vitais corrigidos, com a hora de agora.</p>
+          <Nota>Entram dois registros: a retificação e os sinais vitais corrigidos, com a hora de agora.</Nota>
         </>
       ) : alvo ? (
-        <p className="lp-nota">Se o dado correto for outro, registre-o de novo no tipo certo depois de retificar.</p>
+        <Nota>Se o dado correto for outro, registre-o de novo no tipo certo depois de retificar.</Nota>
       ) : null}
-      <Botao type="submit" variante="primario" largo carregando={gravando}>
+      <Botao variante="primario" largo carregando={gravando} onPress={() => void enviar()}>
         Registrar retificação
       </Botao>
-    </form>
+    </View>
   );
 }
 
@@ -441,26 +438,24 @@ export function PainelEncerramento({ registrar, gravando, erros }: PainelProps) 
   const [desfecho, setDesfecho] = useState('');
   const [destino, setDestino] = useState('');
   return (
-    <form
-      className="lp-bloco"
-      noValidate
-      onSubmit={async (e) => {
-        e.preventDefault();
-        await registrar('ENCERRAMENTO', { desfecho, ...(destino.trim() ? { destino: destino.trim() } : {}) });
-      }}
-    >
-      <p className="lp-nota">Depois de encerrado, o atendimento só aceita retificação.</p>
+    <View style={BLOCO}>
+      <Nota>Depois de encerrado, o atendimento só aceita retificação.</Nota>
       <CampoArea
         rotulo="Desfecho"
         value={desfecho}
-        onChange={(e) => setDesfecho(e.target.value)}
+        onChangeText={setDesfecho}
         linhas={2}
         erro={erros['dados.desfecho'] ? 'Escreva o desfecho para encerrar.' : undefined}
       />
-      <CampoTexto rotulo="Destino (hospital, unidade)" value={destino} onChange={(e) => setDestino(e.target.value)} autoComplete="off" />
-      <Botao type="submit" variante="primario" largo carregando={gravando}>
+      <CampoTexto rotulo="Destino (hospital, unidade)" value={destino} onChangeText={setDestino} autoComplete="off" />
+      <Botao
+        variante="primario"
+        largo
+        carregando={gravando}
+        onPress={() => void registrar('ENCERRAMENTO', { desfecho, ...(destino.trim() ? { destino: destino.trim() } : {}) })}
+      >
         Encerrar atendimento
       </Botao>
-    </form>
+    </View>
   );
 }

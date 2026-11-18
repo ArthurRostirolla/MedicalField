@@ -1,14 +1,15 @@
 import { calcularResumo } from '@medicalfield/dominio';
-import { EstadoErro, Esqueleto, PainelPassagemDeCaso, SeloSync } from '@medicalfield/ui';
-import { useParams } from 'react-router';
+import { useLocalSearchParams } from 'expo-router';
+import { View } from 'react-native';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConsulta } from '../ui/contexto.tsx';
+import { EstadoErro, Esqueleto, PainelPassagemDeCaso, SeloSync, Texto } from '../ui/ds/index.ts';
 import { formatarMomento, identificacaoCurta } from '../ui/formato.ts';
 
 /** Passagem de caso: o resumo e a MESMA funcao pura que o servidor e o portal usam. */
 export function Passagem() {
   const app = useApp();
-  const { atendimentoId = '' } = useParams();
+  const { atendimentoId = '' } = useLocalSearchParams<{ atendimentoId: string }>();
   const dados = useConsulta(async () => {
     const atendimento = await app.atendimentos.obter(atendimentoId);
     if (!atendimento) return null;
@@ -20,7 +21,7 @@ export function Passagem() {
     return { atendimento, pessoa, eventos, resumo: calcularResumo(eventos, prontuario.itens) };
   }, [atendimentoId]);
 
-  const voltar = { para: `/atendimentos/${atendimentoId}`, rotulo: 'Atendimento' };
+  const voltar = { para: `/atendimentos/${atendimentoId}` as const, rotulo: 'Atendimento' };
   if (dados.erro) {
     return (
       <Casca titulo="Passagem de caso" atual="inicio" voltar={voltar}>
@@ -31,7 +32,7 @@ export function Passagem() {
   if (dados.dados === undefined) {
     return (
       <Casca titulo="Passagem de caso" atual="inicio" voltar={voltar}>
-        <Esqueleto linhas={6} altura="2.5rem" />
+        <Esqueleto linhas={6} altura={40} />
       </Casca>
     );
   }
@@ -49,9 +50,9 @@ export function Passagem() {
     <Casca
       titulo="Passagem de caso"
       subtitulo={
-        <>
-          Ficha <span className="mf-dado">{atendimento.id.slice(0, 8)}</span> · início {formatarMomento(atendimento.iniciadoEm)}
-        </>
+        <Texto tamanho="pequeno" tom="tinta2">
+          Ficha <Texto dado>{atendimento.id.slice(0, 8)}</Texto> · início {formatarMomento(atendimento.iniciadoEm)}
+        </Texto>
       }
       atual="inicio"
       voltar={voltar}
@@ -61,15 +62,17 @@ export function Passagem() {
         paciente={{ nome: atendimento.pessoaNome, identificacao: pessoa ? identificacaoCurta(pessoa) || undefined : undefined }}
         queixaPrincipal={atendimento.queixaPrincipal}
       />
-      <p className="lp-registrado" role="status">
+      <View role={'status' as 'alert'} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <SeloSync estado={naoEnviados === 0 ? 'confirmado' : 'local'} somenteMarca />
-        <span>
+        <Texto style={{ flex: 1 }}>
           {naoEnviados === 0
             ? 'Tudo deste atendimento já está na central.'
             : `${naoEnviados} ${naoEnviados === 1 ? 'registro deste atendimento ainda está' : 'registros deste atendimento ainda estão'} só neste aparelho.`}
-        </span>
-      </p>
-      <p className="lp-nota">Resumo factual do que foi registrado, sem interpretação. Registros retificados não entram.</p>
+        </Texto>
+      </View>
+      <Texto tamanho="pequeno" tom="tinta2">
+        Resumo factual do que foi registrado, sem interpretação. Registros retificados não entram.
+      </Texto>
     </Casca>
   );
 }

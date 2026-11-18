@@ -1,11 +1,12 @@
-import { Botao, Dialogo, EstadoErro, EstadoVazio, Esqueleto, SeloSync, type EstadoSync } from '@medicalfield/ui';
-import { CircleCheck, RefreshCw } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useRouter } from 'expo-router';
+import { CircleCheck, RefreshCw } from 'lucide-react-native';
+import { useState, type ReactNode } from 'react';
+import { View } from 'react-native';
 import type { Comando, SituacaoFila } from '../dados/outbox.ts';
 import type { Pendencia } from '../dados/pendencias.ts';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useAvisar, useConectividade, useConsulta, useGravar, useMotor, useSessao } from '../ui/contexto.tsx';
+import { Botao, Dialogo, EstadoErro, EstadoVazio, Esqueleto, MEDIDA, Rotulo, SeloSync, Texto, Titulo, useTema, type EstadoSync } from '../ui/ds/index.ts';
 import { formatarMomento } from '../ui/formato.ts';
 
 const SELO: Record<SituacaoFila, { estado: EstadoSync; rotulo?: string }> = {
@@ -27,9 +28,50 @@ function apoio({ comando, situacao }: Pendencia): string {
   return partes.join(' · ');
 }
 
+/** Lista com titulo e contagem (antes: section + h2 + ul/ol). */
+function Bloco({ titulo, quantidade, children }: { titulo: string; quantidade: number; children: ReactNode }) {
+  return (
+    <View role="region" aria-label={titulo} style={{ gap: 8 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Titulo nivel={2}>{titulo}</Titulo>
+        <Rotulo>{quantidade}</Rotulo>
+      </View>
+      <View role="list">{children}</View>
+    </View>
+  );
+}
+
+function Linha({ comando, situacao, testID, children }: Pendencia & { testID: string; children?: ReactNode }) {
+  const { cores } = useTema();
+  return (
+    <View role="listitem" testID={testID} style={{ gap: 8, padding: 12, borderTopWidth: 1, borderTopColor: cores.fio, backgroundColor: cores.papel }}>
+      <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Texto forte>{comando.descricao}</Texto>
+          <Texto tamanho="pequeno" tom="tinta2">
+            {apoio({ comando, situacao })}
+          </Texto>
+          {situacao === 'REJEITADA' ? (
+            <Texto tamanho="pequeno" tom="carmim">
+              Motivo: {comando.ultimoErro ?? 'não informado'}
+            </Texto>
+          ) : comando.ultimoErro && situacao === 'ENVIAVEL' ? (
+            <Texto tamanho="pequeno" tom="tinta2">
+              Última falha: {comando.ultimoErro}
+            </Texto>
+          ) : null}
+        </View>
+        <SeloSync {...SELO[situacao]} />
+      </View>
+      {children}
+    </View>
+  );
+}
+
 export function Pendencias() {
   const app = useApp();
   const avisar = useAvisar();
+  const roteador = useRouter();
   const sessao = useSessao();
   const conexao = useConectividade();
   const motor = useMotor();
@@ -40,112 +82,82 @@ export function Pendencias() {
   const rejeitadas = fila.dados?.filter((item) => item.situacao === 'REJEITADA') ?? [];
   const demais = fila.dados?.filter((item) => item.situacao !== 'REJEITADA') ?? [];
 
+  // Pedido manual nunca e ignorado: se a sincronizacao automatica ja corre, o motor devolve a mesma.
+  const [pedindo, setPedindo] = useState(false);
   async function sincronizar() {
+    setPedindo(true);
     await app.monitor.verificar();
-    const r = await app.motor.sincronizar('manual');
+    const r = await app.motor.sincronizar('manual').finally(() => setPedindo(false));
     if (r.erro) avisar({ titulo: 'Não sincronizou', descricao: `${r.erro} Os registros continuam guardados.` });
   }
 
   return (
     <Casca titulo="Pendências" subtitulo="O que ainda não está confirmado na central" atual="pendencias">
-      <div className="lp-bloco">
+      <View style={{ gap: 8 }}>
         <Botao
           variante="primario"
           largo
           disabled={conexao.simulandoOffline}
-          carregando={motor.sincronizando}
-          icone={<RefreshCw aria-hidden />}
-          onClick={() => void sincronizar()}
+          carregando={pedindo}
+          icone={RefreshCw}
+          onPress={() => void sincronizar()}
         >
           Sincronizar agora
         </Botao>
-        <p className="lp-nota" role="status">
+        <Texto tamanho="pequeno" tom="tinta2" role={'status' as 'alert'}>
           {conexao.online
             ? 'Online: a fila sobe sozinha, uma operação por vez, na ordem em que foi registrada.'
             : conexao.simulandoOffline
               ? 'Simulação de offline ligada: desligue a chave “Simular offline”, no alto, para enviar.'
               : 'Sem contato com o servidor: a fila sobe sozinha quando a rede voltar.'}
           {motor.ultimoErro && conexao.online ? ` Última tentativa: ${motor.ultimoErro}` : ''}
-        </p>
-      </div>
+        </Texto>
+      </View>
 
       {fila.erro ? (
         <EstadoErro titulo="Não foi possível ler o banco local" descricao={fila.erro.message} aoTentarDeNovo={fila.recarregar} />
       ) : !fila.dados ? (
-        <Esqueleto linhas={4} altura="2.5rem" />
+        <Esqueleto linhas={4} altura={40} />
       ) : fila.dados.length === 0 ? (
         <EstadoVazio
-          icone={<CircleCheck aria-hidden />}
+          icone={CircleCheck}
           titulo="Tudo enviado"
           descricao="Nenhuma operação aguardando neste aparelho. O que você registrar offline aparece aqui até a central confirmar."
         />
       ) : null}
 
       {rejeitadas.length > 0 ? (
-        <section aria-label="Rejeitadas pelo servidor">
-          <div className="lp-cabecalho">
-            <h2 className="mf-secao__titulo">Rejeitadas pelo servidor</h2>
-            <span className="mf-rotulo">{rejeitadas.length}</span>
-          </div>
-          <ul className="lp-lista">
-            {rejeitadas.map(({ comando, situacao }) => (
-              <li key={comando.opId} data-testid="pendencia-rejeitada">
-                <div className="lp-linha">
-                  <span className="lp-linha__texto">
-                    <span className="lp-linha__titulo">{comando.descricao}</span>
-                    <span className="lp-linha__apoio">{apoio({ comando, situacao })}</span>
-                    <span className="lp-linha__apoio" style={{ color: 'var(--mf-carmim)' }}>
-                      Motivo: {comando.ultimoErro ?? 'não informado'}
-                    </span>
-                  </span>
-                  <SeloSync {...SELO[situacao]} />
-                </div>
-                <div className="lp-linha__acoes">
-                  {comando.entidade === 'pessoa' ? (
-                    <Link className="mf-botao mf-botao--primario" to={`/pendencias/${comando.opId}/corrigir`}>
-                      Corrigir
-                    </Link>
-                  ) : null}
-                  <Botao disabled={gravando} onClick={() => void gravar(() => app.pendencias.tentarDeNovo(comando.opId))}>
-                    Tentar de novo
+        <Bloco titulo="Rejeitadas pelo servidor" quantidade={rejeitadas.length}>
+          {rejeitadas.map(({ comando, situacao }) => (
+            <Linha key={comando.opId} comando={comando} situacao={situacao} testID="pendencia-rejeitada">
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+                {comando.entidade === 'pessoa' ? (
+                  <Botao variante="primario" role="link" onPress={() => roteador.navigate(`/pendencias/${comando.opId}/corrigir`)}>
+                    Corrigir
                   </Botao>
-                  <Botao
-                    variante="perigo"
-                    disabled={gravando}
-                    onClick={async () => setDescarte({ comando, cadeia: await app.pendencias.cadeiaDe(comando.opId) })}
-                  >
-                    Descartar
-                  </Botao>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
+                ) : null}
+                <Botao disabled={gravando} onPress={() => void gravar(() => app.pendencias.tentarDeNovo(comando.opId))}>
+                  Tentar de novo
+                </Botao>
+                <Botao
+                  variante="perigo"
+                  disabled={gravando}
+                  onPress={async () => setDescarte({ comando, cadeia: await app.pendencias.cadeiaDe(comando.opId) })}
+                >
+                  Descartar
+                </Botao>
+              </View>
+            </Linha>
+          ))}
+        </Bloco>
       ) : null}
 
       {demais.length > 0 ? (
-        <section aria-label="Fila de envio">
-          <div className="lp-cabecalho">
-            <h2 className="mf-secao__titulo">Fila de envio</h2>
-            <span className="mf-rotulo">{demais.length}</span>
-          </div>
-          <ol className="lp-lista">
-            {demais.map((item) => (
-              <li key={item.comando.opId} data-testid="pendencia-fila">
-                <div className="lp-linha">
-                  <span className="lp-linha__texto">
-                    <span className="lp-linha__titulo">{item.comando.descricao}</span>
-                    <span className="lp-linha__apoio">{apoio(item)}</span>
-                    {item.comando.ultimoErro && item.situacao === 'ENVIAVEL' ? (
-                      <span className="lp-linha__apoio">Última falha: {item.comando.ultimoErro}</span>
-                    ) : null}
-                  </span>
-                  <SeloSync {...SELO[item.situacao]} />
-                </div>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <Bloco titulo="Fila de envio" quantidade={demais.length}>
+          {demais.map((item) => (
+            <Linha key={item.comando.opId} {...item} testID="pendencia-fila" />
+          ))}
+        </Bloco>
       ) : null}
 
       <Dialogo
@@ -154,33 +166,35 @@ export function Pendencias() {
         titulo="Descartar este registro?"
         acoes={
           <>
-            <Botao onClick={() => setDescarte(null)}>Manter</Botao>
+            <Botao onPress={() => setDescarte(null)}>Manter</Botao>
             <Botao
               variante="perigo"
               carregando={gravando}
-              onClick={async () => {
+              onPress={async () => {
                 if (!descarte) return;
                 if (await gravar(() => app.pendencias.descartar(descarte.comando.opId))) setDescarte(null);
               }}
             >
-              Descartar {descarte && descarte.cadeia.length > 1 ? `${descarte.cadeia.length} operações` : ''}
+              {descarte && descarte.cadeia.length > 1 ? `Descartar ${descarte.cadeia.length} operações` : 'Descartar'}
             </Botao>
           </>
         }
       >
-        <p style={{ margin: 0 }}>
-          <strong>{descarte?.comando.descricao}</strong> sai da fila e é apagado deste aparelho. Ele nunca chegou à central, então não
+        <Texto>
+          <Texto forte>{descarte?.comando.descricao}</Texto> sai da fila e é apagado deste aparelho. Ele nunca chegou à central, então não
           há como recuperar.
-        </p>
+        </Texto>
         {descarte && descarte.cadeia.length > 1 ? (
-          <>
-            <p style={{ margin: '0.75rem 0 0.25rem' }}>Dependem dele e são descartados junto:</p>
-            <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
+          <View style={{ gap: 4 }}>
+            <Texto>Dependem dele e são descartados junto:</Texto>
+            <View role="list" style={{ paddingLeft: MEDIDA.recuo }}>
               {descarte.cadeia.slice(1).map((comando) => (
-                <li key={comando.opId}>{comando.descricao}</li>
+                <Texto key={comando.opId} role="listitem">
+                  • {comando.descricao}
+                </Texto>
               ))}
-            </ul>
-          </>
+            </View>
+          </View>
         ) : null}
       </Dialogo>
     </Casca>

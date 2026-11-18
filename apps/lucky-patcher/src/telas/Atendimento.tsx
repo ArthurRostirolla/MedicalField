@@ -1,10 +1,26 @@
 import type { TipoEvento } from '@medicalfield/contratos';
-import { Botao, EstadoErro, EstadoVazio, Esqueleto, Etiqueta, LinhaDoTempo, SeletorSegmentado, SeloSync, type EstadoSync } from '@medicalfield/ui';
-import { ArrowRightLeft, CircleStop, PenLine } from 'lucide-react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { ArrowRightLeft, CircleStop, PenLine } from 'lucide-react-native';
 import { useRef, useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { View } from 'react-native';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConsulta, useGravar } from '../ui/contexto.tsx';
+import {
+  Botao,
+  EstadoErro,
+  EstadoVazio,
+  Esqueleto,
+  Etiqueta,
+  LinhaDoTempo,
+  MEDIDA,
+  Rotulo,
+  SeletorSegmentado,
+  SeloSync,
+  Texto,
+  Titulo,
+  useEstilos,
+  type EstadoSync,
+} from '../ui/ds/index.ts';
 import { formatarHora, formatarMomento, identificacaoCurta } from '../ui/formato.ts';
 import {
   PainelEncerramento,
@@ -30,9 +46,24 @@ const REGISTRADO: Record<TipoEvento, string> = {
   ENCERRAMENTO: 'Encerramento gravado',
 };
 
+// ponytail: os seis tipos em duas linhas de tres (o segmentado do design system nao quebra linha).
+const TIPOS = [
+  { valor: 'sinais', rotulo: 'Sinais' },
+  { valor: 'glasgow', rotulo: 'Glasgow' },
+  { valor: 'triagem', rotulo: 'Triagem' },
+  { valor: 'medicacao', rotulo: 'Medicação' },
+  { valor: 'procedimento', rotulo: 'Procedimento' },
+  { valor: 'observacao', rotulo: 'Observação' },
+] as const satisfies ReadonlyArray<{ valor: Modo; rotulo: string }>;
+
 export function Atendimento() {
   const app = useApp();
-  const { atendimentoId = '' } = useParams();
+  const roteador = useRouter();
+  const s = useEstilos((c) => ({
+    bloco: { gap: 12, padding: MEDIDA.recuo, backgroundColor: c.papel, borderWidth: 1, borderColor: c.fio, borderRadius: MEDIDA.raio },
+    linhaTempo: { backgroundColor: c.papel, borderWidth: 1, borderColor: c.fio, borderRadius: MEDIDA.raio },
+  }));
+  const { atendimentoId = '' } = useLocalSearchParams<{ atendimentoId: string }>();
   const { gravar, gravando, campos, limparCampos } = useGravar();
   const [modo, setModo] = useState<Modo>('sinais');
   const [recente, setRecente] = useState<{ id: string; tipo: TipoEvento } | null>(null);
@@ -51,7 +82,7 @@ export function Atendimento() {
     };
   }, [atendimentoId]);
 
-  const voltar = { para: '/', rotulo: 'Início' };
+  const voltar = { para: '/' as const, rotulo: 'Início' };
   if (dados.erro) {
     return (
       <Casca titulo="Atendimento" atual="inicio" voltar={voltar}>
@@ -62,7 +93,7 @@ export function Atendimento() {
   if (dados.dados === undefined) {
     return (
       <Casca titulo="Atendimento" atual="inicio" voltar={voltar}>
-        <Esqueleto linhas={6} altura="2.5rem" />
+        <Esqueleto linhas={6} altura={40} />
       </Casca>
     );
   }
@@ -100,70 +131,60 @@ export function Atendimento() {
   // Evento retificado deixa de contar como fato vigente (a pauta continua mostrando, riscado).
   const retificados = new Set(eventos.map((evento) => evento.retificaEventoId).filter(Boolean));
   const painel = { registrar, gravando, erros: campos };
+  const tipoAtual = modo === 'retificar' || modo === 'encerrar' ? null : modo;
 
   return (
     <Casca
       titulo={atendimento.pessoaNome}
       subtitulo={
-        <>
-          Ficha <span className="mf-dado">{atendimento.id.slice(0, 8)}</span>
+        <Texto tamanho="pequeno" tom="tinta2">
+          Ficha{' '}
+          <Texto dado tamanho="pequeno" tom="tinta2">
+            {atendimento.id.slice(0, 8)}
+          </Texto>
           {pessoa && identificacaoCurta(pessoa) ? ` · ${identificacaoCurta(pessoa)}` : ''} · início {formatarMomento(atendimento.iniciadoEm)}
-        </>
+        </Texto>
       }
       acaoVoltar={
-        <Link className="mf-botao" to={`/atendimentos/${atendimentoId}/passagem`}>
-          <ArrowRightLeft aria-hidden />
+        <Botao role="link" icone={ArrowRightLeft} onPress={() => roteador.navigate(`/atendimentos/${atendimentoId}/passagem`)}>
           Passagem de caso
-        </Link>
+        </Botao>
       }
       atual="inicio"
       voltar={voltar}
-      dupla
     >
-      <div className="lp-bloco lp-fixa">
+      <View style={s.bloco}>
         {encerrado ? (
-          <p className="lp-registrado">
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
             <Etiqueta tom="cheia">Encerrado</Etiqueta>
-            {atendimento.encerradoEm ? <time className="mf-dado" dateTime={atendimento.encerradoEm}>{formatarMomento(atendimento.encerradoEm)}</time> : null}
+            {atendimento.encerradoEm ? <Texto dado>{formatarMomento(atendimento.encerradoEm)}</Texto> : null}
             {atendimento.envio !== 'confirmado' ? <SeloSync estado={atendimento.envio} /> : null}
-          </p>
+          </View>
         ) : (
           <>
             {atendimento.queixaPrincipal || atendimento.localDescricao ? (
-              <p className="lp-nota">
+              <Texto>
                 {atendimento.queixaPrincipal ? (
                   <>
-                    <span className="mf-rotulo">Queixa </span>
+                    <Rotulo>Queixa </Rotulo>
                     {atendimento.queixaPrincipal}
                   </>
                 ) : null}
                 {atendimento.queixaPrincipal && atendimento.localDescricao ? ' · ' : null}
                 {atendimento.localDescricao ? (
                   <>
-                    <span className="mf-rotulo">Local </span>
+                    <Rotulo>Local </Rotulo>
                     {atendimento.localDescricao}
                   </>
                 ) : null}
-              </p>
+              </Texto>
             ) : null}
-            <SeletorSegmentado
-              className="lp-tipos"
-              rotulo="Registrar agora"
-              valor={['retificar', 'encerrar'].includes(modo) ? null : modo}
-              aoMudar={trocarModo}
-              opcoes={[
-                { valor: 'sinais', rotulo: 'Sinais' },
-                { valor: 'glasgow', rotulo: 'Glasgow' },
-                { valor: 'triagem', rotulo: 'Triagem' },
-                { valor: 'medicacao', rotulo: 'Medicação' },
-                { valor: 'procedimento', rotulo: 'Procedimento' },
-                { valor: 'observacao', rotulo: 'Observação' },
-              ]}
-            />
+            <SeletorSegmentado rotulo="Registrar agora" valor={tipoAtual} aoMudar={trocarModo} opcoes={TIPOS.slice(0, 3)} />
+            <SeletorSegmentado rotulo="Registrar agora: outros tipos" rotuloOculto valor={tipoAtual} aoMudar={trocarModo} opcoes={TIPOS.slice(3)} />
           </>
         )}
 
-        {/* `key` zera o formulario ao trocar de tipo. */}
+        {/* key zera o formulario ao trocar de tipo. */}
         {modoAtual === 'sinais' ? <PainelSinais key="sinais" {...painel} /> : null}
         {modoAtual === 'glasgow' ? <PainelGlasgow key="glasgow" {...painel} /> : null}
         {modoAtual === 'triagem' ? <PainelTriagem key="triagem" {...painel} /> : null}
@@ -181,45 +202,55 @@ export function Atendimento() {
         {modoAtual === 'retificar' ? <PainelRetificacao key="retificar" {...painel} eventos={eventos} /> : null}
         {modoAtual === 'encerrar' ? <PainelEncerramento key="encerrar" {...painel} /> : null}
 
-        <p className="lp-registrado" role="status" aria-live="polite">
+        <View role={'status' as 'alert'} aria-live="polite" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 24 }}>
           {recente && numeroDoRecente > 0 ? (
             <>
               <SeloSync estado={estados[recente.id] ?? 'local'} />
-              <span>
-                {REGISTRADO[recente.tipo]}, nº <span className="mf-dado">{String(numeroDoRecente).padStart(2, '0')}</span>
-              </span>
+              <Texto>
+                {REGISTRADO[recente.tipo]}, nº <Texto dado>{String(numeroDoRecente).padStart(2, '0')}</Texto>
+              </Texto>
             </>
           ) : null}
-        </p>
+        </View>
 
         {!encerrado ? (
-          <div className="lp-acoes">
-            <Botao aria-pressed={modo === 'retificar'} icone={<PenLine aria-hidden />} onClick={() => trocarModo(modo === 'retificar' ? 'sinais' : 'retificar')}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <Botao
+              {...({ 'aria-pressed': modo === 'retificar' } as object)}
+              icone={PenLine}
+              onPress={() => trocarModo(modo === 'retificar' ? 'sinais' : 'retificar')}
+            >
               Retificar
             </Botao>
-            <Botao aria-pressed={modo === 'encerrar'} icone={<CircleStop aria-hidden />} onClick={() => trocarModo(modo === 'encerrar' ? 'sinais' : 'encerrar')}>
+            <Botao
+              {...({ 'aria-pressed': modo === 'encerrar' } as object)}
+              icone={CircleStop}
+              onPress={() => trocarModo(modo === 'encerrar' ? 'sinais' : 'encerrar')}
+            >
               Encerrar
             </Botao>
-          </div>
+          </View>
         ) : null}
-      </div>
+      </View>
 
-      <section aria-label="Linha do tempo">
-        <div className="lp-cabecalho" style={{ marginTop: 0 }}>
-          <h2 className="mf-secao__titulo">Linha do tempo</h2>
-          <span className="mf-rotulo">
+      <View role="region" aria-label="Linha do tempo">
+        <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+          <Titulo nivel={2}>Linha do tempo</Titulo>
+          <Rotulo>
             {eventos.length} {eventos.length === 1 ? 'entrada' : 'entradas'}
-          </span>
-        </div>
-        {eventos.length === 0 ? (
-          <EstadoVazio
-            titulo="Nenhum registro ainda"
-            descricao={`Atendimento iniciado às ${formatarHora(atendimento.iniciadoEm)}. Cada registro entra aqui com hora, autor e situação de envio.`}
-          />
-        ) : (
-          <LinhaDoTempo eventos={eventos} estados={estados} recenteId={recente?.id} invertida />
-        )}
-      </section>
+          </Rotulo>
+        </View>
+        <View style={s.linhaTempo}>
+          {eventos.length === 0 ? (
+            <EstadoVazio
+              titulo="Nenhum registro ainda"
+              descricao={`Atendimento iniciado às ${formatarHora(atendimento.iniciadoEm)}. Cada registro entra aqui com hora, autor e situação de envio.`}
+            />
+          ) : (
+            <LinhaDoTempo eventos={eventos} estados={estados} recenteId={recente?.id} invertida />
+          )}
+        </View>
+      </View>
     </Casca>
   );
 }

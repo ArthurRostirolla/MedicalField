@@ -15,7 +15,7 @@ import { GerenciadorSessao, SessaoExpirada } from './sync/sessao.ts';
 export interface OpcoesApp {
   executor: ExecutorSql;
   fetch: typeof fetch;
-  /** No navegador o padrao e o mesmo host (caminhos relativos); no Android e obrigatorio informar. */
+  /** No navegador o padrao e o mesmo host (caminhos relativos); no aparelho (Android/iOS) e obrigatorio informar. */
   exigeEnderecoServidor: boolean;
   /** `navigator.onLine` no navegador. */
   redeDoAparelho?: () => boolean;

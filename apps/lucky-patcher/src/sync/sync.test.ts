@@ -500,7 +500,7 @@ describe('conectividade (Observer) e cliente HTTP', () => {
     expect((await statusDoOutbox(executor)).every((c) => c.status === 'PENDENTE' && c.tentativas === 0)).toBe(true);
   });
 
-  it('sem endereco de servidor (Android antes do ajuste) nada sai', async () => {
+  it('sem endereco de servidor (aparelho antes do ajuste) nada sai', async () => {
     let chamadas = 0;
     const cliente = new ClienteHttp({
       fetch: (async () => (chamadas++, new Response('{}'))) as typeof fetch,

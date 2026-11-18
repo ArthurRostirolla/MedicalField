@@ -34,7 +34,7 @@ export interface Resposta {
 
 export interface DependenciasHttp {
   fetch: typeof fetch;
-  /** `''` = mesmo host (navegador); `null` = nao configurado (Android antes do ajuste). */
+  /** `''` = mesmo host (navegador); `null` = nao configurado (aparelho antes do ajuste). */
   enderecoServidor(): string | null;
   simulandoOffline(): boolean;
   dispositivoId(): string;

@@ -1,18 +1,27 @@
 import { loginEntradaSchema, type TipoRegistro } from '@medicalfield/contratos';
-import { Botao, CampoTexto, SeletorSegmentado } from '@medicalfield/ui';
-import { ChevronDown, LogIn } from 'lucide-react';
-import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useRouter } from 'expo-router';
+import { Ambulance, HeartPulse, LogIn, Stethoscope } from 'lucide-react-native';
+import { useState } from 'react';
+import { View } from 'react-native';
 import { FalhaTransporte } from '../sync/http.ts';
 import { ErroLogin } from '../sync/sessao.ts';
 import { CascaSimples, Conectividade } from '../ui/Casca.tsx';
 import { useApp, useConectividade, useContagens, useSessao } from '../ui/contexto.tsx';
+import { Botao, CampoTexto, Mensagens, SeletorCartoes, Texto, Titulo, type OpcaoCartao } from '../ui/ds/index.ts';
+import { Recolhivel } from './NovoPaciente.tsx';
+
+// O título do cartão é a sigla do registro: é o nome do rádio (testes e leitor de tela).
+const PERFIS: ReadonlyArray<OpcaoCartao<TipoRegistro>> = [
+  { valor: 'CRM', titulo: 'CRM', detalhe: 'Medicina', icone: Stethoscope },
+  { valor: 'COREN', titulo: 'COREN', detalhe: 'Enfermagem', icone: HeartPulse },
+  { valor: 'SOCORRISTA', titulo: 'Socorrista', detalhe: 'Identificação própria', icone: Ambulance },
+];
 
 const ROTULO_REGISTRO: Record<TipoRegistro, string> = { CRM: 'Número do CRM', COREN: 'Número do COREN', SOCORRISTA: 'Identificação' };
 
 export function Entrar() {
   const app = useApp();
-  const navegar = useNavigate();
+  const roteador = useRouter();
   const sessao = useSessao();
   const conexao = useConectividade();
   const { pendentes } = useContagens();
@@ -27,8 +36,7 @@ export function Entrar() {
   const [campos, setCampos] = useState<Record<string, string>>({});
   const [entrando, setEntrando] = useState(false);
 
-  async function entrar(evento: FormEvent) {
-    evento.preventDefault();
+  async function entrar() {
     setErro(null);
     const entrada = loginEntradaSchema.safeParse({
       tipoRegistro,
@@ -47,7 +55,7 @@ export function Entrar() {
       await app.sessao.entrar(entrada.data);
       await app.registrarLog('LOGIN');
       void app.motor.sincronizar('abertura');
-      navegar('/', { replace: true });
+      roteador.replace('/');
     } catch (falha) {
       if (falha instanceof ErroLogin) {
         setErro(falha.status === 429 ? 'Muitas tentativas. Aguarde alguns minutos e tente de novo.' : 'Registro ou senha não conferem.');
@@ -68,58 +76,58 @@ export function Entrar() {
     }
   }
 
+  const aoEnviar = () => void entrar();
+
   return (
     <CascaSimples conectividade={<Conectividade />}>
-      <form className="lp-bloco" onSubmit={entrar} noValidate>
-        <h1 className="mf-app__titulo" style={{ whiteSpace: 'normal' }}>
-          {anterior ? `Entre de novo, ${anterior.nome}` : 'Entrar'}
-        </h1>
+      <View role="form" style={{ gap: 16 }}>
+        {anterior ? null : (
+          <Texto tamanho="pequeno" tom="tinta2">
+            A caixa-preta do atendimento <Texto tamanho="pequeno" tom="tinta2" style={{ fontStyle: 'italic' }}>pré-hospitalar</Texto>.
+          </Texto>
+        )}
+        <Titulo nivel={1}>{anterior ? `Entre de novo, ${anterior.nome}` : 'Entrar'}</Titulo>
         {anterior ? (
-          <p className="lp-nota">
-            Sua sessão expirou. {pendentes > 0 ? `${pendentes} ${pendentes === 1 ? 'registro guardado' : 'registros guardados'} neste aparelho ${pendentes === 1 ? 'sobe' : 'sobem'} assim que você entrar.` : 'Nada foi perdido.'}
-          </p>
+          <Texto tom="tinta2">
+            Sua sessão expirou.{' '}
+            {pendentes > 0
+              ? `${pendentes} ${pendentes === 1 ? 'registro guardado' : 'registros guardados'} neste aparelho ${pendentes === 1 ? 'sobe' : 'sobem'} assim que você entrar.`
+              : 'Nada foi perdido.'}
+          </Texto>
         ) : (
-          <p className="lp-nota">O primeiro acesso neste aparelho precisa de conexão. Depois, o app abre e registra sem rede.</p>
+          <Texto tom="tinta2">O primeiro acesso neste aparelho precisa de conexão. Depois, o app abre e registra sem rede.</Texto>
         )}
 
-        <SeletorSegmentado
-          rotulo="Registro profissional"
-          valor={tipoRegistro}
-          aoMudar={setTipoRegistro}
-          opcoes={[
-            { valor: 'CRM', rotulo: 'CRM' },
-            { valor: 'COREN', rotulo: 'COREN' },
-            { valor: 'SOCORRISTA', rotulo: 'Socorrista' },
-          ]}
-        />
-        <div className="mf-grade-campos" style={{ ['--mf-colunas' as string]: tipoRegistro === 'SOCORRISTA' ? 1 : 3 }}>
+        <SeletorCartoes rotulo="Quem está entrando?" valor={tipoRegistro} aoMudar={setTipoRegistro} opcoes={PERFIS} />
+        <View style={{ flexDirection: 'row', gap: 16 }}>
           <CampoTexto
             rotulo={ROTULO_REGISTRO[tipoRegistro]}
             value={registro}
-            onChange={(e) => setRegistro(e.target.value)}
+            onChangeText={setRegistro}
             inputMode="numeric"
             autoComplete="username"
             erro={campos.registro}
-            className={tipoRegistro === 'SOCORRISTA' ? undefined : 'lp-span-2'}
+            style={{ flex: 2 }}
           />
           {tipoRegistro !== 'SOCORRISTA' ? (
-            <CampoTexto rotulo="UF" value={uf} onChange={(e) => setUf(e.target.value)} maxLength={2} autoCapitalize="characters" autoComplete="off" />
+            <CampoTexto rotulo="UF" value={uf} onChangeText={setUf} maxLength={2} autoCapitalize="characters" autoComplete="off" style={{ flex: 1 }} />
           ) : null}
-        </div>
+        </View>
         <CampoTexto
           rotulo="Senha"
-          type="password"
+          secureTextEntry
           value={senha}
-          onChange={(e) => setSenha(e.target.value)}
+          onChangeText={setSenha}
           autoComplete="current-password"
           erro={campos.senha}
+          onSubmitEditing={aoEnviar}
         />
 
         {app.exigeEnderecoServidor ? (
           <CampoTexto
             rotulo="Endereço do servidor"
             value={servidor}
-            onChange={(e) => setServidor(e.target.value)}
+            onChangeText={setServidor}
             placeholder="https://medicalfield.exemplo.org"
             inputMode="url"
             autoCapitalize="none"
@@ -127,43 +135,35 @@ export function Entrar() {
             ajuda="O endereço que a equipe de implantação informou."
           />
         ) : (
-          <details className="lp-mais">
-            <summary>
-              Endereço do servidor
-              <ChevronDown aria-hidden />
-            </summary>
+          <Recolhivel titulo="Endereço do servidor">
             <CampoTexto
               rotulo="Endereço do servidor"
               value={servidor}
-              onChange={(e) => setServidor(e.target.value)}
+              onChangeText={setServidor}
               placeholder="O mesmo endereço deste app"
               inputMode="url"
               autoCapitalize="none"
               ajuda="Deixe em branco para usar o mesmo endereço de onde o app foi aberto."
             />
-          </details>
+          </Recolhivel>
         )}
 
-        {erro ? (
-          <p className="mf-campo__erro" role="alert" style={{ margin: 0 }}>
-            {erro}
-          </p>
-        ) : null}
+        {erro ? <Mensagens erro={erro} /> : null}
         {!conexao.online && !erro ? (
-          <p className="lp-nota" role="status">
+          <Texto tom="tinta2" role={'status' as 'alert'}>
             {conexao.simulandoOffline ? 'Modo offline simulado ligado: entrar exige desligá-lo.' : 'Procurando o servidor…'}
-          </p>
+          </Texto>
         ) : null}
 
-        <Botao type="submit" variante="primario" largo carregando={entrando} icone={<LogIn aria-hidden />}>
+        <Botao variante="primario" largo carregando={entrando} icone={LogIn} onPress={aoEnviar}>
           Entrar
         </Botao>
         {anterior ? (
-          <Link className="mf-botao mf-botao--fantasma" to="/">
+          <Botao variante="fantasma" role="link" onPress={() => roteador.replace('/')}>
             Continuar registrando sem enviar
-          </Link>
+          </Botao>
         ) : null}
-      </form>
+      </View>
     </CascaSimples>
   );
 }

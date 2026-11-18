@@ -1,39 +1,101 @@
-import { Botao, EstadoErro, EstadoVazio, Esqueleto, SeloSync } from '@medicalfield/ui';
-import { ChevronRight, ClipboardPlus, RefreshCw } from 'lucide-react';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useRouter, type Href } from 'expo-router';
+import { ChevronRight, ClipboardPlus, RefreshCw } from 'lucide-react-native';
+import { useState, type ReactNode } from 'react';
+import { Pressable, View } from 'react-native';
 import type { AtendimentoLocal } from '../dados/atendimentos.ts';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConectividade, useConsulta, useContagens, useMotor, useSessao } from '../ui/contexto.tsx';
+import { Botao, EstadoErro, EstadoVazio, Esqueleto, Icone, MEDIDA, Rotulo, SeloSync, Texto, Titulo, useTema, type EstadoSync } from '../ui/ds/index.ts';
 import { formatarMomento } from '../ui/formato.ts';
+
+/** Cabecalho de bloco: titulo + contagem a direita. */
+export function Cabecalho({ titulo, contagem }: { titulo: string; contagem?: ReactNode }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8, marginBottom: 8 }}>
+      <Titulo nivel={2}>{titulo}</Titulo>
+      {contagem !== undefined && contagem !== null ? <Rotulo>{contagem}</Rotulo> : null}
+    </View>
+  );
+}
+
+/** Linha de lista que abre um detalhe: titulo, apoio, selo de envio e seta. */
+export function LinhaLista({ para, titulo, apoio, envio }: { para: Href; titulo: string; apoio: string; envio: EstadoSync }) {
+  const roteador = useRouter();
+  const { cores } = useTema();
+  return (
+    <View role="listitem">
+      <Pressable
+        role="link"
+        onPress={() => roteador.navigate(para)}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          minHeight: MEDIDA.alvo + 8,
+          paddingVertical: 8,
+          paddingHorizontal: MEDIDA.recuo,
+          borderTopWidth: 1,
+          borderTopColor: cores.fio,
+          backgroundColor: pressed ? cores.papel2 : cores.papel,
+        })}
+      >
+        <View style={{ flex: 1 }}>
+          <Texto forte>{titulo}</Texto>
+          {apoio ? (
+            <Texto tamanho="pequeno" tom="tinta2">
+              {apoio}
+            </Texto>
+          ) : null}
+        </View>
+        {envio !== 'confirmado' ? <SeloSync estado={envio} /> : null}
+        <Icone icone={ChevronRight} cor={cores.tinta3} />
+      </Pressable>
+    </View>
+  );
+}
+
+/** Lista com borda de folha. */
+export function Lista({ children }: { children: ReactNode }) {
+  const { cores } = useTema();
+  return (
+    <View role="list" style={{ borderWidth: 1, borderTopWidth: 0, borderColor: cores.fio, borderRadius: MEDIDA.raio, overflow: 'hidden' }}>
+      {children}
+    </View>
+  );
+}
 
 export function LinhaAtendimento({ atendimento }: { atendimento: AtendimentoLocal }) {
   return (
-    <li>
-      <Link className="lp-linha" to={`/atendimentos/${atendimento.id}`}>
-        <span className="lp-linha__texto">
-          <span className="lp-linha__titulo">{atendimento.pessoaNome}</span>
-          <span className="lp-linha__apoio">
-            <time className="mf-dado" dateTime={atendimento.iniciadoEm}>
-              {formatarMomento(atendimento.iniciadoEm)}
-            </time>
-            {atendimento.queixaPrincipal ? ` · ${atendimento.queixaPrincipal}` : ''}
-            {atendimento.status === 'ENCERRADO' ? ' · encerrado' : ''}
-          </span>
-        </span>
-        {atendimento.envio !== 'confirmado' ? <SeloSync estado={atendimento.envio} /> : null}
-        <ChevronRight aria-hidden />
-      </Link>
-    </li>
+    <LinhaLista
+      para={`/atendimentos/${atendimento.id}`}
+      titulo={atendimento.pessoaNome}
+      apoio={`${formatarMomento(atendimento.iniciadoEm)}${atendimento.queixaPrincipal ? ` · ${atendimento.queixaPrincipal}` : ''}${atendimento.status === 'ENCERRADO' ? ' · encerrado' : ''}`}
+      envio={atendimento.envio}
+    />
+  );
+}
+
+function Fato({ rotulo, children, nota }: { rotulo: string; children: ReactNode; nota?: ReactNode }) {
+  return (
+    <View style={{ gap: 2 }}>
+      <Rotulo>{rotulo}</Rotulo>
+      {typeof children === 'string' ? <Texto forte>{children}</Texto> : children}
+      {nota ? (
+        <Texto tamanho="pequeno" tom="tinta2">
+          {nota}
+        </Texto>
+      ) : null}
+    </View>
   );
 }
 
 export function Inicio() {
   const app = useApp();
-  const navegar = useNavigate();
+  const roteador = useRouter();
   const sessao = useSessao();
   const conexao = useConectividade();
   const motor = useMotor();
+  const { cores } = useTema();
   const { pendentes, rejeitadas } = useContagens();
   const [resultado, setResultado] = useState<string | null>(null);
 
@@ -47,10 +109,13 @@ export function Inicio() {
     [],
   );
 
+  // Pedido manual nunca e ignorado: se a sincronizacao automatica ja corre, o motor devolve a mesma.
+  const [pedindo, setPedindo] = useState(false);
   async function sincronizar() {
     setResultado(null);
+    setPedindo(true);
     await app.monitor.verificar();
-    const r = await app.motor.sincronizar('manual');
+    const r = await app.motor.sincronizar('manual').finally(() => setPedindo(false));
     setResultado(
       r.erro
         ? `Não sincronizou: ${r.erro} Os registros continuam guardados neste aparelho.`
@@ -59,117 +124,111 @@ export function Inicio() {
   }
 
   return (
-    <Casca titulo="Início" subtitulo={sessao ? `${sessao.profissional.nome} · ${sessao.profissional.tipoRegistro} ${sessao.profissional.registro}` : undefined} atual="inicio">
-      <Botao variante="primario" largo icone={<ClipboardPlus aria-hidden />} onClick={() => navegar('/pacientes')}>
+    <Casca
+      titulo="Início"
+      subtitulo={sessao ? `${sessao.profissional.nome} · ${sessao.profissional.tipoRegistro} ${sessao.profissional.registro}` : undefined}
+      atual="inicio"
+    >
+      <Botao variante="primario" largo icone={ClipboardPlus} onPress={() => roteador.navigate('/pacientes')}>
         Novo atendimento
       </Botao>
 
-      <section aria-labelledby="titulo-abertos">
-        <div className="lp-cabecalho">
-          <h2 id="titulo-abertos" className="mf-secao__titulo">
-            Atendimentos em aberto
-          </h2>
-          {dados.dados?.abertos.length ? <span className="mf-rotulo">{dados.dados.abertos.length}</span> : null}
-        </div>
+      <View role="region" aria-label="Atendimentos em aberto">
+        <Cabecalho titulo="Atendimentos em aberto" contagem={dados.dados?.abertos.length || undefined} />
         {dados.erro ? (
           <EstadoErro titulo="Não foi possível ler o banco local" descricao={dados.erro.message} aoTentarDeNovo={dados.recarregar} />
         ) : !dados.dados ? (
-          <Esqueleto linhas={3} altura="2.5rem" />
+          <Esqueleto linhas={3} altura={40} />
         ) : dados.dados.abertos.length === 0 ? (
-          <EstadoVazio
-            titulo="Nenhum atendimento em aberto"
-            descricao="Os atendimentos que você iniciar neste aparelho ficam aqui até serem encerrados."
-          />
+          <EstadoVazio titulo="Nenhum atendimento em aberto" descricao="Os atendimentos que você iniciar neste aparelho ficam aqui até serem encerrados." />
         ) : (
-          <ul className="lp-lista">
+          <Lista>
             {dados.dados.abertos.map((atendimento) => (
               <LinhaAtendimento key={atendimento.id} atendimento={atendimento} />
             ))}
-          </ul>
+          </Lista>
         )}
-      </section>
+      </View>
 
-      <section aria-labelledby="titulo-situacao">
-        <div className="lp-cabecalho">
-          <h2 id="titulo-situacao" className="mf-secao__titulo">
-            Situação
-          </h2>
-        </div>
-        <dl className="lp-fatos">
-          <div>
-            <dt className="mf-rotulo">Rede</dt>
-            <dd>
-              {conexao.online ? 'Online' : 'Offline'}
-              <small>
-                {conexao.online
-                  ? 'O que você registra sobe em seguida.'
-                  : conexao.simulandoOffline
-                    ? 'Simulação ligada: nada sai do aparelho.'
-                    : 'Sem contato com o servidor. Tudo fica guardado e sobe quando a rede voltar.'}
-              </small>
-            </dd>
-          </div>
-          <div>
-            <dt className="mf-rotulo">Pendências</dt>
-            <dd>
-              {pendentes === 0 ? 'Nenhuma' : <Link to="/pendencias">{pendentes === 1 ? '1 registro a enviar' : `${pendentes} registros a enviar`}</Link>}
-              {rejeitadas > 0 ? <small>{rejeitadas === 1 ? '1 rejeitado pelo servidor: precisa de correção.' : `${rejeitadas} rejeitados pelo servidor: precisam de correção.`}</small> : null}
-            </dd>
-          </div>
-          <div>
-            <dt className="mf-rotulo">Última sincronização</dt>
-            <dd>
-              {motor.ultimaSync ? (
-                <time className="mf-dado" dateTime={motor.ultimaSync}>
-                  {formatarMomento(motor.ultimaSync)}
-                </time>
-              ) : (
-                'Ainda não sincronizou'
-              )}
-            </dd>
-          </div>
-          <div>
-            <dt className="mf-rotulo">Neste aparelho</dt>
-            <dd aria-busy={dados.carregando}>
-              {dados.dados ? (
-                <span data-testid="contagem-local">
-                  <span className="mf-num">{dados.dados.medicamentos}</span> medicamentos · <span className="mf-num">{dados.dados.pessoas}</span> pacientes
-                </span>
-              ) : (
-                <Esqueleto largura="12rem" />
-              )}
-            </dd>
-          </div>
-        </dl>
-      </section>
+      <View role="region" aria-label="Situação">
+        <Cabecalho titulo="Situação" />
+        <View style={{ gap: 12, padding: MEDIDA.recuo, borderWidth: 1, borderColor: cores.fio, borderRadius: MEDIDA.raio, backgroundColor: cores.papel }}>
+          <Fato
+            rotulo="Rede"
+            nota={
+              conexao.online
+                ? 'O que você registra sobe em seguida.'
+                : conexao.simulandoOffline
+                  ? 'Simulação ligada: nada sai do aparelho.'
+                  : 'Sem contato com o servidor. Tudo fica guardado e sobe quando a rede voltar.'
+            }
+          >
+            {conexao.online ? 'Online' : 'Offline'}
+          </Fato>
+          <Fato
+            rotulo="Pendências"
+            nota={
+              rejeitadas > 0
+                ? rejeitadas === 1
+                  ? '1 rejeitado pelo servidor: precisa de correção.'
+                  : `${rejeitadas} rejeitados pelo servidor: precisam de correção.`
+                : undefined
+            }
+          >
+            {pendentes === 0 ? (
+              'Nenhuma'
+            ) : (
+              <Texto forte role="link" onPress={() => roteador.navigate('/pendencias')} style={{ textDecorationLine: 'underline' }}>
+                {pendentes === 1 ? '1 registro a enviar' : `${pendentes} registros a enviar`}
+              </Texto>
+            )}
+          </Fato>
+          <Fato rotulo="Última sincronização">
+            {motor.ultimaSync ? (
+              <Texto dado forte>
+                {formatarMomento(motor.ultimaSync)}
+              </Texto>
+            ) : (
+              'Ainda não sincronizou'
+            )}
+          </Fato>
+          <Fato rotulo="Neste aparelho">
+            {dados.dados ? (
+              <Texto forte testID="contagem-local">
+                <Texto dado>{dados.dados.medicamentos}</Texto> medicamentos · <Texto dado>{dados.dados.pessoas}</Texto> pacientes
+              </Texto>
+            ) : (
+              <Esqueleto largura={192} />
+            )}
+          </Fato>
+        </View>
+      </View>
 
-      <div className="lp-bloco">
-        <Botao largo disabled={conexao.simulandoOffline} carregando={motor.sincronizando} icone={<RefreshCw aria-hidden />} onClick={() => void sincronizar()}>
+      <View style={{ gap: 8 }}>
+        <Botao largo disabled={conexao.simulandoOffline} carregando={pedindo} icone={RefreshCw} onPress={() => void sincronizar()}>
           Sincronizar agora
         </Botao>
         {conexao.simulandoOffline ? (
-          <p className="lp-nota">Simulação de offline ligada: desligue a chave “Simular offline”, no alto, para enviar.</p>
+          <Texto tamanho="pequeno" tom="tinta2">
+            Simulação de offline ligada: desligue a chave “Simular offline”, no alto, para enviar.
+          </Texto>
         ) : null}
         {resultado ? (
-          <p className="lp-nota" role="status">
+          <Texto tamanho="pequeno" tom="tinta2" role={'status' as 'alert'}>
             {resultado}
-          </p>
+          </Texto>
         ) : null}
-      </div>
+      </View>
 
       {dados.dados?.encerrados.length ? (
-        <section aria-labelledby="titulo-encerrados">
-          <div className="lp-cabecalho">
-            <h2 id="titulo-encerrados" className="mf-secao__titulo">
-              Encerrados recentes
-            </h2>
-          </div>
-          <ul className="lp-lista">
+        <View role="region" aria-label="Encerrados recentes">
+          <Cabecalho titulo="Encerrados recentes" />
+          <Lista>
             {dados.dados.encerrados.map((atendimento) => (
               <LinhaAtendimento key={atendimento.id} atendimento={atendimento} />
             ))}
-          </ul>
-        </section>
+          </Lista>
+        </View>
       ) : null}
     </Casca>
   );
