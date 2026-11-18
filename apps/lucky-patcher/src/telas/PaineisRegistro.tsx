@@ -5,7 +5,7 @@ import { calcularTotalGlasgow } from '@medicalfield/dominio';
 import { useState } from 'react';
 import { View } from 'react-native';
 import type { EventoLocal } from '../dados/atendimentos.ts';
-import { Botao, CampoArea, CampoNumerico, CampoTexto, Mensagens, Rotulo, Select, SeletorSegmentado, SeletorTriagem, Texto, type CorTriagem } from '../ui/ds/index.ts';
+import { Botao, CampoArea, CampoNumerico, CampoTexto, Mensagens, Rotulo, Select, SeletorRapido, SeletorSegmentado, SeletorTriagem, Texto, type CorTriagem } from '../ui/ds/index.ts';
 import { formatarHora } from '../ui/formato.ts';
 
 export type Registrar = (tipo: TipoEvento, dados: Record<string, unknown>, retificaEventoId?: string) => Promise<boolean>;
@@ -25,15 +25,6 @@ interface PainelProps {
 }
 
 const BLOCO = { gap: 12 } as const;
-
-/** Nota explicativa em tom secundario. */
-function Nota({ children }: { children: string }) {
-  return (
-    <Texto tamanho="pequeno" tom="tinta2">
-      {children}
-    </Texto>
-  );
-}
 
 /* ───────── Sinais vitais ───────── */
 
@@ -185,6 +176,9 @@ export function PainelTriagem({ registrar, gravando }: PainelProps) {
 /* ───────── Medicacao ───────── */
 
 const FORA = '__fora__';
+// As unidades e vias mais usadas no pre-hospitalar: um toque. "Outra" abre o texto livre.
+const UNIDADES = ['mg', 'mL', 'mcg', 'g', 'UI'] as const;
+const VIAS = ['EV', 'IM', 'VO', 'SC', 'SL', 'IO', 'Inalatória'] as const;
 
 export function PainelMedicacao({
   registrar,
@@ -222,40 +216,35 @@ export function PainelMedicacao({
 
   return (
     <View style={BLOCO}>
-      {/* Fatos, sem alerta nem interpretacao: o que ja foi dado e o que esta registrado como alergia. */}
-      <View>
-        <Rotulo>Já administrado neste atendimento</Rotulo>
-        {administradas.length === 0 ? (
-          <Texto tamanho="pequeno" tom="tinta2">
-            Nenhuma medicação registrada.
+      {/* Fatos, sem alerta nem interpretacao; so aparecem quando existem. */}
+      {alergias.length > 0 ? (
+        <View>
+          <Rotulo>Alergias</Rotulo>
+          <Texto forte style={{ textTransform: 'uppercase' }}>
+            {alergias.join(' · ')}
           </Texto>
-        ) : (
+        </View>
+      ) : null}
+      {administradas.length > 0 ? (
+        <View>
+          <Rotulo>Já administrado</Rotulo>
           <View role="list">
             {administradas.map((evento) => {
               const d = evento.dados as Record<string, string>;
               return (
-                <Texto key={evento.id} role="listitem">
-                  <Texto dado>{formatarHora(evento.ocorridoEm)}</Texto> {d.nome} · {d.dose} {d.unidade} · {d.via}
+                <Texto key={evento.id} role="listitem" tamanho="pequeno">
+                  <Texto dado tamanho="pequeno">
+                    {formatarHora(evento.ocorridoEm)}
+                  </Texto>{' '}
+                  {d.nome} · {d.dose} {d.unidade} · {d.via}
                 </Texto>
               );
             })}
           </View>
-        )}
-      </View>
-      <View>
-        <Rotulo>Alergias registradas</Rotulo>
-        {alergias.length === 0 ? (
-          <Texto tamanho="pequeno" tom="tinta2">
-            Nenhuma alergia no prontuário.
-          </Texto>
-        ) : (
-          <Texto style={{ textTransform: 'uppercase' }}>{alergias.join(' · ')}</Texto>
-        )}
-      </View>
+        </View>
+      ) : null}
 
-      {semCatalogo ? (
-        <Nota>O catálogo de medicamentos ainda não foi baixado neste aparelho: registre pelo nome, como texto livre.</Nota>
-      ) : (
+      {semCatalogo ? null : (
         <Select
           rotulo="Medicamento"
           vazio="Escolha no catálogo"
@@ -273,43 +262,23 @@ export function PainelMedicacao({
       )}
       {livre ? (
         <CampoTexto
-          rotulo="Nome do medicamento (fora do catálogo)"
+          rotulo={semCatalogo ? 'Medicamento' : 'Nome do medicamento (fora do catálogo)'}
           value={nomeLivre}
           onChangeText={setNomeLivre}
           autoComplete="off"
           erro={faltou && !nome ? 'Escreva o nome do medicamento.' : erros['dados.nome']}
         />
       ) : null}
-      {/* ponytail: sem a lista de sugestoes (datalist) de unidade e via; o campo continua livre. */}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        <CampoTexto
-          rotulo="Dose"
-          inputMode="decimal"
-          value={dose}
-          onChangeText={setDose}
-          autoComplete="off"
-          erro={erros['dados.dose'] ? 'Obrigatória' : undefined}
-          style={{ flexGrow: 1, flexBasis: '30%' }}
-        />
-        <CampoTexto
-          rotulo="Unidade"
-          value={unidade}
-          onChangeText={setUnidade}
-          autoComplete="off"
-          autoCapitalize="none"
-          erro={erros['dados.unidade'] ? 'Obrigatória' : undefined}
-          style={{ flexGrow: 1, flexBasis: '30%' }}
-        />
-        <CampoTexto
-          rotulo="Via"
-          value={via}
-          onChangeText={setVia}
-          autoComplete="off"
-          autoCapitalize="characters"
-          erro={erros['dados.via'] ? 'Obrigatória' : undefined}
-          style={{ flexGrow: 1, flexBasis: '30%' }}
-        />
-      </View>
+      <CampoTexto
+        rotulo="Dose"
+        inputMode="decimal"
+        value={dose}
+        onChangeText={setDose}
+        autoComplete="off"
+        erro={erros['dados.dose'] ? 'Obrigatória' : undefined}
+      />
+      <SeletorRapido rotulo="Unidade" opcoes={UNIDADES} valor={unidade} aoMudar={setUnidade} erro={erros['dados.unidade'] ? 'Obrigatória' : undefined} />
+      <SeletorRapido rotulo="Via" opcoes={VIAS} valor={via} aoMudar={setVia} erro={erros['dados.via'] ? 'Obrigatória' : undefined} />
       <Botao variante="primario" largo carregando={gravando} onPress={() => void enviar()}>
         Registrar medicação
       </Botao>
@@ -390,7 +359,6 @@ export function PainelRetificacao({ registrar, gravando, erros, eventos }: Paine
 
   return (
     <View style={BLOCO}>
-      <Nota>Nada é apagado: o registro original continua na linha do tempo, riscado, e esta retificação cita o número dele.</Nota>
       <Select
         rotulo="Registro a retificar"
         vazio={candidatos.length ? 'Escolha o registro' : 'Nenhum registro para retificar'}
@@ -418,12 +386,9 @@ export function PainelRetificacao({ registrar, gravando, erros, eventos }: Paine
       />
       {alvo?.tipo === 'SINAIS_VITAIS' ? (
         <>
-          <Rotulo>Valores corretos (confira todos)</Rotulo>
+          <Rotulo>Valores corretos</Rotulo>
           <GradeVitais valores={corrigidos} mudar={setCorrigidos} />
-          <Nota>Entram dois registros: a retificação e os sinais vitais corrigidos, com a hora de agora.</Nota>
         </>
-      ) : alvo ? (
-        <Nota>Se o dado correto for outro, registre-o de novo no tipo certo depois de retificar.</Nota>
       ) : null}
       <Botao variante="primario" largo carregando={gravando} onPress={() => void enviar()}>
         Registrar retificação
@@ -439,7 +404,6 @@ export function PainelEncerramento({ registrar, gravando, erros }: PainelProps) 
   const [destino, setDestino] = useState('');
   return (
     <View style={BLOCO}>
-      <Nota>Depois de encerrado, o atendimento só aceita retificação.</Nota>
       <CampoArea
         rotulo="Desfecho"
         value={desfecho}

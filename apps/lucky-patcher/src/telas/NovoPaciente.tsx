@@ -7,7 +7,6 @@ import { FORMULARIO_PESSOA_VAZIO, type FormularioPessoa } from '../dados/pessoas
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useAvisar, useConsulta, useGravar } from '../ui/contexto.tsx';
 import { Botao, CampoArea, CampoTexto, EstadoErro, Esqueleto, Icone, MEDIDA, Mensagens, Rotulo, Select, SeletorSegmentado, Texto, useTema } from '../ui/ds/index.ts';
-import { Cabecalho } from './Inicio.tsx';
 
 const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((tipo) => ({ valor: tipo, rotulo: tipo }));
 
@@ -44,16 +43,31 @@ interface CamposProps {
   formulario: FormularioPessoa;
   mudar: (parte: Partial<FormularioPessoa>) => void;
   erros: Record<string, string>;
+  /** Entra logo depois do nome, antes dos dados recolhidos (ex.: queixa e local do atendimento). */
+  depoisDoNome?: ReactNode;
+  /** Mostra os dados complementares abertos (correcao de cadastro rejeitado). */
+  detalhesAbertos?: boolean;
 }
 
-/** Os campos cadastrais (usados na criacao e na correcao de um cadastro rejeitado). */
-function CamposCadastro({ formulario, mudar, erros }: CamposProps) {
+const DETALHES: ReadonlyArray<keyof FormularioPessoa> = [
+  'dataNascimento',
+  'sexo',
+  'cpf',
+  'cns',
+  'telefone',
+  'contatoEmergenciaNome',
+  'contatoEmergenciaTelefone',
+  'contatoEmergenciaEmail',
+];
+
+/** Os campos cadastrais: so identificacao e nome a vista; documentos e contatos ficam recolhidos. */
+function CamposCadastro({ formulario, mudar, erros, depoisDoNome, detalhesAbertos }: CamposProps) {
   const texto = (campo: keyof FormularioPessoa) => ({
     value: formulario[campo] as string,
     onChangeText: (valor: string) => mudar({ [campo]: valor }),
     erro: erros[campo],
   });
-  const metade = { flexGrow: 1, flexBasis: 160 };
+  const metade = { flexGrow: 1, flexBasis: 140 };
   return (
     <>
       <SeletorSegmentado
@@ -65,47 +79,35 @@ function CamposCadastro({ formulario, mudar, erros }: CamposProps) {
           { valor: 'nao', rotulo: 'Não identificado' },
         ]}
       />
-      <CampoTexto
-        rotulo={formulario.naoIdentificada ? 'Nome (se souber)' : 'Nome completo'}
-        autoComplete="off"
-        autoCapitalize="words"
-        ajuda={formulario.naoIdentificada ? 'Em branco, o cadastro recebe “Não identificado” com a hora.' : undefined}
-        {...texto('nome')}
-      />
-      {formulario.naoIdentificada ? (
-        <CampoArea rotulo="Como reconhecer" ajuda="Sexo aparente, idade aparente, roupa, sinais particulares, onde foi encontrado." {...texto('descricaoIdentificacao')} />
-      ) : null}
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
-        {/* ponytail: sem seletor de data nativo; digita AAAA-MM-DD (o formato que o cadastro grava). */}
-        <CampoTexto rotulo="Nascimento" placeholder="AAAA-MM-DD" inputMode="numeric" maxLength={10} style={metade} {...texto('dataNascimento')} />
-        <Select
-          rotulo="Sexo"
-          vazio="Não informado"
-          opcoes={[
-            { valor: 'F', rotulo: 'Feminino' },
-            { valor: 'M', rotulo: 'Masculino' },
-            { valor: 'I', rotulo: 'Indeterminado' },
-          ]}
-          valor={formulario.sexo}
-          aoMudar={(valor) => mudar({ sexo: valor as FormularioPessoa['sexo'] })}
-          erro={erros.sexo}
-          style={metade}
-        />
-        <CampoTexto rotulo="CPF" inputMode="numeric" autoComplete="off" placeholder="11 dígitos" style={metade} {...texto('cpf')} />
-        <CampoTexto rotulo="Cartão SUS (CNS)" inputMode="numeric" autoComplete="off" placeholder="15 dígitos" style={metade} {...texto('cns')} />
-      </View>
-      <CampoTexto rotulo="Telefone" inputMode="tel" autoComplete="off" {...texto('telefone')} />
-      <Recolhivel titulo="Contato de emergência" aberto={Boolean(erros.contatoEmergenciaNome || erros.contatoEmergenciaTelefone || erros.contatoEmergenciaEmail)}>
-        <CampoTexto rotulo="Nome do contato" autoComplete="off" {...texto('contatoEmergenciaNome')} />
-        <CampoTexto rotulo="Telefone do contato" inputMode="tel" autoComplete="off" {...texto('contatoEmergenciaTelefone')} />
-        <CampoTexto
-          rotulo="E-mail do contato"
-          inputMode="email"
-          autoComplete="off"
-          autoCapitalize="none"
-          ajuda="Para onde a ficha em PDF pode ser enviada depois."
-          {...texto('contatoEmergenciaEmail')}
-        />
+      <CampoTexto rotulo={formulario.naoIdentificada ? 'Nome (se souber)' : 'Nome completo'} autoComplete="off" autoCapitalize="words" {...texto('nome')} />
+      {formulario.naoIdentificada ? <CampoArea rotulo="Como reconhecer" linhas={2} {...texto('descricaoIdentificacao')} /> : null}
+      {depoisDoNome}
+      <Recolhivel titulo="Mais dados do paciente" aberto={detalhesAbertos || DETALHES.some((campo) => erros[campo])}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+          {/* ponytail: sem seletor de data nativo; digita AAAA-MM-DD (o formato que o cadastro grava). */}
+          <CampoTexto rotulo="Nascimento" placeholder="AAAA-MM-DD" inputMode="numeric" maxLength={10} style={metade} {...texto('dataNascimento')} />
+          <Select
+            rotulo="Sexo"
+            vazio="Não informado"
+            opcoes={[
+              { valor: 'F', rotulo: 'Feminino' },
+              { valor: 'M', rotulo: 'Masculino' },
+              { valor: 'I', rotulo: 'Indeterminado' },
+            ]}
+            valor={formulario.sexo}
+            aoMudar={(valor) => mudar({ sexo: valor as FormularioPessoa['sexo'] })}
+            erro={erros.sexo}
+            style={metade}
+          />
+          <CampoTexto rotulo="CPF" inputMode="numeric" autoComplete="off" style={metade} {...texto('cpf')} />
+          <CampoTexto rotulo="Cartão SUS (CNS)" inputMode="numeric" autoComplete="off" style={metade} {...texto('cns')} />
+        </View>
+        <CampoTexto rotulo="Telefone" inputMode="tel" autoComplete="off" {...texto('telefone')} />
+        <CampoTexto rotulo="Contato de emergência" autoComplete="off" {...texto('contatoEmergenciaNome')} />
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 16 }}>
+          <CampoTexto rotulo="Telefone do contato" inputMode="tel" autoComplete="off" style={metade} {...texto('contatoEmergenciaTelefone')} />
+          <CampoTexto rotulo="E-mail do contato" inputMode="email" autoComplete="off" autoCapitalize="none" style={metade} {...texto('contatoEmergenciaEmail')} />
+        </View>
       </Recolhivel>
     </>
   );
@@ -143,14 +145,23 @@ export function NovoPaciente() {
 
   const temErro = Object.keys(campos).length > 0;
   return (
-    <Casca titulo="Novo paciente" subtitulo="Grava neste aparelho; sobe quando houver rede" atual="pacientes" voltar={{ para: '/pacientes', rotulo: 'Pacientes' }}>
+    <Casca titulo="Novo paciente" atual="pacientes" voltar={{ para: '/pacientes', rotulo: 'Pacientes' }}>
       <View role="form" style={{ gap: 16 }}>
-        <CamposCadastro formulario={formulario} mudar={mudar} erros={campos} />
-
-        <CampoArea rotulo="Alergias" ajuda="Separe por vírgula. Ex.: dipirona, látex." value={alergias} onChangeText={setAlergias} linhas={2} />
+        <CamposCadastro
+          formulario={formulario}
+          mudar={mudar}
+          erros={campos}
+          depoisDoNome={
+            <>
+              <CampoTexto rotulo="Queixa principal" value={queixa} onChangeText={setQueixa} autoComplete="off" erro={campos.queixaPrincipal} />
+              <CampoTexto rotulo="Local da ocorrência" value={local} onChangeText={setLocal} autoComplete="off" erro={campos.localDescricao} />
+              <CampoTexto rotulo="Alergias" value={alergias} onChangeText={setAlergias} autoComplete="off" />
+            </>
+          }
+        />
         <Recolhivel titulo="Mais do prontuário" aberto={!!campos.observacoes}>
-          <CampoArea rotulo="Comorbidades" ajuda="Separe por vírgula." value={comorbidades} onChangeText={setComorbidades} linhas={2} />
-          <CampoArea rotulo="Medicações contínuas" ajuda="Separe por vírgula." value={medicacoes} onChangeText={setMedicacoes} linhas={2} />
+          <CampoArea rotulo="Comorbidades" value={comorbidades} onChangeText={setComorbidades} linhas={2} />
+          <CampoArea rotulo="Medicações contínuas" value={medicacoes} onChangeText={setMedicacoes} linhas={2} />
           <Select
             rotulo="Tipo sanguíneo"
             vazio="Não informado"
@@ -161,15 +172,11 @@ export function NovoPaciente() {
           <CampoArea rotulo="Observações do prontuário" value={formulario.observacoes} onChangeText={(valor) => mudar({ observacoes: valor })} erro={campos.observacoes} />
         </Recolhivel>
 
-        <Cabecalho titulo="Atendimento" />
-        <CampoTexto rotulo="Queixa principal" value={queixa} onChangeText={setQueixa} autoComplete="off" erro={campos.queixaPrincipal} />
-        <CampoTexto rotulo="Local da ocorrência" value={local} onChangeText={setLocal} autoComplete="off" erro={campos.localDescricao} />
-
         {temErro ? <Mensagens erro="Nada foi gravado: confira os campos marcados." /> : null}
         <Botao variante="primario" largo carregando={gravando} onPress={() => void salvar(true)}>
           Salvar e iniciar atendimento
         </Botao>
-        <Botao largo disabled={gravando} onPress={() => void salvar(false)}>
+        <Botao variante="fantasma" largo disabled={gravando} onPress={() => void salvar(false)}>
           Só salvar o cadastro
         </Botao>
       </View>
@@ -200,7 +207,7 @@ export function CorrigirPaciente() {
   async function salvar() {
     if (!formulario) return;
     if (await gravar(() => app.pessoas.corrigirRejeitada(opId, formulario))) {
-      avisar({ tom: 'sucesso', titulo: 'Correção gravada', descricao: 'O cadastro voltou para a fila de envio.' });
+      avisar({ tom: 'sucesso', titulo: 'Correção gravada' });
       roteador.replace('/pendencias');
     }
   }
@@ -219,7 +226,12 @@ export function CorrigirPaciente() {
             <Rotulo>Motivo informado pelo servidor</Rotulo>
             <Texto>{pendencia.dados.comando.ultimoErro}</Texto>
           </View>
-          <CamposCadastro formulario={formulario} mudar={(parte) => setFormulario((atual) => (atual ? { ...atual, ...parte } : atual))} erros={campos} />
+          <CamposCadastro
+            formulario={formulario}
+            mudar={(parte) => setFormulario((atual) => (atual ? { ...atual, ...parte } : atual))}
+            erros={campos}
+            detalhesAbertos
+          />
           {Object.keys(campos).length > 0 ? <Mensagens erro="Nada foi gravado: confira os campos marcados." /> : null}
           <Botao variante="primario" largo carregando={gravando} onPress={() => void salvar()}>
             Salvar correção e reenviar

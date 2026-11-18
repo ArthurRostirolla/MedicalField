@@ -91,10 +91,6 @@ export function Ajustes() {
             { valor: 'offline', rotulo: 'Offline' },
           ]}
         />
-        <Texto tamanho="pequeno" tom="tinta2">
-          Em Offline o app não emite nenhuma requisição: tudo fica no aparelho. A escolha é lembrada ao reabrir. É a mesma chave da
-          tira no alto da tela.
-        </Texto>
       </View>
 
       <View style={{ gap: 8 }}>
@@ -111,7 +107,6 @@ export function Ajustes() {
           autoCorrect={false}
           autoComplete="off"
           erro={erroServidor ?? undefined}
-          ajuda={app.exigeEnderecoServidor ? 'Obrigatório no aplicativo instalado no aparelho.' : 'Em branco, usa o endereço de onde o app foi aberto.'}
         />
         <Botao disabled={!servidorMudou} onPress={() => void salvarServidor()}>
           Gravar endereço
@@ -122,13 +117,10 @@ export function Ajustes() {
         <Titulo nivel={2} style={{ marginBottom: 4 }}>
           Este aparelho
         </Titulo>
-        <Fato rotulo="Dispositivo" apoio={app.dispositivoId}>
+        <Fato rotulo="Dispositivo">
           <Texto dado>{app.dispositivoId.slice(0, 8)}</Texto>
         </Fato>
-        <Fato
-          rotulo="Banco local"
-          apoio={app.exigeEnderecoServidor ? 'Cifrado (SQLCipher) no armazenamento do aplicativo.' : 'Guardado no armazenamento privado deste navegador (OPFS).'}
-        >
+        <Fato rotulo="Banco local">
           SQLite, versão <Texto dado>{String(banco.dados ?? '…')}</Texto>
         </Fato>
         <Fato

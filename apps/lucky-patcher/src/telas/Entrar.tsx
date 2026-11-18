@@ -188,9 +188,7 @@ export function Entrar() {
                     ? `${pendentes} ${pendentes === 1 ? 'registro guardado' : 'registros guardados'} neste aparelho ${pendentes === 1 ? 'sobe' : 'sobem'} assim que você entrar.`
                     : 'Nada foi perdido.'}
                 </Texto>
-              ) : (
-                <Texto tom="tinta2">O primeiro acesso neste aparelho precisa de conexão. Depois, o app abre e registra sem rede.</Texto>
-              )}
+              ) : null}
               <View style={{ flexDirection: 'row', gap: 16 }}>
                 <CampoTexto
                   rotulo={ROTULO_REGISTRO[tipoRegistro]}

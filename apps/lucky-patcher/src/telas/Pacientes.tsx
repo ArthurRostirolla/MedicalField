@@ -17,7 +17,7 @@ export function Pacientes() {
   const termo = busca.trim();
 
   return (
-    <Casca titulo="Pacientes" subtitulo="Escolha ou crie o paciente para iniciar o atendimento" atual="pacientes">
+    <Casca titulo="Pacientes" atual="pacientes">
       <CampoTexto
         rotulo="Buscar por nome ou CPF"
         inputMode="search"
@@ -65,15 +65,9 @@ export function Pacientes() {
           <Esqueleto linhas={4} altura={40} />
         ) : pessoas.dados.length === 0 ? (
           termo ? (
-            <EstadoVazio
-              titulo={`Ninguém com “${termo}” neste aparelho`}
-              descricao="A busca só enxerga o que já foi baixado ou criado aqui. Se for um paciente novo, crie o cadastro agora; se já existir na central, ele é sinalizado como possível duplicata, nunca recusado."
-            />
+            <EstadoVazio titulo={`Ninguém com “${termo}” neste aparelho`} />
           ) : (
-            <EstadoVazio
-              titulo="Nenhum paciente neste aparelho"
-              descricao="Sincronize no Início para baixar os cadastros, ou crie um paciente novo. Dá para atender sem ter sincronizado."
-            />
+            <EstadoVazio titulo="Nenhum paciente neste aparelho" />
           )
         ) : (
           <Lista>

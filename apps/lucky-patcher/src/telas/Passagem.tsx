@@ -51,7 +51,7 @@ export function Passagem() {
       titulo="Passagem de caso"
       subtitulo={
         <Texto tamanho="pequeno" tom="tinta2">
-          Ficha <Texto dado>{atendimento.id.slice(0, 8)}</Texto> · início {formatarMomento(atendimento.iniciadoEm)}
+          início {formatarMomento(atendimento.iniciadoEm)}
         </Texto>
       }
       atual="inicio"
@@ -65,14 +65,9 @@ export function Passagem() {
       <View role={'status' as 'alert'} style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <SeloSync estado={naoEnviados === 0 ? 'confirmado' : 'local'} somenteMarca />
         <Texto style={{ flex: 1 }}>
-          {naoEnviados === 0
-            ? 'Tudo deste atendimento já está na central.'
-            : `${naoEnviados} ${naoEnviados === 1 ? 'registro deste atendimento ainda está' : 'registros deste atendimento ainda estão'} só neste aparelho.`}
+          {naoEnviados === 0 ? 'Tudo na central.' : `${naoEnviados} ${naoEnviados === 1 ? 'registro só neste aparelho' : 'registros só neste aparelho'}.`}
         </Texto>
       </View>
-      <Texto tamanho="pequeno" tom="tinta2">
-        Resumo factual do que foi registrado, sem interpretação. Registros retificados não entram.
-      </Texto>
     </Casca>
   );
 }

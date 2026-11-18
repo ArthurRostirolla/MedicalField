@@ -146,8 +146,8 @@ export async function registrarMedicacao(page: Page, medicamento: string | { for
     await page.getByLabel('Nome do medicamento (fora do catálogo)').fill(medicamento.foraDoCatalogo);
   }
   await page.getByLabel('Dose').fill('10');
-  await page.getByLabel('Unidade').fill('mg');
-  await page.getByLabel('Via', { exact: true }).fill('EV');
+  await page.getByRole('radiogroup', { name: 'Unidade' }).getByRole('radio', { name: 'mg', exact: true }).click();
+  await page.getByRole('radiogroup', { name: 'Via' }).getByRole('radio', { name: 'EV', exact: true }).click();
   await page.getByRole('button', { name: 'Registrar medicação' }).click();
   await registrado(page, 'Medicação');
 }

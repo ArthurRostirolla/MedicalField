@@ -261,8 +261,7 @@ export function Prontuario() {
         }
       >
         <Texto>
-          <Texto forte>{inativar?.descricao}</Texto> deixa de aparecer na passagem de caso. O item continua no prontuário, marcado
-          como inativo, com a hora e o seu nome.
+          <Texto forte>{inativar?.descricao}</Texto> sai da passagem de caso e fica riscado no prontuário.
         </Texto>
       </Dialogo>
     </Casca>

@@ -305,6 +305,72 @@ export function SeletorSegmentado<T extends string>({
   );
 }
 
+/* ───────── Escolha rapida (fichas que quebram linha + "Outra") ───────── */
+
+export interface SeletorRapidoProps {
+  rotulo: string;
+  opcoes: readonly string[];
+  /** '' = nada escolhido. Um valor fora de `opcoes` abre o campo "Outra". */
+  valor: string;
+  aoMudar: (valor: string) => void;
+  erro?: ReactNode;
+}
+
+/** Um toque em vez de digitar: as opcoes comuns como fichas; "Outra" abre o texto livre. Tocar de novo desmarca. */
+export function SeletorRapido({ rotulo, opcoes, valor, aoMudar, erro }: SeletorRapidoProps) {
+  const [outra, setOutra] = useState(valor !== '' && !opcoes.includes(valor));
+  const s = useEstilos((c) => ({
+    ficha: {
+      minHeight: 48,
+      minWidth: 48,
+      paddingHorizontal: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 1,
+      borderColor: c.fio,
+      borderRadius: MEDIDA.raio,
+      backgroundColor: c.papel,
+    },
+    marcada: { borderColor: c.marca, backgroundColor: c.marcaSuave },
+  }));
+  const { cores } = useTema();
+  const ficha = (chave: string, texto: string, marcada: boolean, aoTocar: () => void) => (
+    <Pressable
+      key={chave}
+      role="radio"
+      aria-checked={marcada}
+      aria-label={texto}
+      onPress={aoTocar}
+      style={({ pressed }) => [s.ficha, marcada && s.marcada, pressed && { transform: [{ scale: 0.97 }] }]}
+    >
+      <Texto forte={marcada} style={{ color: marcada ? cores.marcaForte : cores.tinta }}>
+        {texto}
+      </Texto>
+    </Pressable>
+  );
+  return (
+    <View style={{ gap: 6 }}>
+      <View role="radiogroup" aria-label={rotulo} style={{ gap: 6 }}>
+        <Rotulo>{rotulo}</Rotulo>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+          {opcoes.map((opcao) =>
+            ficha(opcao, opcao, !outra && valor === opcao, () => {
+              setOutra(false);
+              aoMudar(valor === opcao ? '' : opcao);
+            }),
+          )}
+          {ficha('__outra', 'Outra', outra, () => {
+            setOutra(!outra);
+            aoMudar('');
+          })}
+        </View>
+      </View>
+      {outra ? <CampoTexto rotulo={`${rotulo} (outra)`} value={valor} onChangeText={aoMudar} autoComplete="off" autoFocus /> : null}
+      {erro ? <Mensagens erro={erro} /> : null}
+    </View>
+  );
+}
+
 /* ───────── Seletor em cartoes (escolha unica com icone) ───────── */
 
 export interface OpcaoCartao<T extends string> {

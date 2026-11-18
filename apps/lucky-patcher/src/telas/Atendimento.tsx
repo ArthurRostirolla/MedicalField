@@ -138,11 +138,7 @@ export function Atendimento() {
       titulo={atendimento.pessoaNome}
       subtitulo={
         <Texto tamanho="pequeno" tom="tinta2">
-          Ficha{' '}
-          <Texto dado tamanho="pequeno" tom="tinta2">
-            {atendimento.id.slice(0, 8)}
-          </Texto>
-          {pessoa && identificacaoCurta(pessoa) ? ` · ${identificacaoCurta(pessoa)}` : ''} · início {formatarMomento(atendimento.iniciadoEm)}
+          {pessoa && identificacaoCurta(pessoa) ? `${identificacaoCurta(pessoa)} · ` : ''}início {formatarHora(atendimento.iniciadoEm)}
         </Texto>
       }
       acaoVoltar={
@@ -242,10 +238,7 @@ export function Atendimento() {
         </View>
         <View style={s.linhaTempo}>
           {eventos.length === 0 ? (
-            <EstadoVazio
-              titulo="Nenhum registro ainda"
-              descricao={`Atendimento iniciado às ${formatarHora(atendimento.iniciadoEm)}. Cada registro entra aqui com hora, autor e situação de envio.`}
-            />
+            <EstadoVazio titulo="Nenhum registro ainda" />
           ) : (
             <LinhaDoTempo eventos={eventos} estados={estados} recenteId={recente?.id} invertida />
           )}

@@ -92,7 +92,7 @@ export function Pendencias() {
   }
 
   return (
-    <Casca titulo="Pendências" subtitulo="O que ainda não está confirmado na central" atual="pendencias">
+    <Casca titulo="Pendências" atual="pendencias">
       <View style={{ gap: 8 }}>
         <Botao
           variante="primario"
@@ -104,14 +104,11 @@ export function Pendencias() {
         >
           Sincronizar agora
         </Botao>
-        <Texto tamanho="pequeno" tom="tinta2" role={'status' as 'alert'}>
-          {conexao.online
-            ? 'Online: a fila sobe sozinha, uma operação por vez, na ordem em que foi registrada.'
-            : conexao.simulandoOffline
-              ? 'Simulação de offline ligada: desligue “Simular offline” no detalhe da linha de conexão, no alto, para enviar.'
-              : 'Sem contato com o servidor: a fila sobe sozinha quando a rede voltar.'}
-          {motor.ultimoErro && conexao.online ? ` Última tentativa: ${motor.ultimoErro}` : ''}
-        </Texto>
+        {motor.ultimoErro && conexao.online ? (
+          <Texto tamanho="pequeno" tom="tinta2" role={'status' as 'alert'}>
+            Última tentativa: {motor.ultimoErro}
+          </Texto>
+        ) : null}
       </View>
 
       {fila.erro ? (
@@ -119,11 +116,7 @@ export function Pendencias() {
       ) : !fila.dados ? (
         <Esqueleto linhas={4} altura={40} />
       ) : fila.dados.length === 0 ? (
-        <EstadoVazio
-          icone={CircleCheck}
-          titulo="Tudo enviado"
-          descricao="Nenhuma operação aguardando neste aparelho. O que você registrar offline aparece aqui até a central confirmar."
-        />
+        <EstadoVazio icone={CircleCheck} titulo="Tudo enviado" />
       ) : null}
 
       {rejeitadas.length > 0 ? (
