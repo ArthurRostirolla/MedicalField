@@ -18,7 +18,7 @@ test('5. offline real: o app abre pela casca do PWA, registra e sincroniza ao vo
   await context.setOffline(true);
   await page.reload(); // sem rede: so abre se a casca vier do service worker
   await expect(page.getByRole('heading', { name: 'Início', level: 1 })).toBeVisible();
-  await expect(page.getByRole('status').filter({ hasText: 'Offline' }).first()).toContainText(/sem rede/i);
+  await expect(page.getByRole('status').filter({ hasText: 'Offline' }).filter({ visible: true }).first()).toContainText(/sem rede/i);
   await expect(page.getByRole('switch', { name: /Simular conectividade/ })).toHaveAttribute('aria-checked', 'false');
 
   const nome = unico('Paciente Sem Rede');

@@ -1,5 +1,5 @@
 // D-QA-02: no build de producao NORMAL (`npm run build`, sem VITE_DIAGNOSTICO) a porta de diagnostico
-// nao existe. Roda sobre `vite preview` na porta 5184 (projeto "producao").
+// nao existe. Roda sobre scripts/servir.mjs na porta 5184 (projeto "producao").
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { expect, test } from '@playwright/test';
@@ -19,7 +19,7 @@ test('build de producao: window.__mf e undefined, antes e depois do login', asyn
 });
 
 test('build de producao: o codigo da porta de diagnostico nem vai no pacote', () => {
-  const pasta = join(import.meta.dirname, '..', 'dist', 'assets');
+  const pasta = join(import.meta.dirname, '..', 'dist', '_expo', 'static', 'js', 'web');
   const pacotes = readdirSync(pasta).filter((arquivo) => arquivo.endsWith('.js'));
   expect(pacotes.length).toBeGreaterThan(0);
   for (const arquivo of pacotes) {

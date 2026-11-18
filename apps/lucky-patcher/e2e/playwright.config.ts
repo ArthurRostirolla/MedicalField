@@ -20,15 +20,15 @@ export default defineConfig({
     serviceWorkers: 'allow',
   },
   projects: [
-    // Servidor de desenvolvimento do Vite: todos os cenarios menos o do PWA.
+    // Servidor de desenvolvimento do Expo (web): todos os cenarios menos o do PWA.
     { name: 'dev', testIgnore: /(pwa|producao)\.spec\.ts/, use: { baseURL: 'http://localhost:5182' } },
-    // Build de producao servido por `vite preview`: a casca abre sem rede (service worker).
+    // Build de producao (diagnostico) servido por scripts/servir.mjs: a casca abre sem rede (service worker).
     { name: 'pwa', testMatch: /pwa\.spec\.ts/, use: { baseURL: 'http://localhost:5183' } },
     // Build de producao NORMAL (sem VITE_DIAGNOSTICO): a porta de diagnostico nao pode existir.
     { name: 'producao', testMatch: /producao\.spec\.ts/, use: { baseURL: 'http://localhost:5184' } },
   ],
   webServer: [
-    { command: 'npm run dev', cwd: '..', url: 'http://localhost:5182/app/', reuseExistingServer: true, timeout: 60_000 },
+    { command: 'npm run web', cwd: '..', url: 'http://localhost:5182/app/', reuseExistingServer: true, timeout: 180_000 },
     { command: 'npm run build:diagnostico && npm run preview:diagnostico', cwd: '..', url: 'http://localhost:5183/app/', reuseExistingServer: true, timeout: 180_000 },
     { command: 'npm run build && npm run preview:producao', cwd: '..', url: 'http://localhost:5184/app/', reuseExistingServer: true, timeout: 180_000 },
   ],

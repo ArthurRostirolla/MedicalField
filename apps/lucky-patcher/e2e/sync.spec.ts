@@ -52,7 +52,7 @@ test('1. login, sincronizar: medicamentos e pessoas ficam no banco local', async
   expect(Number(await estadoLocal(page, 'cursor'))).toBeGreaterThan(0);
 
   // E a interface le do banco local: a busca acha uma pessoa que so veio pela descida.
-  await page.goto('/app/#/pacientes');
+  await page.goto('/app/pacientes');
   await page.getByLabel('Buscar por nome ou CPF').fill('Clara Fictícia');
   await expect(page.getByRole('link', { name: /Clara Fictícia Souza/ })).toBeVisible();
   expect(erros).toEqual([]);
@@ -63,13 +63,13 @@ test('2. online: atendimento com eventos aparece no banco central', async ({ pag
   await entrar(page);
   await esperarTudoEnviado(page);
 
-  await page.goto('/app/#/pacientes');
+  await page.goto('/app/pacientes');
   await page.getByLabel('Buscar por nome ou CPF').fill('João Teste');
   await page.getByRole('link', { name: /João Teste Pereira/ }).click();
   const queixa = unico('Dor torácica');
   await page.getByLabel('Queixa principal').fill(queixa);
   await page.getByRole('button', { name: 'Iniciar atendimento' }).click();
-  await page.waitForURL(/#\/atendimentos\//);
+  await page.waitForURL(/\/atendimentos\/[0-9a-f-]{36}/);
   await expect(page.getByRole('heading', { name: 'João Teste Pereira', level: 1 })).toBeVisible();
   const atendimentoId = /atendimentos\/([0-9a-f-]{36})/.exec(page.url())![1]!;
 
@@ -128,18 +128,18 @@ test('4. offline pelo seletor: grava local, nada sai, sobrevive a recarregar e s
   expect(noCentral.pessoas(nome)).toBe(0);
   expect(noCentral.atendimentos(pessoaId)).toBe(0);
   expect(await pendentesLocais(page)).toBe(7); // pessoa, prontuario, atendimento, 4 eventos
-  await expect(page.getByText('7 pendentes').first()).toBeVisible();
+  await expect(page.getByText('7 pendentes').filter({ visible: true }).first()).toBeVisible();
 
   // Recarregar a pagina: tudo continua la, e o seletor tambem (nenhuma requisicao na reabertura).
   await page.reload();
   await expect(page.getByRole('heading', { name: nome, level: 1 })).toBeVisible();
   await expect(page.getByRole('switch', { name: /Simular conectividade/ })).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('list', { name: 'Linha do tempo do atendimento' }).getByRole('listitem')).toHaveCount(4);
-  await expect(page.getByText('7 pendentes').first()).toBeVisible();
+  await expect(page.getByText('7 pendentes').filter({ visible: true }).first()).toBeVisible();
   expect(await pendentesLocais(page)).toBe(7);
-  await page.goto('/app/#/pendencias');
+  await page.goto('/app/pendencias');
   await expect(page.getByTestId('pendencia-fila')).toHaveCount(7);
-  await page.goto(`/app/#/pacientes/${pessoaId}`);
+  await page.goto(`/app/pacientes/${pessoaId}`);
   await expect(page.getByText('Penicilina')).toBeVisible();
   await page.waitForTimeout(6_000); // mais que um ciclo do monitor: ele tambem nao pode emitir nada
   expect(api.vistas.map((r) => `${r.method()} ${new URL(r.url()).pathname}`)).toEqual([]);
@@ -217,11 +217,11 @@ test('6. falha no meio da subida e resposta perdida: progresso parcial preservad
   expect(noCentral.pessoas(nome)).toBe(1); // a 1a ficou
   expect(noCentral.prontuarios(pessoaId)).toBe(0);
   expect(noCentral.atendimentos(pessoaId)).toBe(0);
-  await expect(page.getByText('4 pendentes').first()).toBeVisible();
+  await expect(page.getByText('4 pendentes').filter({ visible: true }).first()).toBeVisible();
 
   // --- A rede volta, mas a RESPOSTA do POST /atendimento se perde: o servidor grava, o cliente nao fica sabendo.
   fase = 'perder-resposta';
-  await page.goto('/app/#/');
+  await page.goto('/app/');
   await page.getByRole('button', { name: 'Sincronizar agora' }).click();
   await expect.poll(() => fase).toBe('segurar');
   await expect.poll(async () => (await fila(page)).map((c) => c.status)).toEqual(['CONFIRMADA', 'CONFIRMADA', 'PENDENTE', 'PENDENTE', 'PENDENTE']);
@@ -252,7 +252,7 @@ test('7. rejeicao (422): vai para Pendencias com o motivo; dependentes retidos; 
   const nome = unico('Paciente Rejeitado');
   const rejeitado = await novoPacienteComAtendimento(page, nome);
   await registrarSinais(page);
-  await page.goto(`/app/#/atendimentos/${outro.atendimentoId}`);
+  await page.goto(`/app/atendimentos/${outro.atendimentoId}`);
   await registrarObservacao(page, 'Independente da rejeição.');
   expect(await pendentesLocais(page)).toBe(5);
 
@@ -278,7 +278,7 @@ test('7. rejeicao (422): vai para Pendencias com o motivo; dependentes retidos; 
   expect(noCentral.atendimentos(rejeitado.pessoaId)).toBe(0);
 
   await expect(page.getByText('1 rejeitada')).toBeVisible();
-  await page.goto('/app/#/pendencias');
+  await page.goto('/app/pendencias');
   const linha = page.getByTestId('pendencia-rejeitada');
   await expect(linha).toHaveCount(1);
   await expect(linha).toContainText(`Novo paciente: ${nome}`);

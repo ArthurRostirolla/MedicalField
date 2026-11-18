@@ -51,7 +51,7 @@ for (const largura of [390, 1280]) {
     await fotografar(page, 'inicio-vazio', largura);
 
     const nome = 'Marlene Antunes Figueiró'; // nome limpo para a captura; o id e que e unico
-    await page.goto('/app/#/pacientes/novo');
+    await page.goto('/app/pacientes/novo');
     await expect(page.getByLabel('Nome completo')).toBeVisible();
     await fotografar(page, 'novo-paciente', largura);
 
@@ -87,22 +87,22 @@ for (const largura of [390, 1280]) {
     await expect(page.getByRole('heading', { name: 'Passagem de caso', level: 2 })).toBeVisible();
     await fotografar(page, 'passagem', largura);
 
-    await page.goto('/app/#/pendencias');
-    await expect(page.getByTestId('pendencia-fila').first()).toBeVisible();
+    await page.goto('/app/pendencias');
+    await expect(page.getByTestId('pendencia-fila').filter({ visible: true }).first()).toBeVisible();
     await fotografar(page, 'pendencias', largura);
 
-    await page.goto('/app/#/pacientes');
+    await page.goto('/app/pacientes');
     await page.getByLabel('Buscar por nome ou CPF').fill('Marlene');
-    await expect(page.getByRole('link', { name: new RegExp(nome) }).first()).toBeVisible();
+    await expect(page.getByRole('link', { name: new RegExp(nome) }).filter({ visible: true }).first()).toBeVisible();
     await fotografar(page, 'pacientes', largura);
-    await page.getByRole('link', { name: new RegExp(nome) }).first().click();
+    await page.getByRole('link', { name: new RegExp(nome) }).filter({ visible: true }).first().click();
     await expect(page.getByRole('heading', { name: 'Alergias' })).toBeVisible();
     await fotografar(page, 'prontuario', largura);
 
-    await page.goto('/app/#/');
-    await expect(page.getByRole('link', { name: new RegExp(nome) }).first()).toBeVisible();
+    await page.goto('/app/');
+    await expect(page.getByRole('link', { name: new RegExp(nome) }).filter({ visible: true }).first()).toBeVisible();
     await fotografar(page, 'inicio-offline', largura);
-    await page.goto('/app/#/ajustes');
+    await page.goto('/app/ajustes');
     await expect(page.getByRole('button', { name: 'Sair' })).toBeVisible();
     await fotografar(page, 'ajustes', largura);
 

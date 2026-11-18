@@ -72,27 +72,27 @@ const chave = (page: Page) => page.getByRole('switch', { name: /Simular conectiv
 export async function simularOffline(page: Page, ligado: boolean): Promise<void> {
   if (((await chave(page).getAttribute('aria-checked')) === 'true') !== ligado) await chave(page).click();
   await expect(chave(page)).toHaveAttribute('aria-checked', String(ligado));
-  await expect(page.getByRole('status').filter({ hasText: ligado ? 'Offline' : 'Online' }).first()).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: ligado ? 'Offline' : 'Online' }).filter({ visible: true }).first()).toBeVisible();
 }
 
 export async function esperarTudoEnviado(page: Page): Promise<void> {
-  await expect(page.getByText('Tudo enviado').first()).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByText('Tudo enviado').filter({ visible: true }).first()).toBeVisible({ timeout: 30_000 });
   await expect.poll(() => pendentesLocais(page), { timeout: 30_000 }).toBe(0);
 }
 
 export async function sincronizar(page: Page): Promise<void> {
-  await page.goto('/app/#/');
+  await page.goto('/app/');
   await page.getByRole('button', { name: 'Sincronizar agora' }).click();
   await expect(page.getByText(/^(Sincronizado\.|Não sincronizou)/)).toBeVisible({ timeout: 30_000 });
 }
 
 /** Cria paciente (com alergia) e ja abre o atendimento. Devolve os ids locais. */
 export async function novoPacienteComAtendimento(page: Page, nome: string, alergia?: string): Promise<{ pessoaId: string; atendimentoId: string }> {
-  await page.goto('/app/#/pacientes/novo');
+  await page.goto('/app/pacientes/novo');
   await page.getByLabel('Nome completo').fill(nome);
   if (alergia) await page.getByLabel('Alergias').fill(alergia);
   await page.getByRole('button', { name: 'Salvar e iniciar atendimento' }).click();
-  await page.waitForURL(/#\/atendimentos\//);
+  await page.waitForURL(/\/atendimentos\/[0-9a-f-]{36}/);
   await expect(page.getByRole('heading', { name: nome, level: 1 })).toBeVisible();
   const atendimentoId = /atendimentos\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   const [atendimento] = await local<{ pessoa_id: string }>(page, 'SELECT pessoa_id FROM atendimento WHERE id = ?', [atendimentoId]);
@@ -113,7 +113,7 @@ export async function registrarSinais(page: Page, sistolica = '128', diastolica 
 export async function registrarGlasgow(page: Page): Promise<void> {
   await page.getByRole('radio', { name: 'Glasgow' }).check({ force: true });
   for (const [eixo, valor] of [['ocular', '4'], ['verbal', '5'], ['motora', '6']] as const) {
-    await page.getByRole('group', { name: `Resposta ${eixo}` }).locator(`input[value="${valor}"]`).check({ force: true });
+    await page.getByRole('group', { name: `Resposta ${eixo}` }).getByRole('radio', { name: new RegExp(`^${valor}(?![0-9])`) }).check({ force: true });
   }
   await page.getByRole('button', { name: 'Registrar Glasgow 15' }).click(); // o total e calculado
   await registrado(page, 'Glasgow');
@@ -121,8 +121,9 @@ export async function registrarGlasgow(page: Page): Promise<void> {
 
 export async function registrarTriagem(page: Page, cor = 'AMARELO'): Promise<void> {
   await page.getByRole('radio', { name: 'Triagem' }).check({ force: true });
-  await expect(page.locator('.mf-seletor-triagem input:checked')).toHaveCount(0); // nada vem marcado: o profissional escolhe
-  await page.locator(`input[value="${cor}"]`).check({ force: true });
+  const classificacao = page.getByRole('radiogroup', { name: 'Classificação' });
+  await expect(classificacao.getByRole('radio', { checked: true })).toHaveCount(0); // nada vem marcado: o profissional escolhe
+  await classificacao.getByRole('radio', { name: cor[0] + cor.slice(1).toLowerCase(), exact: true }).check({ force: true });
   await page.getByRole('button', { name: 'Registrar triagem' }).click();
   await registrado(page, 'Triagem');
 }
