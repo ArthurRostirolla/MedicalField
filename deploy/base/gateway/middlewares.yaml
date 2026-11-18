@@ -1,0 +1,47 @@
+# Middlewares do Traefik referenciados pelos Ingress como "medicalfield-<nome>@kubernetescrd".
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: limite-login
+spec:
+  # Por IP de origem: 10 tentativas por minuto, rajada de 10. Excedeu -> 429.
+  # (O MikeBaguncinha ainda aplica o seu limite por IP+registro.)
+  rateLimit:
+    average: 10
+    period: 1m
+    burst: 10
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: cabecalhos-seguranca
+spec:
+  headers:
+    contentTypeNosniff: true
+    frameDeny: true
+    referrerPolicy: no-referrer
+    # So e enviado em respostas HTTPS
+    stsSeconds: 31536000
+    permissionsPolicy: "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)"
+    customResponseHeaders:
+      Cross-Origin-Opener-Policy: same-origin
+      Server: ""
+      X-Powered-By: ""
+---
+# CORS so para o app Android (WebView do Capacitor, origem https://localhost).
+# Portal e PWA usam a mesma origem do gateway e nao dependem disto.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: cors-app
+spec:
+  headers:
+    accessControlAllowOriginList:
+      - https://localhost
+      - http://localhost
+      - capacitor://localhost
+    accessControlAllowMethods: ["GET", "POST", "PATCH", "OPTIONS"]
+    accessControlAllowHeaders: ["Authorization", "Content-Type", "X-Request-Id", "X-Dispositivo-Id", "Idempotency-Key"]
+    accessControlExposeHeaders: ["X-Request-Id"]
+    accessControlMaxAge: 600
+    addVaryHeader: true

@@ -1,0 +1,14 @@
+.git
+**/node_modules
+**/dist
+**/build
+**/coverage
+**/.vite
+**/android
+**/.venv
+**/__pycache__
+deploy/.local
+deploy/**/secrets*.env
+docs
+playwright-report
+test-results

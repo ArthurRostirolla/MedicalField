@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: medicalfield
+  annotations:
+    # O Argo CD nunca apaga o namespace (levaria os Secrets e os PVCs junto)
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false

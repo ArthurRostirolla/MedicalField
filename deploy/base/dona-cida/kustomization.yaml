@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - serviceaccount.yaml
+  - service.yaml
+  - deployment.yaml
+configMapGenerator:
+  - name: dona-cida-configuracao
+    literals:
+      - JWKS_URL=http://mike-baguncinha:9090/jwks.json
