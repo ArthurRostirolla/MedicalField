@@ -4,7 +4,15 @@ Severidade: `Crítica` (impede o roteiro acadêmico ou perde dado) · `Alta` (re
 
 ## Abertos
 
-Nenhum registrado ainda (onda 1 em andamento, nada integrado).
+| ID | Severidade | Problema | Situação |
+| --- | --- | --- | --- |
+| D-04 | Baixa | Jaiminho grava `rota: "(rota desconhecida)"` no log de acesso em alguns 401 sem token | Aberto |
+| D-05 | Baixa | `GET /documento?atendimentoId=` devolve `{ itens }` sem `proximoCursor`; `packages/contratos` não tem esquema para essa lista | Aberto |
+| D-06 | Baixa | Logs e documentos mostram só o id do profissional (não há rota para resolver nomes) | Aceito: fora do escopo |
+| D-07 | Média | `npm install` relata 5 vulnerabilidades "high" em dependências | A investigar |
+| D-08 | Baixa | E2E do portal deixa dados de teste no banco de dev (atendimentos `e2e00000-…`, envios) | Aceito em dev |
+
+Decisão registrada: "mais recentes primeiro" em `GET /atendimento` ordena por `recebidoEm` (o atendimento feito offline sobe ao topo quando sincroniza — é o comportamento desejado no passo 15).
 
 ## Bloqueios externos
 
@@ -25,3 +33,5 @@ Nenhum registrado ainda (onda 1 em andamento, nada integrado).
 | ID | Problema | Correção |
 | --- | --- | --- |
 | D-01 | Cluster k3s local não voltava após `parar` (IP do contêiner mudava) | Rede Docker própria com IP fixo em `deploy/scripts/cluster-local.sh` |
+| D-02 | `ItemNav` de `packages/ui` recarregava a página ao navegar (apagava o token em memória) | O link delega o clique simples ao roteador do app |
+| D-03 | Tabela rolável de `packages/ui` inalcançável por teclado (axe `scrollable-region-focusable`) | `role="region"`, rótulo e `tabIndex` |

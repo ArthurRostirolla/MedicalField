@@ -6,16 +6,16 @@ Legenda: `Não implementado` · `Implementado` (código existe, não exercitado)
 
 Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOWN_ISSUES.md](KNOWN_ISSUES.md) · Andamento das tarefas: [acompanhamento.md](acompanhamento.md) (é o `IMPLEMENTATION_STATUS` do projeto).
 
-Última atualização: backend integrado e validado em dev e no k3s local; portal e app em construção (onda 2).
+Última atualização: backend integrado e validado em dev e no k3s local; portal validado; app LuckyPatcher em construção.
 
 ## Roteiro acadêmico (17 passos)
 
 | # | Passo | Como é executado | Esperado | Observado | Situação | Evidência |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Portal: autenticar | Login ADMIN no BradPitt | Entra no painel | — | Não implementado | — |
-| 2 | Portal: listar cadastros | Tela Medicamentos | Lista do catálogo | — | Não implementado | — |
-| 3 | Portal: listar prontuários | Tela Prontuários | Lista | — | Não implementado | — |
-| 4 | Portal: listar atendimentos | Tela Atendimentos | Lista | — | Não implementado | — |
+| 1 | Portal: autenticar | Login ADMIN no BradPitt | Entra no painel | Entrou; sessão sobrevive a recarregar | Validado (isolado; falta a sequência completa) | E-005 |
+| 2 | Portal: listar cadastros | Tela Medicamentos | Lista do catálogo | Lista carregada do backend | Validado (isolado) | E-005 |
+| 3 | Portal: listar prontuários | Tela Prontuários | Lista | Lista carregada do backend | Validado (isolado) | E-005 |
+| 4 | Portal: listar atendimentos | Tela Atendimentos | Lista | Lista carregada do backend | Validado (isolado) | E-005 |
 | 5 | Cliente: autenticar | Login no LuckyPatcher | Sessão local criada | — | Não implementado | — |
 | 6 | Cliente: sincronizar (receber) | Botão Sincronizar | Cadastros no banco local | — | Não implementado | — |
 | 7 | Cliente online: registrar atendimento | Seletor Online + novo atendimento | Selo "confirmado" | — | Não implementado | — |
@@ -27,8 +27,8 @@ Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOW
 | 13 | Portal: registro offline não aparece | Recarregar | Ausente | — | Não implementado | — |
 | 14 | Cliente online: sincronizar | Seletor Online | Outbox esvazia | — | Não implementado | — |
 | 15 | Portal: registro aparece | Recarregar | Presente | — | Não implementado | — |
-| 16 | Gerar a ficha em PDF | Botão no portal | PDF baixado | — | Não implementado | — |
-| 17 | E-mail com a ficha anexada | Botão no portal | E-mail recebido com anexo | — | Não implementado | — |
+| 16 | Gerar a ficha em PDF | Botão no portal | PDF baixado | Arquivo baixado começa com `%PDF` | Validado (isolado) | E-005 |
+| 17 | E-mail com a ficha anexada | Botão no portal | E-mail recebido com anexo | Mensagem com anexo PDF no Mailpit | Validado (isolado; Mailpit, não caixa externa) | E-005 |
 
 ## Offline-First (prioridade máxima)
 
@@ -70,10 +70,10 @@ Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOW
 | ID | O que precisa funcionar | Situação | Evidência |
 | --- | --- | --- | --- |
 | FE-01 | Design system revisado com Impeccable (registro real dos fluxos) | Testado (114 testes; capturas inspecionadas) | `packages/ui/IMPECCABLE.md` |
-| FE-02 | Portal: todas as telas com estados de carregamento, vazio e erro | Não implementado | — |
+| FE-02 | Portal: todas as telas com estados de carregamento, vazio e erro | Validado | E-005 |
 | FE-03 | App: fluxo de campo em largura de celular, temas claro e escuro | Não implementado | — |
-| FE-04 | Revisão visual Impeccable das telas renderizadas (portal e app) | Não implementado | — |
-| FE-05 | Navegação por teclado e foco visível | Não implementado | — |
+| FE-04 | Revisão visual Impeccable das telas renderizadas (portal e app) | Validado para o portal; app pendente | E-005 |
+| FE-05 | Navegação por teclado e foco visível | Validado no portal (axe + fluxo por teclado); app pendente | E-005 |
 | FE-06 | App Android (Capacitor) | Não implementado | — |
 
 ## Kubernetes

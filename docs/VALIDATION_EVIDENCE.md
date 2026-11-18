@@ -45,3 +45,18 @@ Cada entrada: o que foi executado, o comando ou a ação, o resultado observado 
   - `kubectl top`: Jaiminho 85 Mi, Mike 42 Mi, Mailpit 10 Mi (Cida e Postgres tinham acabado de reiniciar e ainda não apareciam).
 - **Defeito encontrado e corrigido:** o cluster local não voltava depois de `parar` (o Docker trocava o IP do contêiner e o k3s falhava com "failed to find interface with specified node ip"). Corrigido com rede própria e IP fixo em `cluster-local.sh`; conferido com `parar` + `subir`.
 - **Resultado:** passou para o backend. Falta a imagem `web` e o roteiro de 17 passos contra o cluster.
+
+## E-005 — Portal BradPitt contra o backend real (passos 1–4, 16, 17; FE-02, FE-04, FE-05)
+
+- **Data:** 2026-11-18
+- **Executado pelo agente principal:** `npm run typecheck`, `npm test`, `npm run build` e `npm run e2e` do workspace `@medicalfield/brad-pitt` (Playwright no Chrome, Vite com proxy para Mike 8081, Cida 8082 e Jaiminho 8083).
+- **Observado:** typecheck sem erros; 40 testes de unidade/componente passaram; build de produção gerado; **Playwright: 12 passaram em 1,4 min**, depois da correção dos dois defeitos de `packages/ui` (D-02, D-03).
+  - Login de ADMIN e permanência após recarregar; login inválido recusado.
+  - Listas de medicamentos, prontuários e atendimentos carregam do backend.
+  - Atendimento aberto por teclado → "Gerar PDF" → arquivo baixado começa com `%PDF` → "Enviar por e-mail" → mensagem com anexo `application/pdf` confirmada na API do Mailpit.
+  - Verificação de documento (destino do QR) volta à mesma URL depois do login.
+  - PROFISSIONAL não vê auditoria e a API responde 403.
+  - 41 capturas (1440 e 390 px, claro e escuro) sem violação de axe WCAG A/AA nem rolagem horizontal da página.
+- **Inspeção visual do agente principal:** `atendimento-1440-claro.png` e `login-390-escuro.png` conferidas — passagem de caso em via rosa, linha do tempo numerada com retificação, bloco de PDF e envios, identidade coerente com o design system.
+- **Impeccable:** registro real em `apps/brad-pitt/IMPECCABLE.md` (contexto, detector sem achados, uma rodada de crítica/auditoria/polimento sobre as telas renderizadas; a crítica rodou em contexto único, sem os dois subagentes isolados que a skill prevê).
+- **Não coberto:** 429 no navegador (travaria os logins de demonstração por 15 min), reenvio após falha definitiva e paginação com várias páginas — os três só em teste de componente.
