@@ -1,0 +1,383 @@
+package httpapi_test
+
+// Testes de integração contra um Postgres real. Rodam quando DATABASE_URL_TESTE aponta
+// para um banco já migrado (veja o README); sem a variável, são pulados.
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"strings"
+	"testing"
+	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+
+	"medicalfield/mike-baguncinha/internal/aplicacao"
+	"medicalfield/mike-baguncinha/internal/dominio"
+	httpapi "medicalfield/mike-baguncinha/internal/http"
+	"medicalfield/mike-baguncinha/internal/infra"
+)
+
+const senhaTeste = "senha-so-dos-testes"
+
+type ambiente struct {
+	t        *testing.T
+	url      string
+	pool     *pgxpool.Pool
+	gravador *infra.GravadorAcesso
+}
+
+func novoAmbiente(t *testing.T) *ambiente {
+	t.Helper()
+	dsn := os.Getenv("DATABASE_URL_TESTE")
+	if dsn == "" {
+		t.Skip("DATABASE_URL_TESTE não definida")
+	}
+	pool, err := pgxpool.New(context.Background(), dsn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := pool.Ping(context.Background()); err != nil {
+		t.Fatalf("banco de teste inacessível: %v", err)
+	}
+	log := slog.New(slog.NewJSONHandler(io.Discard, nil))
+	banco := &infra.Postgres{Pool: pool}
+	tokens, _ := infra.NovosTokens("")
+	gravador := infra.NovoGravadorAcesso(banco, log)
+	api := &httpapi.API{
+		Autenticacao: &aplicacao.AutenticacaoUseCase{
+			Profissionais: banco, Sessoes: banco, Senhas: infra.Argon2id{}, Tokens: tokens,
+			Limitador: aplicacao.NovoLimitadorTentativas(5, 15*time.Minute),
+			HashFalso: infra.GerarHashSenha("falso"), Agora: time.Now,
+		},
+		Auditoria:    &aplicacao.AuditoriaUseCase{Repositorio: banco},
+		ValidarToken: tokens.Validar, RegistrarAcesso: gravador.Registrar, SaidaAcesso: io.Discard,
+		Proxies: nil, Log: log,
+	}
+	servidor := httptest.NewServer(api.Handler())
+	t.Cleanup(func() { servidor.Close(); pool.Close() })
+	return &ambiente{t: t, url: servidor.URL, pool: pool, gravador: gravador}
+}
+
+// criarProfissional insere um profissional com registro único e devolve id e registro.
+func (a *ambiente) criarProfissional(papel string) (id, registro string) {
+	a.t.Helper()
+	registro = "T" + strings.ReplaceAll(dominio.NovoUUID(), "-", "")[:12]
+	err := a.pool.QueryRow(context.Background(), `
+		INSERT INTO identidade.profissional (tipo_registro, registro, uf, nome, papel, senha_hash)
+		VALUES ('CRM', $1, 'RS', 'Profissional de Teste', $2, $3) RETURNING id::text`,
+		registro, papel, infra.GerarHashSenha(senhaTeste)).Scan(&id)
+	if err != nil {
+		a.t.Fatal(err)
+	}
+	return id, registro
+}
+
+type resposta struct {
+	status  int
+	corpo   map[string]any
+	cookies []*http.Cookie
+	header  http.Header
+}
+
+func (a *ambiente) chamar(metodo, caminho, token string, corpo any, cabecalhos ...string) resposta {
+	a.t.Helper()
+	var leitor io.Reader
+	if corpo != nil {
+		bruto, _ := json.Marshal(corpo)
+		leitor = bytes.NewReader(bruto)
+	}
+	req, _ := http.NewRequest(metodo, a.url+caminho, leitor)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+	for i := 0; i+1 < len(cabecalhos); i += 2 {
+		req.Header.Set(cabecalhos[i], cabecalhos[i+1])
+	}
+	res, err := http.DefaultClient.Do(req)
+	if err != nil {
+		a.t.Fatal(err)
+	}
+	defer res.Body.Close()
+	r := resposta{status: res.StatusCode, cookies: res.Cookies(), header: res.Header}
+	_ = json.NewDecoder(res.Body).Decode(&r.corpo)
+	return r
+}
+
+func (a *ambiente) login(registro, senha string) resposta {
+	return a.chamar("POST", "/api/v1/auth/login", "", map[string]string{"tipoRegistro": "CRM", "registro": registro, "uf": "rs", "senha": senha})
+}
+
+func (r resposta) exigir(t *testing.T, status int, codigo string) {
+	t.Helper()
+	if r.status != status || (codigo != "" && r.corpo["codigo"] != codigo) {
+		t.Fatalf("esperado %d %s, obtido %d %v", status, codigo, r.status, r.corpo)
+	}
+	if codigo != "" && (r.corpo["requestId"] == "" || r.corpo["mensagem"] == "" || r.corpo["requestId"] != r.header.Get("X-Request-Id")) {
+		t.Fatalf("corpo de erro fora do contrato: %v", r.corpo)
+	}
+}
+
+func TestFluxoLoginMeRefreshLogout(t *testing.T) {
+	a := novoAmbiente(t)
+	id, registro := a.criarProfissional(dominio.PapelProfissional)
+
+	sessao := a.login(registro, senhaTeste)
+	sessao.exigir(t, 200, "")
+	access, refresh := sessao.corpo["accessToken"].(string), sessao.corpo["refreshToken"].(string)
+	profissional := sessao.corpo["profissional"].(map[string]any)
+	if access == "" || refresh == "" || sessao.corpo["expiraEm"] != float64(900) || profissional["id"] != id ||
+		profissional["registro"] != registro || profissional["papel"] != "PROFISSIONAL" || profissional["uf"] != "RS" {
+		t.Fatalf("Sessao fora do contrato: %v", sessao.corpo)
+	}
+	if _, vazou := profissional["senhaHash"]; vazou || len(profissional) != 6 {
+		t.Fatalf("Profissional com campos a mais: %v", profissional)
+	}
+	if len(sessao.cookies) != 1 {
+		t.Fatalf("esperado 1 cookie, obtido %d", len(sessao.cookies))
+	}
+	cookie := sessao.cookies[0]
+	if cookie.Name != "mf_refresh" || cookie.Value != refresh || !cookie.HttpOnly || cookie.SameSite != http.SameSiteStrictMode || cookie.Path != "/api/v1/auth" {
+		t.Fatalf("cookie fora do contrato: %+v", cookie)
+	}
+
+	// Só o hash do refresh token vai para o banco.
+	var guardados int
+	_ = a.pool.QueryRow(context.Background(), `SELECT count(*) FROM identidade.sessao WHERE refresh_hash = $1`, refresh).Scan(&guardados)
+	if guardados != 0 {
+		t.Fatal("o refresh token foi guardado em claro")
+	}
+	_ = a.pool.QueryRow(context.Background(), `SELECT count(*) FROM identidade.sessao WHERE refresh_hash = $1`, aplicacao.HashRefresh(refresh)).Scan(&guardados)
+	if guardados != 1 {
+		t.Fatal("o hash sha256 do refresh token deveria estar em identidade.sessao")
+	}
+
+	me := a.chamar("GET", "/api/v1/auth/me", access, nil)
+	me.exigir(t, 200, "")
+	if me.corpo["id"] != id || me.corpo["nome"] != "Profissional de Teste" || me.corpo["tipoRegistro"] != "CRM" {
+		t.Fatalf("me inesperado: %v", me.corpo)
+	}
+
+	// Refresh pelo corpo: rotaciona.
+	renovada := a.chamar("POST", "/api/v1/auth/refresh", "", map[string]string{"refreshToken": refresh})
+	renovada.exigir(t, 200, "")
+	refresh2 := renovada.corpo["refreshToken"].(string)
+	if refresh2 == refresh || renovada.corpo["accessToken"] == "" {
+		t.Fatal("o refresh deveria ser rotacionado")
+	}
+	a.chamar("GET", "/api/v1/auth/me", renovada.corpo["accessToken"].(string), nil).exigir(t, 200, "")
+
+	// O refresh antigo é recusado.
+	a.chamar("POST", "/api/v1/auth/refresh", "", map[string]string{"refreshToken": refresh}).exigir(t, 401, "NAO_AUTENTICADO")
+
+	// Refresh pelo cookie (sem corpo).
+	peloCookie := a.chamar("POST", "/api/v1/auth/refresh", "", nil, "Cookie", "mf_refresh="+refresh2)
+	peloCookie.exigir(t, 200, "")
+	refresh3 := peloCookie.corpo["refreshToken"].(string)
+
+	// Logout revoga a sessão e limpa o cookie.
+	saida := a.chamar("POST", "/api/v1/auth/logout", access, map[string]string{"refreshToken": refresh3})
+	if saida.status != 204 || len(saida.cookies) != 1 || saida.cookies[0].MaxAge >= 0 {
+		t.Fatalf("logout inesperado: %d %+v", saida.status, saida.cookies)
+	}
+	a.chamar("POST", "/api/v1/auth/refresh", "", map[string]string{"refreshToken": refresh3}).exigir(t, 401, "NAO_AUTENTICADO")
+}
+
+func TestLoginRecusadoELimiteDeTentativas(t *testing.T) {
+	a := novoAmbiente(t)
+	_, registro := a.criarProfissional(dominio.PapelProfissional)
+
+	// Registro inexistente e senha errada respondem igual (não revela se o registro existe).
+	inexistente := a.login("NAOEXISTE"+registro, "qualquer")
+	inexistente.exigir(t, 401, "CREDENCIAIS_INVALIDAS")
+	errada := a.login(registro, "errada")
+	errada.exigir(t, 401, "CREDENCIAIS_INVALIDAS")
+	if inexistente.corpo["mensagem"] != errada.corpo["mensagem"] {
+		t.Fatal("as mensagens de login recusado deveriam ser idênticas")
+	}
+
+	a.chamar("POST", "/api/v1/auth/login", "", map[string]string{"tipoRegistro": "XYZ", "registro": "", "senha": ""}).exigir(t, 422, "VALIDACAO")
+
+	// Já houve 1 falha; da 2ª à 5ª ainda é 401, a partir daí 429 — mesmo com a senha certa.
+	for range 4 {
+		a.login(registro, "errada").exigir(t, 401, "CREDENCIAIS_INVALIDAS")
+	}
+	a.login(registro, "errada").exigir(t, 429, "MUITAS_TENTATIVAS")
+	a.login(registro, senhaTeste).exigir(t, 429, "MUITAS_TENTATIVAS")
+
+	// Outro registro, no mesmo IP, não é afetado.
+	_, outro := a.criarProfissional(dominio.PapelProfissional)
+	a.login(outro, senhaTeste).exigir(t, 200, "")
+}
+
+func TestLogDoClienteIdempotente(t *testing.T) {
+	a := novoAmbiente(t)
+	id, registro := a.criarProfissional(dominio.PapelProfissional)
+	token := a.login(registro, senhaTeste).corpo["accessToken"].(string)
+	dispositivo := dominio.NovoUUID()
+
+	logs := []map[string]any{
+		{"id": dominio.NovoUUID(), "ocorridoEm": "2026-11-17T21:00:00.000Z", "acao": "ATENDIMENTO_CRIADO", "entidade": "atendimento",
+			"entidadeId": dominio.NovoUUID(), "resultado": "SUCESSO", "estavaOnline": false, "detalhe": map[string]any{"tentativa": 1}},
+		{"id": dominio.NovoUUID(), "ocorridoEm": "2026-11-17T21:01:00.000Z", "acao": "SYNC", "resultado": "FALHA", "estavaOnline": true},
+	}
+	enviar := func(lote any) resposta {
+		return a.chamar("POST", "/api/v1/log", token, map[string]any{"logs": lote}, "X-Dispositivo-Id", dispositivo)
+	}
+
+	primeira := enviar(logs)
+	primeira.exigir(t, 200, "")
+	if primeira.corpo["aceitos"] != float64(2) || primeira.corpo["duplicados"] != float64(0) {
+		t.Fatalf("primeiro envio: %v", primeira.corpo)
+	}
+	segunda := enviar(logs)
+	if segunda.corpo["aceitos"] != float64(0) || segunda.corpo["duplicados"] != float64(2) {
+		t.Fatalf("reenvio: %v", segunda.corpo)
+	}
+	var gravados int
+	var dispositivoGravado string
+	_ = a.pool.QueryRow(context.Background(),
+		`SELECT count(*), min(dispositivo_id::text) FROM auditoria.log_cliente WHERE profissional_id = $1::text::uuid`, id).Scan(&gravados, &dispositivoGravado)
+	if gravados != 2 || dispositivoGravado != dispositivo {
+		t.Fatalf("esperado 2 linhas do dispositivo %s, obtido %d (%s)", dispositivo, gravados, dispositivoGravado)
+	}
+
+	// Validação: campo inválido e lote acima de 500.
+	enviar([]map[string]any{{"id": "nao-e-uuid", "ocorridoEm": "ontem", "acao": "", "resultado": "TALVEZ"}}).exigir(t, 422, "VALIDACAO")
+	grande := make([]map[string]any, 501)
+	for i := range grande {
+		grande[i] = map[string]any{"id": dominio.NovoUUID(), "ocorridoEm": "2026-11-17T21:00:00Z", "acao": "X", "resultado": "SUCESSO", "estavaOnline": true}
+	}
+	enviar(grande).exigir(t, 422, "VALIDACAO")
+	_ = a.pool.QueryRow(context.Background(), `SELECT count(*) FROM auditoria.log_cliente WHERE profissional_id = $1::text::uuid`, id).Scan(&gravados)
+	if gravados != 2 {
+		t.Fatalf("lote recusado não pode gravar nada; há %d linhas", gravados)
+	}
+}
+
+func TestAuditoriaSoAdminEPaginacao(t *testing.T) {
+	a := novoAmbiente(t)
+	idComum, registroComum := a.criarProfissional(dominio.PapelProfissional)
+	_, registroAdmin := a.criarProfissional(dominio.PapelAdmin)
+	comum := a.login(registroComum, senhaTeste).corpo["accessToken"].(string)
+	admin := a.login(registroAdmin, senhaTeste).corpo["accessToken"].(string)
+
+	for _, rota := range []string{"/api/v1/auditoria/acesso", "/api/v1/auditoria/cliente"} {
+		a.chamar("GET", rota, comum, nil).exigir(t, 403, "SEM_PERMISSAO")
+		a.chamar("GET", rota, admin, nil).exigir(t, 200, "")
+	}
+
+	// Três logs do profissional comum, lidos pelo ADMIN em páginas de 2.
+	var logs []map[string]any
+	for i := range 3 {
+		logs = append(logs, map[string]any{"id": dominio.NovoUUID(), "ocorridoEm": fmt.Sprintf("2026-11-17T21:0%d:00.000Z", i),
+			"acao": fmt.Sprintf("ACAO_%d", i), "resultado": "SUCESSO", "estavaOnline": true, "detalhe": map[string]any{"n": i}})
+	}
+	a.chamar("POST", "/api/v1/log", comum, map[string]any{"logs": logs}).exigir(t, 200, "")
+
+	base := "/api/v1/auditoria/cliente?limite=2&profissionalId=" + idComum
+	pagina1 := a.chamar("GET", base, admin, nil)
+	itens1 := pagina1.corpo["itens"].([]any)
+	cursor, _ := pagina1.corpo["proximoCursor"].(string)
+	if len(itens1) != 2 || cursor == "" {
+		t.Fatalf("página 1 inesperada: %v", pagina1.corpo)
+	}
+	primeiro := itens1[0].(map[string]any)
+	if primeiro["acao"] != "ACAO_2" || primeiro["ocorridoEm"] != "2026-11-17T21:02:00.000Z" || primeiro["profissionalId"] != idComum ||
+		primeiro["dispositivoId"] != nil || primeiro["recebidoEm"] == "" || primeiro["detalhe"].(map[string]any)["n"] != float64(2) {
+		t.Fatalf("LogClienteSaida fora do contrato (ou fora de ordem): %v", primeiro)
+	}
+	pagina2 := a.chamar("GET", base+"&cursor="+cursor, admin, nil)
+	itens2 := pagina2.corpo["itens"].([]any)
+	if len(itens2) != 1 || itens2[0].(map[string]any)["acao"] != "ACAO_0" || pagina2.corpo["proximoCursor"] != nil {
+		t.Fatalf("página 2 inesperada: %v", pagina2.corpo)
+	}
+
+	// Filtro por período e parâmetros inválidos.
+	periodo := a.chamar("GET", base+"&de=2026-11-17T21:01:00Z&ate=2026-11-17T21:01:30Z", admin, nil)
+	if itens := periodo.corpo["itens"].([]any); len(itens) != 1 || itens[0].(map[string]any)["acao"] != "ACAO_1" {
+		t.Fatalf("filtro de período inesperado: %v", periodo.corpo)
+	}
+	a.chamar("GET", "/api/v1/auditoria/acesso?limite=abc&cursor=!!&de=ontem&profissionalId=x", admin, nil).exigir(t, 422, "VALIDACAO")
+
+	// Log de acesso: as requisições do profissional comum aparecem para o ADMIN, mais recentes primeiro.
+	a.gravador.Fechar()
+	acessos := a.chamar("GET", "/api/v1/auditoria/acesso?limite=2&servico=mike-baguncinha&profissionalId="+idComum, admin, nil)
+	itens := acessos.corpo["itens"].([]any)
+	if len(itens) != 2 || acessos.corpo["proximoCursor"] == nil {
+		t.Fatalf("log de acesso inesperado: %v", acessos.corpo)
+	}
+	ultimo := itens[0].(map[string]any)
+	if ultimo["rota"] != "/api/v1/log" || ultimo["metodo"] != "POST" || ultimo["statusCode"] != float64(200) || ultimo["profissionalId"] != idComum ||
+		ultimo["id"] == "" || ultimo["requestId"] == "" || ultimo["ipCliente"] != "127.0.0.1" {
+		t.Fatalf("LogAcesso fora do contrato: %v", ultimo)
+	}
+	seguinte := a.chamar("GET", "/api/v1/auditoria/acesso?limite=2&profissionalId="+idComum+"&cursor="+acessos.corpo["proximoCursor"].(string), admin, nil)
+	if outros := seguinte.corpo["itens"].([]any); len(outros) == 0 || outros[0].(map[string]any)["id"] == itens[1].(map[string]any)["id"] {
+		t.Fatalf("a 2ª página do log de acesso deveria continuar depois da 1ª: %v", seguinte.corpo)
+	}
+}
+
+func TestTodaRotaSemTokenResponde401(t *testing.T) {
+	a := novoAmbiente(t)
+	rotas := [][2]string{
+		{"POST", "/api/v1/auth/refresh"}, {"POST", "/api/v1/auth/logout"}, {"GET", "/api/v1/auth/me"}, {"POST", "/api/v1/log"},
+		{"GET", "/api/v1/auditoria/acesso"}, {"GET", "/api/v1/auditoria/cliente"},
+		{"GET", "/api/v1/nao-existe"}, {"GET", "/api/v1/auth/login"}, {"DELETE", "/api/v1/log"},
+	}
+	for _, rota := range rotas {
+		a.chamar(rota[0], rota[1], "", nil).exigir(t, 401, "NAO_AUTENTICADO")
+		a.chamar(rota[0], rota[1], "token.invalido.aqui", nil).exigir(t, 401, "NAO_AUTENTICADO")
+	}
+	// Com token, rota desconhecida é 404.
+	_, registro := a.criarProfissional(dominio.PapelProfissional)
+	token := a.login(registro, senhaTeste).corpo["accessToken"].(string)
+	a.chamar("GET", "/api/v1/nao-existe", token, nil).exigir(t, 404, "NAO_ENCONTRADO")
+}
+
+func TestRequisicaoGeraLinhaCompletaNoLogDeAcesso(t *testing.T) {
+	a := novoAmbiente(t)
+	id, registro := a.criarProfissional(dominio.PapelProfissional)
+	token := a.login(registro, senhaTeste).corpo["accessToken"].(string)
+
+	autenticada, anonima := "teste-"+dominio.NovoUUID(), "teste-"+dominio.NovoUUID()
+	antes := time.Now().Add(-time.Second)
+	// O X-Forwarded-For vem de um par não confiável (não há proxies configurados): deve ser ignorado.
+	me := a.chamar("GET", "/api/v1/auth/me?x=1", token, nil, "X-Request-Id", autenticada, "X-Forwarded-For", "1.2.3.4")
+	if me.header.Get("X-Request-Id") != autenticada {
+		t.Fatal("o X-Request-Id recebido deveria voltar na resposta")
+	}
+	a.chamar("GET", "/api/v1/auth/me", "", nil, "X-Request-Id", anonima).exigir(t, 401, "NAO_AUTENTICADO")
+	a.gravador.Fechar() // descarrega o buffer, como no encerramento do processo
+
+	var (
+		dataHora                    time.Time
+		servico, ip, metodo, rota   string
+		profissional                *string
+		status, tempoMs, quantidade int
+	)
+	consulta := `SELECT data_hora, servico, ip_cliente, profissional_id::text, metodo, rota, status_code, tempo_ms, count(*) OVER ()
+	               FROM auditoria.log_acesso WHERE request_id = $1`
+	if err := a.pool.QueryRow(context.Background(), consulta, autenticada).Scan(&dataHora, &servico, &ip, &profissional, &metodo, &rota, &status, &tempoMs, &quantidade); err != nil {
+		t.Fatalf("linha do log de acesso não encontrada: %v", err)
+	}
+	if quantidade != 1 || servico != "mike-baguncinha" || ip != "127.0.0.1" || profissional == nil || *profissional != id || metodo != "GET" ||
+		rota != "/api/v1/auth/me" || status != 200 || tempoMs < 0 || dataHora.Before(antes) || dataHora.After(time.Now().Add(time.Second)) {
+		t.Fatalf("linha incompleta: %v %s %s %v %s %s %d %d (x%d)", dataHora, servico, ip, profissional, metodo, rota, status, tempoMs, quantidade)
+	}
+
+	// O 401 também é registrado, com profissional nulo.
+	if err := a.pool.QueryRow(context.Background(), consulta, anonima).Scan(&dataHora, &servico, &ip, &profissional, &metodo, &rota, &status, &tempoMs, &quantidade); err != nil {
+		t.Fatalf("linha do 401 não encontrada: %v", err)
+	}
+	if profissional != nil || status != 401 || rota != "/api/v1/auth/me" {
+		t.Fatalf("linha do 401 inesperada: %v %d %s", profissional, status, rota)
+	}
+}

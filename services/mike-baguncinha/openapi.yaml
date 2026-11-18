@@ -1,0 +1,291 @@
+openapi: 3.0.3
+info:
+  title: MikeBaguncinha — identidade e auditoria
+  version: 1.0.0
+  description: >
+    Serviço de identidade e auditoria do MedicalField. Fonte de verdade: docs/contratos.md (seções 2 a 5).
+    A porta de gestão (health e JWKS) é separada, sem autenticação, e nunca é roteada pelo gateway.
+servers:
+  - url: http://localhost:8081
+    description: API em desenvolvimento
+  - url: http://localhost:9091
+    description: Porta de gestão em desenvolvimento (/health/*, /jwks.json)
+security:
+  - bearer: []
+paths:
+  /api/v1/auth/login:
+    post:
+      summary: Autentica o profissional
+      description: 5 falhas em 15 min para o mesmo IP + registro respondem 429. Define o cookie `mf_refresh`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/LoginEntrada' }
+      responses:
+        '200':
+          description: Sessão aberta
+          headers:
+            Set-Cookie:
+              schema: { type: string }
+              description: mf_refresh; HttpOnly; SameSite=Strict; Path=/api/v1/auth; Secure em produção
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sessao' }
+        '401': { $ref: '#/components/responses/Erro' }
+        '422': { $ref: '#/components/responses/Erro' }
+        '429': { $ref: '#/components/responses/Erro' }
+        '503': { $ref: '#/components/responses/Erro' }
+  /api/v1/auth/refresh:
+    post:
+      summary: Troca o refresh token por uma sessão nova (rotativo)
+      description: O refresh token vem no corpo ou no cookie `mf_refresh`. O token usado deixa de valer.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshEntrada' }
+      responses:
+        '200':
+          description: Sessão renovada
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Sessao' }
+        '401': { $ref: '#/components/responses/Erro' }
+  /api/v1/auth/logout:
+    post:
+      summary: Revoga a sessão do refresh token (corpo ou cookie) e limpa o cookie
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RefreshEntrada' }
+      responses:
+        '204': { description: Sessão encerrada }
+        '401': { $ref: '#/components/responses/Erro' }
+  /api/v1/auth/me:
+    get:
+      summary: Profissional do token
+      responses:
+        '200':
+          description: Profissional autenticado
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Profissional' }
+        '401': { $ref: '#/components/responses/Erro' }
+  /api/v1/log:
+    post:
+      summary: Recebe logs gerados pelo app (idempotente por id; máx. 500)
+      parameters:
+        - { name: X-Dispositivo-Id, in: header, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [logs]
+              properties:
+                logs:
+                  type: array
+                  maxItems: 500
+                  items: { $ref: '#/components/schemas/LogCliente' }
+      responses:
+        '200':
+          description: Lote processado
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [aceitos, duplicados]
+                properties:
+                  aceitos: { type: integer }
+                  duplicados: { type: integer }
+        '401': { $ref: '#/components/responses/Erro' }
+        '422': { $ref: '#/components/responses/Erro' }
+  /api/v1/auditoria/acesso:
+    get:
+      summary: Log de acesso de todos os serviços, mais recentes primeiro (só ADMIN)
+      parameters:
+        - { $ref: '#/components/parameters/de' }
+        - { $ref: '#/components/parameters/ate' }
+        - { $ref: '#/components/parameters/profissionalId' }
+        - { name: servico, in: query, schema: { type: string, enum: [mike-baguncinha, dona-cida, jaiminho] } }
+        - { $ref: '#/components/parameters/limite' }
+        - { $ref: '#/components/parameters/cursor' }
+      responses:
+        '200':
+          description: Página de logs de acesso
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [itens, proximoCursor]
+                properties:
+                  itens: { type: array, items: { $ref: '#/components/schemas/LogAcesso' } }
+                  proximoCursor: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Erro' }
+        '403': { $ref: '#/components/responses/Erro' }
+        '422': { $ref: '#/components/responses/Erro' }
+  /api/v1/auditoria/cliente:
+    get:
+      summary: Logs enviados pelo app, mais recentes (ocorridoEm) primeiro (só ADMIN)
+      parameters:
+        - { $ref: '#/components/parameters/de' }
+        - { $ref: '#/components/parameters/ate' }
+        - { $ref: '#/components/parameters/profissionalId' }
+        - { $ref: '#/components/parameters/limite' }
+        - { $ref: '#/components/parameters/cursor' }
+      responses:
+        '200':
+          description: Página de logs do cliente
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [itens, proximoCursor]
+                properties:
+                  itens: { type: array, items: { $ref: '#/components/schemas/LogClienteSaida' } }
+                  proximoCursor: { type: string, nullable: true }
+        '401': { $ref: '#/components/responses/Erro' }
+        '403': { $ref: '#/components/responses/Erro' }
+        '422': { $ref: '#/components/responses/Erro' }
+  /health/live:
+    get:
+      summary: (porta de gestão) Processo vivo
+      security: []
+      responses:
+        '200': { description: '{"status":"ok"}' }
+  /health/ready:
+    get:
+      summary: (porta de gestão) Banco responde
+      security: []
+      responses:
+        '200': { description: '{"status":"ok"}' }
+        '503': { description: Banco fora }
+  /jwks.json:
+    get:
+      summary: (porta de gestão) Chave pública Ed25519 que assina os tokens
+      security: []
+      responses:
+        '200':
+          description: JWKS
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        kty: { type: string, enum: [OKP] }
+                        crv: { type: string, enum: [Ed25519] }
+                        kid: { type: string }
+                        x: { type: string }
+                        use: { type: string, enum: [sig] }
+                        alg: { type: string, enum: [EdDSA] }
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT EdDSA de 15 min. Claims iss, sub, nome, tipoRegistro, registro, uf, papel, iat, exp, jti.
+  parameters:
+    de: { name: de, in: query, description: Início (inclusive); data e hora ISO-8601 ou YYYY-MM-DD, schema: { type: string } }
+    ate: { name: ate, in: query, description: Fim (inclusive); data e hora ISO-8601 ou YYYY-MM-DD (dia inteiro), schema: { type: string } }
+    profissionalId: { name: profissionalId, in: query, schema: { type: string, format: uuid } }
+    limite: { name: limite, in: query, description: Acima de 200 é limitado a 200, schema: { type: integer, minimum: 1, maximum: 200, default: 50 } }
+    cursor: { name: cursor, in: query, description: Valor opaco de proximoCursor, schema: { type: string } }
+  responses:
+    Erro:
+      description: Erro no corpo único dos três serviços
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Erro' }
+  schemas:
+    Erro:
+      type: object
+      required: [codigo, mensagem, detalhes, requestId]
+      properties:
+        codigo:
+          type: string
+          enum: [CREDENCIAIS_INVALIDAS, NAO_AUTENTICADO, SEM_PERMISSAO, NAO_ENCONTRADO, VALIDACAO, MUITAS_TENTATIVAS, ERRO_INTERNO, SERVICO_INDISPONIVEL]
+        mensagem: { type: string }
+        detalhes:
+          type: array
+          items:
+            type: object
+            properties:
+              campo: { type: string }
+              mensagem: { type: string }
+        requestId: { type: string }
+    LoginEntrada:
+      type: object
+      required: [tipoRegistro, registro, senha]
+      properties:
+        tipoRegistro: { type: string, enum: [CRM, COREN, SOCORRISTA] }
+        registro: { type: string }
+        uf: { type: string, description: Vazio para SOCORRISTA }
+        senha: { type: string, format: password }
+    RefreshEntrada:
+      type: object
+      properties:
+        refreshToken: { type: string }
+    Profissional:
+      type: object
+      required: [id, nome, tipoRegistro, registro, uf, papel]
+      properties:
+        id: { type: string, format: uuid }
+        nome: { type: string }
+        tipoRegistro: { type: string }
+        registro: { type: string }
+        uf: { type: string }
+        papel: { type: string, enum: [ADMIN, PROFISSIONAL] }
+    Sessao:
+      type: object
+      required: [accessToken, expiraEm, refreshToken, profissional]
+      properties:
+        accessToken: { type: string }
+        expiraEm: { type: integer, description: Segundos (900) }
+        refreshToken: { type: string }
+        profissional: { $ref: '#/components/schemas/Profissional' }
+    LogCliente:
+      type: object
+      required: [id, ocorridoEm, acao, resultado, estavaOnline]
+      properties:
+        id: { type: string, format: uuid }
+        ocorridoEm: { type: string, format: date-time }
+        acao: { type: string }
+        entidade: { type: string }
+        entidadeId: { type: string }
+        resultado: { type: string, enum: [SUCESSO, FALHA] }
+        estavaOnline: { type: boolean }
+        detalhe: { type: object, additionalProperties: true }
+    LogClienteSaida:
+      allOf:
+        - $ref: '#/components/schemas/LogCliente'
+        - type: object
+          required: [profissionalId, dispositivoId, recebidoEm]
+          properties:
+            profissionalId: { type: string, format: uuid }
+            dispositivoId: { type: string, format: uuid, nullable: true }
+            recebidoEm: { type: string, format: date-time }
+    LogAcesso:
+      type: object
+      required: [id, dataHora, servico, ipCliente, profissionalId, metodo, rota, statusCode, tempoMs, requestId]
+      properties:
+        id: { type: string }
+        dataHora: { type: string, format: date-time }
+        servico: { type: string }
+        ipCliente: { type: string }
+        profissionalId: { type: string, format: uuid, nullable: true }
+        metodo: { type: string }
+        rota: { type: string }
+        statusCode: { type: integer }
+        tempoMs: { type: integer }
+        requestId: { type: string }
