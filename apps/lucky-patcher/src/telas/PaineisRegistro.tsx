@@ -10,6 +10,14 @@ import { formatarHora } from '../ui/formato.ts';
 
 export type Registrar = (tipo: TipoEvento, dados: Record<string, unknown>, retificaEventoId?: string) => Promise<boolean>;
 
+/*
+ * Regra dos paineis (D-QA-16): a gravacao e assincrona, e o profissional pode ja estar digitando o
+ * proximo registro quando ela termina. Por isso nenhum painel faz "gravou => limpa o campo" as cegas:
+ * - texto livre (observacao, procedimento): o campo e esvaziado NA HORA do envio e o botao nunca
+ *   trava; os envios entram em fila (Atendimento.tsx). Se a gravacao falhar, o texto volta ao campo,
+ *   na frente do que tiver sido digitado depois;
+ * - os demais: so limpam se o formulario ainda for exatamente o que foi enviado.
+ */
 interface PainelProps {
   registrar: Registrar;
   gravando: boolean;
@@ -63,7 +71,8 @@ export function PainelSinais({ registrar, gravando }: PainelProps) {
     const dados = vitaisPreenchidos(valores);
     setFaltou(Object.keys(dados).length === 0);
     if (Object.keys(dados).length === 0) return;
-    if (await registrar('SINAIS_VITAIS', dados)) setValores({});
+    const enviados = valores;
+    if (await registrar('SINAIS_VITAIS', dados)) setValores((atuais) => (atuais === enviados ? {} : atuais));
   }
 
   return (
@@ -120,7 +129,10 @@ export function PainelGlasgow({ registrar, gravando }: PainelProps) {
         carregando={gravando}
         onClick={async () => {
           setFaltou(total === null);
-          if (total !== null && (await registrar('GLASGOW', { ...componentes, total }))) setRespostas({ ocular: null, verbal: null, motora: null });
+          const enviadas = respostas;
+          if (total !== null && (await registrar('GLASGOW', { ...componentes, total }))) {
+            setRespostas((atuais) => (atuais === enviadas ? { ocular: null, verbal: null, motora: null } : atuais));
+          }
         }}
       >
         {total === null ? 'Registrar Glasgow' : `Registrar Glasgow ${total}`}
@@ -163,7 +175,8 @@ export function PainelTriagem({ registrar, gravando }: PainelProps) {
         carregando={gravando}
         onClick={async () => {
           setFaltou(!valida);
-          if (valida && (await registrar('TRIAGEM', { protocolo, classificacao: cor }))) setCor(null);
+          const enviada = cor;
+          if (valida && (await registrar('TRIAGEM', { protocolo, classificacao: cor }))) setCor((atual) => (atual === enviada ? null : atual));
         }}
       >
         Registrar triagem
@@ -201,11 +214,13 @@ export function PainelMedicacao({
     if (!nome) return;
     const ok = await registrar('MEDICACAO', { medicamentoId: livre ? null : escolha, nome, dose: dose.trim(), unidade: unidade.trim(), via: via.trim() });
     if (ok) {
-      setEscolha('');
-      setNomeLivre('');
-      setDose('');
-      setUnidade('');
-      setVia('');
+      // Cada campo so e limpo se ainda tiver o valor que foi enviado.
+      const limpar = (enviado: string) => (atual: string) => (atual === enviado ? '' : atual);
+      setEscolha(limpar(escolha));
+      setNomeLivre(limpar(nomeLivre));
+      setDose(limpar(dose));
+      setUnidade(limpar(unidade));
+      setVia(limpar(via));
     }
   }
 
@@ -309,7 +324,11 @@ export function PainelTexto({
       noValidate
       onSubmit={async (e) => {
         e.preventDefault();
-        if (await registrar(tipo, { [campo]: texto })) setTexto('');
+        const enviado = texto;
+        setTexto(''); // na hora: o proximo registro ja pode ser digitado
+        const gravou = await registrar(tipo, { [campo]: enviado });
+        // Falhou: o texto volta, sem apagar o que foi digitado enquanto isso.
+        if (!gravou) setTexto((atual) => (atual.trim() ? `${enviado}\n${atual}` : enviado));
       }}
     >
       <CampoArea
@@ -318,7 +337,8 @@ export function PainelTexto({
         onChange={(e) => setTexto(e.target.value)}
         erro={erros[`dados.${campo}`] ? 'Escreva o que registrar.' : undefined}
       />
-      <Botao type="submit" variante="primario" largo carregando={gravando}>
+      {/* Sem `carregando`: travar o botao durante a gravacao descartava o envio seguinte. */}
+      <Botao type="submit" variante="primario" largo aria-busy={gravando || undefined}>
         {tipo === 'PROCEDIMENTO' ? 'Registrar procedimento' : 'Registrar observação'}
       </Botao>
     </form>
@@ -360,9 +380,12 @@ export function PainelRetificacao({ registrar, gravando, erros, eventos }: Paine
     // (o resumo de @medicalfield/dominio descarta o evento retificado e nao le `dadosCorrigidos`).
     if (ok && temValores) ok = await registrar('SINAIS_VITAIS', valores);
     if (ok) {
-      setAlvoId('');
-      setMotivo('');
-      setCorrigidos({});
+      const alvoEnviado = alvoId;
+      const motivoEnviado = motivo;
+      const corrigidosEnviados = corrigidos;
+      setAlvoId((atual) => (atual === alvoEnviado ? '' : atual));
+      setMotivo((atual) => (atual === motivoEnviado ? '' : atual));
+      setCorrigidos((atuais) => (atuais === corrigidosEnviados ? {} : atuais));
     }
   }
 

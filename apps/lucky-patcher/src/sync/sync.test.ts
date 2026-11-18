@@ -512,3 +512,34 @@ describe('conectividade (Observer) e cliente HTTP', () => {
     expect(chamadas).toBe(0);
   });
 });
+
+describe('retificacao', () => {
+  it('dadosCorrigidos sobe como objeto plano de valores simples (contrato da DonaCida); aninhado nem e gravado', async () => {
+    const { app, servidor, ficarOnline } = await montar();
+    const { atendimentoId } = await registrarCaso(app);
+    const [sinais] = await app.atendimentos.eventos(atendimentoId);
+    // O que o painel de retificacao de sinais vitais monta: os valores corrigidos, um nivel so.
+    await app.atendimentos.registrarEvento({
+      atendimentoId,
+      tipo: 'RETIFICACAO',
+      dados: { motivo: 'PA digitada errada', dadosCorrigidos: { pressaoSistolica: 110, pressaoDiastolica: 70 } },
+      retificaEventoId: sinais!.id,
+    });
+    await expect(
+      app.atendimentos.registrarEvento({
+        atendimentoId,
+        tipo: 'RETIFICACAO',
+        dados: { motivo: 'x', dadosCorrigidos: { aninhado: { pressaoSistolica: 110 } } },
+        retificaEventoId: sinais!.id,
+      }),
+    ).rejects.toBeInstanceOf(ErroValidacao);
+
+    await ficarOnline();
+    const enviada = servidor.gravados.map((g) => g.corpo as { tipo?: string; dados?: unknown; retificaEventoId?: string }).filter((c) => c.tipo === 'RETIFICACAO');
+    expect(enviada).toHaveLength(1);
+    expect(enviada[0]).toMatchObject({
+      retificaEventoId: sinais!.id,
+      dados: { motivo: 'PA digitada errada', dadosCorrigidos: { pressaoSistolica: 110, pressaoDiastolica: 70 } },
+    });
+  });
+});

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Build de DEPURACAO (demonstracao em sala): o servidor de demonstracao nao tem TLS
+     (http://10.0.2.2:8088 no emulador, IP da maquina na rede local), entao HTTP e permitido.
+     Este arquivo NAO entra no build de release. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

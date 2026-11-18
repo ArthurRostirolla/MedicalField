@@ -4,6 +4,7 @@ import {
   contar,
   entrar,
   esperarTudoEnviado,
+  estadoLocal,
   local,
   novoPacienteComAtendimento,
   pendentesLocais,
@@ -48,8 +49,7 @@ test('1. login, sincronizar: medicamentos e pessoas ficam no banco local', async
   const [pessoas] = await local<{ n: number }>(page, 'SELECT count(*) AS n FROM pessoa');
   expect(medicamentos!.n).toBe(contar('SELECT count(*) FROM clinico.medicamento'));
   expect(pessoas!.n).toBe(contar('SELECT count(*) FROM clinico.pessoa'));
-  const [cursor] = await local<{ valor: string }>(page, "SELECT valor FROM sync_estado WHERE chave = 'cursor'");
-  expect(Number(cursor!.valor)).toBeGreaterThan(0);
+  expect(Number(await estadoLocal(page, 'cursor'))).toBeGreaterThan(0);
 
   // E a interface le do banco local: a busca acha uma pessoa que so veio pela descida.
   await page.goto('/app/#/pacientes');
@@ -333,4 +333,74 @@ test('8. logs locais chegam a auditoria.log_cliente, sem duplicar', async ({ pag
   await expect.poll(async () => (await local<{ n: number }>(page, `SELECT count(*) AS n FROM log_local WHERE id IN (${ids})`))[0]!.n).toBe(0);
   expect(contar(`SELECT count(*) FROM auditoria.log_cliente WHERE id IN (${ids})`)).toBe(locais.length); // repetiu e nao duplicou
   expect(sql(`SELECT DISTINCT estava_online::text || '|' || (dispositivo_id IS NOT NULL)::text FROM auditoria.log_cliente WHERE id IN (${ids}) AND acao = 'EVENTO_REGISTRADO'`)).toBe('false|true');
+});
+
+test('9. digitacao rapida (D-QA-16): 12 observacoes em sequencia, sem esperar a gravacao, sao todas gravadas e sobem em ordem', async ({ page }) => {
+  await entrar(page);
+  const { atendimentoId } = await novoPacienteComAtendimento(page, unico('Paciente Digitação Rápida'));
+  await page.getByRole('radio', { name: 'Observação' }).check({ force: true });
+  const campo = page.getByRole('textbox', { name: 'Observação' });
+  const botao = page.getByRole('button', { name: 'Registrar observação' });
+  const textos = Array.from({ length: 12 }, (_, i) => `observação rápida ${String(i + 1).padStart(2, '0')}`);
+
+  // Preenche e envia a proxima sem esperar a anterior terminar de gravar (era aqui que 5 de 12 sumiam).
+  for (const texto of textos) {
+    await campo.fill(texto);
+    await botao.click();
+  }
+
+  await expect.poll(async () => (await local<{ n: number }>(page, 'SELECT count(*) AS n FROM atendimento_evento WHERE atendimento_id = ?', [atendimentoId]))[0]!.n).toBe(12);
+  const locais = await local<{ dados: string }>(page, 'SELECT dados FROM atendimento_evento WHERE atendimento_id = ? ORDER BY ocorrido_em, rowid', [atendimentoId]);
+  expect(locais.map((linha) => JSON.parse(linha.dados).texto)).toEqual(textos);
+  await expect(campo).toHaveValue('');
+  await expect(page.getByRole('list', { name: 'Linha do tempo do atendimento' }).getByRole('listitem')).toHaveCount(12);
+
+  await esperarTudoEnviado(page);
+  expect(sql(`SELECT string_agg(dados->>'texto', '|' ORDER BY ocorrido_em, recebido_em) FROM clinico.atendimento_evento WHERE atendimento_id = '${atendimentoId}'`)).toBe(textos.join('|'));
+});
+
+test('10. porta de diagnostico (D-QA-02): com VITE_DIAGNOSTICO, so SELECT; escrita recusada; a sessao nao aparece', async ({ page }) => {
+  await entrar(page);
+  const tentar = (consulta: string) =>
+    page.evaluate(async (c) => {
+      try {
+        return { ok: true, linhas: await (window as unknown as { __mf: { consultar: (s: string) => Promise<unknown[]> } }).__mf.consultar(c) };
+      } catch (erro) {
+        return { ok: false, erro: String(erro) };
+      }
+    }, consulta);
+
+  expect(await page.evaluate(() => Object.keys((window as unknown as { __mf: object }).__mf).sort())).toEqual(['consultar', 'estado']);
+  expect((await tentar('SELECT count(*) AS n FROM medicamento')).ok).toBe(true);
+
+  const antes = await local(page, 'SELECT count(*) AS n FROM outbox');
+  for (const consulta of [
+    "UPDATE outbox SET status = 'CONFIRMADA'",
+    "INSERT INTO medicamento (id, nome) VALUES ('x', 'x')",
+    'DELETE FROM pessoa',
+    'CREATE TABLE IF NOT EXISTS qa_prova_escrita (x INTEGER); INSERT INTO qa_prova_escrita VALUES (42)',
+    'DROP TABLE medicamento',
+    'SELECT 1; DELETE FROM pessoa',
+  ]) {
+    const resultado = await tentar(consulta);
+    expect(resultado, consulta).toMatchObject({ ok: false });
+    expect(resultado.erro).toContain('somente leitura');
+  }
+  expect(await local(page, 'SELECT count(*) AS n FROM outbox')).toEqual(antes);
+  expect(await local(page, "SELECT name FROM sqlite_master WHERE name = 'qa_prova_escrita'")).toEqual([]);
+  expect((await local<{ n: number }>(page, 'SELECT count(*) AS n FROM medicamento'))[0]!.n).toBeGreaterThan(0);
+
+  // A sessao (access e refresh token) nao sai por nenhum caminho da porta.
+  for (const consulta of ["SELECT valor FROM sync_estado WHERE chave = 'sessao'", 'SELECT * FROM SYNC_ESTADO', 'SELECT substr(valor, 1) FROM "sync_estado"']) {
+    expect(await tentar(consulta), consulta).toMatchObject({ ok: false });
+  }
+  const sessao = await page.evaluate(async () => {
+    try {
+      return await (window as unknown as { __mf: { estado: (c: string) => Promise<unknown> } }).__mf.estado('sessao');
+    } catch (erro) {
+      return `recusado: ${String(erro)}`;
+    }
+  });
+  expect(String(sessao)).toMatch(/^recusado/);
+  expect(await estadoLocal(page, 'dispositivo_id')).toMatch(/^[0-9a-f-]{36}$/);
 });

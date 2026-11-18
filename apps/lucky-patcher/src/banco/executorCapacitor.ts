@@ -23,6 +23,11 @@ export async function abrirExecutorNativo(): Promise<ExecutorSql> {
     async consultar<T>(sql: string, params: Parametro[] = []) {
       return ((await banco.query(sql, params)).values ?? []) as T[];
     },
+    async consultarSomenteLeitura<T>(sql: string, params: Parametro[] = []) {
+      // O plugin nao tem modo somente leitura por consulta: aqui a garantia e o filtro da porta de
+      // diagnostico (um unico SELECT) mais o caminho de leitura do plugin (`query`).
+      return ((await banco.query(sql, params)).values ?? []) as T[];
+    },
     async transacao(comandos: ComandoSql[]) {
       // `transaction = true`: o plugin abre a transacao, executa o lote e desfaz tudo se um comando falhar.
       await banco.executeSet(

@@ -14,6 +14,15 @@ export function criarExecutorOo1(banco: BancoOo1): ExecutorSql {
     async consultar<T>(sql: string, params?: Parametro[]) {
       return rodar(sql, params) as T[];
     },
+    async consultarSomenteLeitura<T>(sql: string, params?: Parametro[]) {
+      // Tudo sincrono dentro da mesma chamada: nenhuma escrita do app cai no meio do modo somente leitura.
+      banco.exec('PRAGMA query_only = ON');
+      try {
+        return rodar(sql, params) as T[];
+      } finally {
+        banco.exec('PRAGMA query_only = OFF');
+      }
+    },
     async transacao(comandos: ComandoSql[]) {
       banco.exec('BEGIN IMMEDIATE');
       try {

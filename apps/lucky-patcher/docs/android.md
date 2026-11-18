@@ -9,7 +9,7 @@ O app Android é o mesmo código web dentro de um WebView, com banco SQLite nati
 | `capacitor.config.ts` (`appId` `br.medicalfield.cliente`, nome "MedicalField") | Feito |
 | Build web para Android (`vite build --mode android` → `dist-android/`, base relativa, sem service worker) | Executado, sem erro |
 | `npx cap add android` e `npx cap sync` | Executados: projeto em `android/`, plugins `@capacitor-community/sqlite` e `@capacitor/app` reconhecidos |
-| `android:usesCleartextTraffic="true"` no manifesto (servidor de demonstração sem TLS) | Feito |
+| Tráfego em claro para o servidor de demonstração sem TLS | Só no build de depuração, por `networkSecurityConfig` (ver a atualização 2, no fim) |
 | **APK de depuração** | **NÃO gerado** (ver abaixo) |
 | App rodando em aparelho ou emulador | **Não testado** |
 
@@ -88,3 +88,26 @@ cd apps\lucky-patcher\android; .\gradlew.bat assembleDebug
 ```
 
 O `compileSdk 36` não foi obstáculo. No emulador, o endereço do servidor é `http://10.0.2.2:8088` (o `10.0.2.2` é a máquina hospedeira); num aparelho físico, o IP da máquina na rede.
+
+## Atualização de 18/11/2026 (2) — backup desligado e tráfego em claro só na depuração (D-QA-11)
+
+| O quê | Antes | Agora |
+| --- | --- | --- |
+| Backup do aparelho | `allowBackup="true"` | `allowBackup="false"`, `fullBackupContent="false"` e `dataExtractionRules` (Android 12+) excluindo tudo de backup em nuvem e de transferência entre aparelhos. O banco é cifrado, mas a sessão não deve sair do aparelho |
+| Tráfego em claro (HTTP) | `usesCleartextTraffic="true"` no manifesto, valendo para qualquer build | Decidido por `networkSecurityConfig`, por tipo de build (abaixo) |
+| `capacitor.config.ts` | `server.cleartext: true` | Removido (não é ele quem decide) |
+
+**Depuração** (`assembleDebug`, o APK da demonstração): `android/app/src/debug/res/xml/network_security_config.xml` permite HTTP, porque o servidor de demonstração não tem TLS (`http://10.0.2.2:8088` no emulador, IP da máquina na rede local).
+
+**Release** (`assembleRelease`): `android/app/src/main/res/xml/network_security_config.xml` **proíbe** HTTP. O endereço do servidor informado no app precisa ser `https://…`; com `http://…` a requisição falha e o app se comporta como sem rede (continua registrando, não sincroniza). A única exceção é `localhost`, a origem interna do WebView do Capacitor (arquivos de dentro do APK), que não é rede.
+
+Build de release também troca o pacote web: use `npm run build:android:producao` (sem a porta de diagnóstico `window.__mf`) em vez de `npm run build:android` (depuração, com a porta). Ver o README do app.
+
+```powershell
+npm run build:android:producao -w @medicalfield/lucky-patcher
+cd apps\lucky-patcher\android; .\gradlew.bat assembleRelease   # gera app-release-unsigned.apk; assinar é passo de quem publica
+```
+
+**Verificado em 18/11:** `assembleDebug` e `assembleRelease` concluem (`BUILD SUCCESSFUL`); com `aapt2 dump` nos dois APKs: `allowBackup=false` em ambos, `cleartextTrafficPermitted=true` só no de depuração, e no de release `false` com a exceção de `localhost`.
+
+**Não verificado:** os APKs gerados depois desta mudança **não foram instalados em emulador nem aparelho**. No de depuração o efeito sobre a rede é o mesmo de antes (HTTP liberado); no de release nunca houve teste em aparelho — em especial, falta confirmar que a origem `http://localhost` do WebView abre com a exceção configurada. O APK de release sai sem assinatura.

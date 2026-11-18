@@ -14,10 +14,16 @@ const proxy = {
   '/api/v1': 'http://localhost:8082',
 };
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ mode, command, isPreview }) => {
   // No Android (Capacitor) os arquivos sao servidos da raiz do WebView e nao ha service worker.
-  const android = mode === 'android';
+  const android = mode.startsWith('android');
+  // Porta de diagnostico (window.__mf, somente leitura): ligada no servidor de desenvolvimento, nos
+  // modos de teste (`diagnostico`, `android` = APK de depuracao) e quando o ambiente pede
+  // (VITE_DIAGNOSTICO=1, usado pela imagem web de demonstracao). Fora disso, desligada.
+  const diagnostico =
+    process.env.VITE_DIAGNOSTICO === '1' || (command === 'serve' && !isPreview) || mode === 'diagnostico' || mode === 'android';
   return {
+    define: { 'import.meta.env.VITE_DIAGNOSTICO': JSON.stringify(diagnostico ? '1' : '') },
     base: android ? './' : '/app/',
     build: { outDir: android ? 'dist-android' : 'dist', target: 'es2022' },
     plugins: [
@@ -53,6 +59,6 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: { exclude: ['@sqlite.org/sqlite-wasm'] },
     server: { port: 5182, strictPort: true, proxy },
     preview: { port: 5183, strictPort: true, proxy },
-    test: { include: ['src/**/*.test.ts'], environment: 'node' },
+    test: { include: ['src/**/*.test.{ts,tsx}'], environment: 'node' },
   };
 });

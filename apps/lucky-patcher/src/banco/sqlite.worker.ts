@@ -15,7 +15,7 @@ const pronto: Promise<ExecutorSql> = (async () => {
 
 interface Pedido {
   id: number;
-  metodo: 'consultar' | 'transacao' | 'fechar' | 'abrir';
+  metodo: 'consultar' | 'consultarSomenteLeitura' | 'transacao' | 'fechar' | 'abrir';
   args: unknown[];
 }
 

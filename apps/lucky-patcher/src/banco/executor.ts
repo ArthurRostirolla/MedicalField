@@ -9,6 +9,11 @@ export interface ComandoSql {
 
 export interface ExecutorSql {
   consultar<T = Record<string, unknown>>(sql: string, params?: Parametro[]): Promise<T[]>;
+  /**
+   * Consulta que NAO pode escrever. No SQLite WASM o proprio banco recusa (`PRAGMA query_only`);
+   * no Android vale o caminho de leitura do plugin. So a porta de diagnostico usa.
+   */
+  consultarSomenteLeitura<T = Record<string, unknown>>(sql: string, params?: Parametro[]): Promise<T[]>;
   /** Executa o lote em UMA transacao: ou tudo entra, ou nada. Rejeita se qualquer comando falhar. */
   transacao(comandos: ComandoSql[]): Promise<void>;
   fechar(): Promise<void>;

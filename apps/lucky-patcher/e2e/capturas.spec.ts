@@ -47,7 +47,7 @@ for (const largura of [390, 1280]) {
 
     await entrar(page);
     await esperarTudoEnviado(page);
-    await expect(page.getByTestId('contagem-local')).not.toContainText('0 medicamentos');
+    await expect(page.getByTestId('contagem-local')).not.toHaveText(/^0 medicamentos/);
     await fotografar(page, 'inicio-vazio', largura);
 
     const nome = 'Marlene Antunes Figueiró'; // nome limpo para a captura; o id e que e unico

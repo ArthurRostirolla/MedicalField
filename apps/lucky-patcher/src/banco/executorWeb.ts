@@ -28,6 +28,7 @@ export async function abrirExecutorWeb(): Promise<ExecutorSql> {
   await pedir('abrir'); // falha aqui se o navegador nao tiver OPFS: erro explicito, nunca banco em memoria
   return {
     consultar: <T>(sql: string, params?: Parametro[]) => pedir<T[]>('consultar', sql, params),
+    consultarSomenteLeitura: <T>(sql: string, params?: Parametro[]) => pedir<T[]>('consultarSomenteLeitura', sql, params),
     transacao: (comandos: ComandoSql[]) => pedir<void>('transacao', comandos),
     fechar: async () => {
       await pedir('fechar');

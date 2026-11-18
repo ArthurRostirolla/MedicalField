@@ -42,8 +42,12 @@ async function iniciar() {
       exigeEnderecoServidor: ehNativo(),
       redeDoAparelho: () => navigator.onLine,
     });
-    // Gancho de depuracao e dos testes de ponta a ponta (somente leitura do banco local).
-    (window as unknown as { __mf: unknown }).__mf = { consultar: (sql: string, params?: (string | number | null)[]) => app.banco.consultar(sql, params) };
+    // Porta de diagnostico dos testes automatizados: so entra no pacote quando o build e feito com
+    // VITE_DIAGNOSTICO=1 (ver README). No build de producao normal este bloco nem existe.
+    if (import.meta.env.VITE_DIAGNOSTICO === '1') {
+      const { criarPortaDiagnostico } = await import('./diagnostico.ts');
+      (window as unknown as { __mf: unknown }).__mf = criarPortaDiagnostico(executor);
+    }
     await app.iniciar();
 
     // Gatilhos de sincronizacao que dependem do ambiente: voltar ao primeiro plano e rede do aparelho.

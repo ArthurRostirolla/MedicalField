@@ -51,13 +51,17 @@ export async function entrar(page: Page, registro = '200002'): Promise<void> {
   await expect(page.getByRole('status').filter({ hasText: /sync \d\d:\d\d/ })).toBeVisible({ timeout: 30_000 });
 }
 
-/** Consulta o banco LOCAL do app (SQLite no navegador), somente leitura. */
+/** Consulta o banco LOCAL do app pela porta de diagnostico (um SELECT; so existe com VITE_DIAGNOSTICO=1). */
 export function local<T = Record<string, unknown>>(page: Page, consulta: string, params: Array<string | number | null> = []): Promise<T[]> {
   return page.evaluate(([c, p]) => (window as unknown as { __mf: { consultar: (s: string, p: unknown) => Promise<unknown[]> } }).__mf.consultar(c as string, p), [
     consulta,
     params,
   ] as const) as Promise<T[]>;
 }
+
+/** Chave nao sensivel de sync_estado (cursor, dispositivo_id...). A sessao nao sai pela porta de diagnostico. */
+export const estadoLocal = (page: Page, chave: string): Promise<string | null> =>
+  page.evaluate((c) => (window as unknown as { __mf: { estado: (c: string) => Promise<string | null> } }).__mf.estado(c), chave);
 
 export const pendentesLocais = async (page: Page): Promise<number> =>
   (await local<{ n: number }>(page, "SELECT count(*) AS n FROM outbox WHERE status != 'CONFIRMADA'"))[0]!.n;

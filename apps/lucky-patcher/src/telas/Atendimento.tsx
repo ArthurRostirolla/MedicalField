@@ -1,7 +1,7 @@
 import type { TipoEvento } from '@medicalfield/contratos';
 import { Botao, EstadoErro, EstadoVazio, Esqueleto, Etiqueta, LinhaDoTempo, SeletorSegmentado, SeloSync, type EstadoSync } from '@medicalfield/ui';
 import { ArrowRightLeft, CircleStop, PenLine } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link, useParams } from 'react-router';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConsulta, useGravar } from '../ui/contexto.tsx';
@@ -36,6 +36,8 @@ export function Atendimento() {
   const { gravar, gravando, campos, limparCampos } = useGravar();
   const [modo, setModo] = useState<Modo>('sinais');
   const [recente, setRecente] = useState<{ id: string; tipo: TipoEvento } | null>(null);
+  // Fila de gravacao: registros pedidos em sequencia rapida entram um de cada vez, na ordem pedida.
+  const fila = useRef<Promise<unknown>>(Promise.resolve());
 
   const dados = useConsulta(async () => {
     const atendimento = await app.atendimentos.obter(atendimentoId);
@@ -78,13 +80,17 @@ export function Atendimento() {
   const estados: Record<string, EstadoSync> = Object.fromEntries(eventos.map((evento) => [evento.id, evento.envio]));
   const numeroDoRecente = recente ? eventos.findIndex((evento) => evento.id === recente.id) + 1 : 0;
 
-  const registrar: Registrar = async (tipo, dadosEvento, retificaEventoId) => {
-    let id = '';
-    const ok = await gravar(async () => {
-      id = await app.atendimentos.registrarEvento({ atendimentoId, tipo, dados: dadosEvento, retificaEventoId });
+  const registrar: Registrar = (tipo, dadosEvento, retificaEventoId) => {
+    const vez = fila.current.then(async () => {
+      let id = '';
+      const ok = await gravar(async () => {
+        id = await app.atendimentos.registrarEvento({ atendimentoId, tipo, dados: dadosEvento, retificaEventoId });
+      });
+      if (ok) setRecente({ id, tipo });
+      return ok;
     });
-    if (ok) setRecente({ id, tipo });
-    return ok;
+    fila.current = vez.catch(() => undefined);
+    return vez;
   };
   const trocarModo = (novo: Modo) => {
     setModo(novo);
