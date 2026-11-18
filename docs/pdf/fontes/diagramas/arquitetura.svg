@@ -1,0 +1,86 @@
+<svg viewBox="0 0 760 470" font-family="Archivo Variable, sans-serif" font-size="11">
+      <defs>
+        <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#3d4653"></path></marker>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#c8102e"></path></marker>
+      </defs>
+      <!-- campo -->
+      <rect x="8" y="20" width="190" height="210" rx="8" fill="#fff7f8" stroke="#eab3bc"></rect>
+      <text x="20" y="40" font-size="8.5" font-weight="700" letter-spacing="1" fill="#a30d2a">DISPOSITIVO DO PROFISSIONAL</text>
+      <rect x="22" y="52" width="162" height="62" rx="6" fill="#fff" stroke="#c8102e" stroke-width="1.5"></rect>
+      <text x="103" y="75" text-anchor="middle" font-weight="780" font-size="13">LuckyPatcher</text>
+      <text x="103" y="92" text-anchor="middle" fill="#5e6775" font-size="9.5">Expo · Android / iOS / PWA</text>
+      <text x="103" y="106" text-anchor="middle" fill="#5e6775" font-size="9.5">telas → repositórios</text>
+      <path d="M50 150 a53 8 0 0 0 106 0 v52 a53 8 0 0 1 -106 0z" fill="#fff" stroke="#3d4653"></path>
+      <ellipse cx="103" cy="150" rx="53" ry="8" fill="#fff" stroke="#3d4653"></ellipse>
+      <text x="103" y="176" text-anchor="middle" font-weight="750">SQLite local</text>
+      <text x="103" y="192" text-anchor="middle" fill="#5e6775" font-size="9">dados + outbox + log</text>
+      <path d="M103 114V140" stroke="#3d4653" stroke-width="1.4" marker-end="url(#a)"></path>
+      <text x="110" y="131" fill="#5e6775" font-size="8.5">1 transação</text>
+      <!-- admin -->
+      <rect x="8" y="270" width="190" height="100" rx="8" fill="#fff" stroke="#868f9c"></rect>
+      <text x="20" y="290" font-size="8.5" font-weight="700" letter-spacing="1" fill="#5e6775">NAVEGADOR DO ADMINISTRADOR</text>
+      <rect x="22" y="300" width="162" height="56" rx="6" fill="#fff" stroke="#161b22" stroke-width="1.5"></rect>
+      <text x="103" y="323" text-anchor="middle" font-weight="780" font-size="13">BradPitt</text>
+      <text x="103" y="340" text-anchor="middle" fill="#5e6775" font-size="9.5">portal React + Vite</text>
+      <!-- gateway -->
+      <rect x="250" y="20" width="96" height="350" rx="8" fill="#1b2129"></rect>
+      <text x="298" y="185" text-anchor="middle" fill="#fff" font-weight="780" font-size="13">freeway</text>
+      <text x="298" y="202" text-anchor="middle" fill="#97a1ae" font-size="9.5">Traefik</text>
+      <text x="298" y="218" text-anchor="middle" fill="#97a1ae" font-size="9">:8088 · :443</text>
+      <path d="M184 83H246" stroke="#c8102e" stroke-width="1.6" stroke-dasharray="5 3" marker-end="url(#ar)"></path>
+      <text x="215" y="76" text-anchor="middle" fill="#a30d2a" font-size="8.5">sync</text>
+      <path d="M184 328H246" stroke="#3d4653" stroke-width="1.6" marker-end="url(#a)"></path>
+      <text x="215" y="321" text-anchor="middle" fill="#3d4653" font-size="8.5">HTTPS</text>
+      <!-- services -->
+      <g>
+        <rect x="400" y="20" width="180" height="44" rx="6" fill="#fff" stroke="#868f9c"></rect>
+        <text x="490" y="40" text-anchor="middle" font-weight="750">web (nginx)</text>
+        <text x="490" y="55" text-anchor="middle" fill="#5e6775" font-size="9">/portal/ · /app/</text>
+        <rect x="400" y="84" width="180" height="70" rx="6" fill="#fff" stroke="#00add8" stroke-width="1.6"></rect>
+        <text x="490" y="106" text-anchor="middle" font-weight="780" font-size="12.5">MikeBaguncinha</text>
+        <text x="490" y="122" text-anchor="middle" fill="#00799a" font-size="9.5">Go · identidade e auditoria</text>
+        <text x="490" y="140" text-anchor="middle" fill="#5e6775" font-size="8.5" font-family="Martian Mono Variable, monospace">/auth /log /auditoria</text>
+        <rect x="400" y="174" width="180" height="70" rx="6" fill="#fff" stroke="#3178c6" stroke-width="1.6"></rect>
+        <text x="490" y="196" text-anchor="middle" font-weight="780" font-size="12.5">DonaCida</text>
+        <text x="490" y="212" text-anchor="middle" fill="#3178c6" font-size="9.5">NestJS · clínico e sync</text>
+        <text x="490" y="230" text-anchor="middle" fill="#5e6775" font-size="8" font-family="Martian Mono Variable, monospace">/pessoa /prontuario /atendimento</text>
+        <rect x="400" y="264" width="180" height="70" rx="6" fill="#fff" stroke="#3776ab" stroke-width="1.6"></rect>
+        <text x="490" y="286" text-anchor="middle" font-weight="780" font-size="12.5">Jaiminho</text>
+        <text x="490" y="302" text-anchor="middle" fill="#3776ab" font-size="9.5">FastAPI · PDF e e-mail</text>
+        <text x="490" y="320" text-anchor="middle" fill="#5e6775" font-size="8.5" font-family="Martian Mono Variable, monospace">/documento</text>
+      </g>
+      <g stroke="#3d4653" stroke-width="1.3" fill="none">
+        <path d="M346 42H396" marker-end="url(#a)"></path><path d="M346 119H396" marker-end="url(#a)"></path>
+        <path d="M346 209H396" marker-end="url(#a)"></path><path d="M346 299H396" marker-end="url(#a)"></path>
+      </g>
+      <!-- jwks and jaiminho->cida -->
+      <path d="M585 209 q30 -45 0 -88" stroke="#868f9c" stroke-dasharray="3 3" fill="none" marker-end="url(#a)"></path>
+      <text x="603" y="170" fill="#5e6775" font-size="8.5">JWKS</text>
+      <path d="M585 299 q24 -40 0 -78" stroke="#3d4653" fill="none" marker-end="url(#a)"></path>
+      <text x="598" y="262" fill="#3d4653" font-size="8.5">GET /ficha</text>
+      <!-- postgres -->
+      <path d="M640 110 a55 9 0 0 0 110 0 v220 a55 9 0 0 1 -110 0z" fill="#fff" stroke="#161b22" stroke-width="1.3"></path>
+      <ellipse cx="695" cy="110" rx="55" ry="9" fill="#fff" stroke="#161b22" stroke-width="1.3"></ellipse>
+      <text x="695" y="140" text-anchor="middle" font-weight="780" font-size="12.5">PostgreSQL 17</text>
+      <g font-size="9.5" font-family="Martian Mono Variable, monospace">
+        <rect x="652" y="156" width="86" height="24" rx="3" fill="#e6f7fb" stroke="#00add8"></rect><text x="695" y="172" text-anchor="middle">identidade</text>
+        <rect x="652" y="186" width="86" height="24" rx="3" fill="#e6f7fb" stroke="#00add8"></rect><text x="695" y="202" text-anchor="middle">auditoria</text>
+        <rect x="652" y="216" width="86" height="24" rx="3" fill="#eaf1fb" stroke="#3178c6"></rect><text x="695" y="232" text-anchor="middle">clinico</text>
+        <rect x="652" y="246" width="86" height="24" rx="3" fill="#ebf1f7" stroke="#3776ab"></rect><text x="695" y="262" text-anchor="middle">documentos</text>
+      </g>
+      <text x="695" y="296" text-anchor="middle" fill="#5e6775" font-size="9">1 papel por serviço</text>
+      <text x="695" y="310" text-anchor="middle" fill="#5e6775" font-size="9">mf_mike · mf_cida</text>
+      <text x="695" y="323" text-anchor="middle" fill="#5e6775" font-size="9">mf_jaiminho</text>
+      <g stroke="#161b22" stroke-width="1.2" fill="none" opacity=".75">
+        <path d="M580 105 L648 170" marker-end="url(#a)"></path>
+        <path d="M580 200 L648 228" marker-end="url(#a)"></path>
+        <path d="M580 318 L648 260" marker-end="url(#a)"></path>
+      </g>
+      <!-- smtp -->
+      <rect x="400" y="384" width="180" height="44" rx="6" fill="#fff" stroke="#868f9c"></rect>
+      <text x="490" y="404" text-anchor="middle" font-weight="750">Servidor SMTP</text>
+      <text x="490" y="419" text-anchor="middle" fill="#5e6775" font-size="9">Mailpit na demonstração</text>
+      <path d="M490 334V380" stroke="#3d4653" stroke-width="1.3" marker-end="url(#a)"></path>
+      <text x="497" y="360" fill="#5e6775" font-size="8.5">fila → worker</text>
+      <text x="8" y="455" fill="#5e6775" font-size="9.5">— síncrono (HTTP/JSON)    - - - sincronização do app / leitura do JWKS na porta de gestão 9090 (fora do gateway)</text>
+    </svg>

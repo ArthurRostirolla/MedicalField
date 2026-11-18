@@ -1,0 +1,29 @@
+<svg viewBox="0 0 760 360" font-family="Archivo Variable, sans-serif" font-size="11">
+      <defs><marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0,0L10,5L0,10z" fill="#3d4653"></path></marker></defs>
+      <rect x="6" y="6" width="748" height="348" rx="10" fill="#fff" stroke="#161b22" stroke-dasharray="6 4"></rect>
+      <text x="20" y="26" font-size="9" font-weight="700" letter-spacing="1" fill="#161b22">HOST DOCKER (máquina local ou VM 177.44.248.60)</text>
+      <rect x="20" y="40" width="470" height="150" rx="8" fill="#f7f8fa" stroke="#868f9c"></rect>
+      <text x="32" y="58" font-size="9" font-weight="700" letter-spacing="1" fill="#3d4653">REDE "app" · 172.30.80.0/24</text>
+      <rect x="32" y="70" width="110" height="52" rx="6" fill="#1b2129"></rect><text x="87" y="92" text-anchor="middle" fill="#fff" font-weight="750">traefik</text><text x="87" y="108" text-anchor="middle" fill="#97a1ae" font-size="8.5">IP fixo 172.30.80.2</text>
+      <rect x="160" y="70" width="95" height="52" rx="6" fill="#fff" stroke="#868f9c"></rect><text x="207" y="92" text-anchor="middle" font-weight="750">web</text><text x="207" y="108" text-anchor="middle" fill="#5e6775" font-size="8.5">nginx sem root</text>
+      <rect x="270" y="70" width="95" height="52" rx="6" fill="#fff" stroke="#868f9c"></rect><text x="317" y="92" text-anchor="middle" font-weight="750">mailpit</text><text x="317" y="108" text-anchor="middle" fill="#5e6775" font-size="8.5">UI 127.0.0.1:18025</text>
+      <text x="32" y="150" fill="#5e6775" font-size="9">portas públicas: 8088 (local) · 80 → 443 (VM, redireciona)</text>
+      <rect x="20" y="210" width="470" height="132" rx="8" fill="#fff7f8" stroke="#eab3bc"></rect>
+      <text x="32" y="228" font-size="9" font-weight="700" letter-spacing="1" fill="#a30d2a">REDE "banco" · internal: true (sem saída)</text>
+      <rect x="32" y="240" width="230" height="40" rx="6" fill="#fff" stroke="#868f9c"></rect><text x="147" y="258" text-anchor="middle" font-weight="750">migra-mike · migra-cida · migra-jaiminho</text><text x="147" y="272" text-anchor="middle" fill="#5e6775" font-size="8.5">dbmate como administrador, rodam uma vez</text>
+      <path d="M290 300 a45 7 0 0 0 90 0 v28 a45 7 0 0 1 -90 0z" fill="#fff" stroke="#161b22"></path><ellipse cx="335" cy="300" rx="45" ry="7" fill="#fff" stroke="#161b22"></ellipse>
+      <text x="335" y="322" text-anchor="middle" font-weight="750">postgres</text>
+      <text x="400" y="320" fill="#5e6775" font-size="8.5">volume "dados"</text>
+      <path d="M262 262 L320 292" stroke="#3d4653" marker-end="url(#b)"></path>
+      <!-- services across both -->
+      <rect x="520" y="70" width="220" height="56" rx="6" fill="#fff" stroke="#00add8" stroke-width="1.6"></rect><text x="630" y="92" text-anchor="middle" font-weight="780">mike-baguncinha</text><text x="630" y="110" text-anchor="middle" fill="#5e6775" font-size="8.5">API 8080 · gestão 9090 · 128 MB</text>
+      <rect x="520" y="146" width="220" height="56" rx="6" fill="#fff" stroke="#3178c6" stroke-width="1.6"></rect><text x="630" y="168" text-anchor="middle" font-weight="780">dona-cida</text><text x="630" y="186" text-anchor="middle" fill="#5e6775" font-size="8.5">API 8080 · gestão 9090 · 384 MB</text>
+      <rect x="520" y="222" width="220" height="56" rx="6" fill="#fff" stroke="#3776ab" stroke-width="1.6"></rect><text x="630" y="244" text-anchor="middle" font-weight="780">jaiminho</text><text x="630" y="262" text-anchor="middle" fill="#5e6775" font-size="8.5">API 8080 · gestão 9090 · 384 MB</text>
+      <text x="630" y="300" text-anchor="middle" fill="#3d4653" font-size="9">os 3 serviços estão nas DUAS redes</text>
+      <text x="630" y="314" text-anchor="middle" fill="#5e6775" font-size="8.5">sobem só depois da própria migração</text>
+      <text x="630" y="328" text-anchor="middle" fill="#5e6775" font-size="8.5">(service_completed_successfully)</text>
+      <path d="M142 96 H516" stroke="#3d4653" marker-end="url(#b)" opacity=".6"></path>
+      <path d="M380 312 C470 312 480 250 516 250" stroke="#3d4653" fill="none" opacity=".5"></path>
+      <path d="M380 306 C470 300 470 180 516 176" stroke="#3d4653" fill="none" opacity=".5"></path>
+      <path d="M380 300 C460 280 470 110 516 104" stroke="#3d4653" fill="none" opacity=".5"></path>
+    </svg>
