@@ -1,0 +1,29 @@
+== T-22 backup e restauracao (ciclo completo)
+   no momento do backup: atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26
+   backup.sh: job.batch/backup-manual-20261118033822 created
+   backup.sh: job.batch/backup-manual-20261118033822 condition met
+   backup.sh: total 408K   
+   backup.sh: -rw-r--r--    1 postgres postgres  406.0K Nov 18 03:38 medicalfield-20261118T033823Z.dump
+   backup mais recente: /backups/medicalfield-20261118T033823Z.dump
+PASSOU  T-22 backup.sh gerou arquivo no volume
+   apos o estrago:       atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=4 log_cliente=170 medicamento=15 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26
+   restore.sh: Restaurando do volume: /backups/medicalfield-20261118T033823Z.dump
+   restore.sh: tabelas restauradas: 17
+   restore.sh: Restauracao concluida. Os servicos reconectam sozinhos; nao e preciso reinicia-los.
+   apos restaurar:       atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26
+PASSOU  T-22 contagens iguais as do momento do backup (observado: atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26)
+PASSOU  T-22 md5 dos ids de atendimento_evento (observado: 678ac1cec8a18f556569ef22a24a97c1)
+PASSOU  T-22 linha criada depois do backup sumiu (observado: 0)
+PASSOU  T-22 linha adulterada voltou ao original (observado: 0)
+PASSOU  T-22 permissoes dos papeis preservadas (mf_cida: INSERT,SELECT em atendimento_evento) (observado: INSERT,SELECT)
+PASSOU  T-22 trigger do cursor de sincronizacao preservado (observado: t)
+PASSOU  T-22 leitura pela API apos restaurar (observado: 200)
+PASSOU  T-22 escrita pela API apos restaurar (seq continua) (observado: 201)
+PASSOU  T-22 seq da pessoa nova e o maior do banco (cursor nao regrediu) (observado: t)
+   exportar: -rw-r--r-- 1 arthur.rostirolla 1049089 407K Nov 18 00:38 C:/Users/ARTHUR~1.ROS/AppData/Local/Temp/tmp.ITWAIsG1eJ/qa-export.dump
+PASSOU  T-22 exportar gerou dump local (416049 bytes)
+   restore.sh (arquivo local): tabelas restauradas: 17
+   restore.sh (arquivo local): Restauracao concluida. Os servicos reconectam sozinhos; nao e preciso reinicia-los.
+PASSOU  T-22 restauracao a partir do arquivo local: contagens (observado: atendimento=26 atendimento_evento=48 auditoria_clinica=156 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=31 profissional=3 prontuario=23 prontuario_item=26)
+   backups no volume: 1
+--- 12 passaram, 0 falharam

@@ -1,0 +1,8 @@
+== QA-18 cursor de sincronizacao depois de uma restauracao
+cursor do dispositivo no momento do backup: 107
+dispositivo sincroniza apos M1: 108 meds=QA M1 criado depois do backup
+restaurado o backup (M1 nao existe mais: 0 linhas)
+seq atribuido a M2: 108
+dispositivo (cursor 108) sincroniza apos M2: 108 meds=
+FALHOU  QA-18 o dispositivo com cursor 108 NAO recebe M2 (seq reutilizado <= cursor); so uma sincronizacao desde=0 o traria: 1 ocorrencia
+--- 0 passaram, 1 falharam

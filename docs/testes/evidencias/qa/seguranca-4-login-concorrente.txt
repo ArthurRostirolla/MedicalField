@@ -1,0 +1,15 @@
+== QA-14 logins simultaneos (Argon2 19 MiB cada) contra o limite de memoria do Mike
+limites: {"limits":{"memory":"96Mi"},"requests":{"cpu":"25m","memory":"32Mi"}}
+reinicios antes: 0
+-- 4 logins em paralelo (registros inexistentes distintos)
+401 401 401 401 
+mike-baguncinha-684f449468-nzdcw reinicios=0 ultimoTermino= pronto=true
+-- 8 logins em paralelo (registros inexistentes distintos)
+502 502 502 502 502 502 502 502 
+mike-baguncinha-684f449468-nzdcw reinicios=1 ultimoTermino=OOMKilled pronto=true
+-- 16 logins em paralelo (registros inexistentes distintos)
+401 401 401 401 502 502 502 502 502 502 429 429 429 429 429 429 
+mike-baguncinha-684f449468-nzdcw reinicios=1 ultimoTermino=OOMKilled pronto=false
+-- 32 logins em paralelo (registros inexistentes distintos)
+503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 503 
+mike-baguncinha-684f449468-nzdcw reinicios=1 ultimoTermino=OOMKilled pronto=false

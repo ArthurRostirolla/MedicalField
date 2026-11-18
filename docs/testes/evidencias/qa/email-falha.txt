@@ -1,0 +1,25 @@
+backoff configurado: padrao do contrato (60,300,900,3600)
+documento 030336e9-a92d-423a-a92d-383f4f62ae99
+== Mailpit para 0 replicas (SMTP recusa conexao)
+PASSOU  T-19 pedido de envio aceito mesmo com o SMTP fora (observado: 202)
+   +0 s: PENDENTE|1|SMTPConnectError|2026-11-18T03:27:36.957Z
+PASSOU  T-19 apos a 1a falha: status (observado: PENDENTE)
+PASSOU  T-19 apos a 1a falha: tentativas (observado: 1)
+   +65 s: PENDENTE|2|SMTPConnectError|2026-11-18T03:32:36.988Z
+PASSOU  T-19 apos a 2a falha (cerca de 60 s depois): tentativas (observado: 2)
+PASSOU  T-19 segue PENDENTE (nao desistiu) (observado: PENDENTE)
+   ultimo_erro no banco: [SMTPConnectError]
+PASSOU  T-19 ultimo_erro preenchido
+PASSOU  T-19 ultimo_erro sem nome do paciente, destinatario ou conteudo clinico
+Defaulted container "jaiminho" out of: jaiminho, migracoes (init)
+PASSOU  T-19 linhas do log do Jaiminho com paciente/destinatario durante a falha (observado: 0)
+Defaulted container "jaiminho" out of: jaiminho, migracoes (init)
+   log do Jaiminho sobre o envio: {"nivel": "info", "tipo": "acesso", "dataHora": "2026-11-18T03:27:41.800Z", "servico": "jaiminho", "ipCliente": "172.30.77.1", "profissionalId": "0d5b1c1e-7a10-4c1e-9b11-000000000002", "metodo": "GET", "rota": "/api/v1/documento/{id}/email", "statusCode": 200,
+{"nivel": "info", "tipo": "acesso", "dataHora": "2026-11-18T03:27:42.029Z", "servico": "jaiminho", "ipCliente": "172.30.77.1", "profissionalId": "0d5b1c1e-7a10-4c1e-9b11-000000000002", "metodo": "GET", "rota": "/api/v1/documento/{id}/email", "statusCode": 200,
+== Mailpit de volta; ninguem pede reenvio
+   proxima tentativa agendada para 2026-11-18T03:32:36.988Z; esperando o worker (ate 6 min)...
+   +368 s: ENVIADO|3|null|null
+PASSOU  T-19 status final sem intervencao (observado: ENVIADO)
+PASSOU  T-19 tentativas ao concluir (observado: 3)
+PASSOU  T-19 mensagens no Mailpit para o destinatario | anexos (observado: 1|1)
+--- 11 passaram, 0 falharam

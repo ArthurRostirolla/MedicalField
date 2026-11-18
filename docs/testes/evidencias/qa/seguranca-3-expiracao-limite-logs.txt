@@ -1,0 +1,45 @@
+== T-03 token expirado de verdade (assinado pelo Mike, exp no passado) -> 401 nos tres servicos
+   exp=2026-11-18T03:14:23.000Z agora=2026-11-18T03:17:25.347Z expirado ha 182 s
+PASSOU  T-03 mike com token expirado (NAO_AUTENTICADO) (observado: 401)
+PASSOU  T-03 cida com token expirado (NAO_AUTENTICADO) (observado: 401)
+PASSOU  T-03 jaiminho com token expirado (NAO_AUTENTICADO) (observado: 401)
+== T-02 limite de tentativas de login com registro INEXISTENTE
+   tentativa 1 -> 401 CREDENCIAIS_INVALIDAS | Registro ou senha inválidos.
+PASSOU  T-02 tentativa 1 (falha generica) (observado: 401)
+   tentativa 2 -> 401 CREDENCIAIS_INVALIDAS | Registro ou senha inválidos.
+PASSOU  T-02 tentativa 2 (falha generica) (observado: 401)
+   tentativa 3 -> 401 CREDENCIAIS_INVALIDAS | Registro ou senha inválidos.
+PASSOU  T-02 tentativa 3 (falha generica) (observado: 401)
+   tentativa 4 -> 401 CREDENCIAIS_INVALIDAS | Registro ou senha inválidos.
+PASSOU  T-02 tentativa 4 (falha generica) (observado: 401)
+   tentativa 5 -> 401 CREDENCIAIS_INVALIDAS | Registro ou senha inválidos.
+PASSOU  T-02 tentativa 5 (falha generica) (observado: 401)
+   tentativa 6 -> 429 MUITAS_TENTATIVAS | Muitas tentativas de login. Tente novamente em alguns minutos.
+PASSOU  T-02 tentativa 6 (bloqueada) (observado: 429)
+   tentativa 7 -> 429 MUITAS_TENTATIVAS | Muitas tentativas de login. Tente novamente em alguns minutos.
+PASSOU  T-02 tentativa 7 (bloqueada) (observado: 429)
+PASSOU  T-02 linhas de log_acesso do login com profissional_id nulo e status 401/429 no ultimo minuto (observado: t)
+   o bloqueio e por IP+registro: outro registro inexistente, mesmo IP -> 401 (esperado 401)
+   variar caixa/UF nao contorna: 429 (esperado 429)
+== QA-12 limite de taxa do gateway no login (10/min por IP) -> 429 do Traefik
+401 401 401 401 401 401 401 401 401 401 401 401 401 401 
+FALHOU  QA-12 nenhuma das 14 tentativas em rajada recebeu 429
+   esperando 65 s para o balde do gateway esvaziar...
+== QA-13 logs dos pods e auditoria.log_acesso sem senha, token, corpo ou dado de paciente
+   1315 linhas de log coletadas (mike, cida, jaiminho, web, traefik)
+PASSOU  QA-13 ocorrencias da senha de demonstracao nos logs (observado: 0)
+PASSOU  QA-13 ocorrencias de JWT (eyJhbGciOiJFZERTQS) nos logs (observado: 0)
+PASSOU  QA-13 ocorrencias de 'Bearer ' nos logs (observado: 0)
+PASSOU  QA-13 ocorrencias de 'refreshToken'/'mf_refresh=' nos logs (observado: 0)
+PASSOU  QA-13 ocorrencias de '"senha"' nos logs (observado: 0)
+PASSOU  QA-13 linhas de log com nome/CPF de paciente, item de prontuario ou e-mail de destinatario (53 padroes) (observado: 0)
+PASSOU  QA-13 query string nas rotas de log_acesso (observado: 0)
+PASSOU  QA-13 ids (uuid) nas rotas de log_acesso (observado: 0)
+   rotas distintas gravadas: (rota desconhecida) ; *path ; /api/v1/ ; /api/v1/atendimento ; /api/v1/atendimento-evento ; /api/v1/atendimento/{pessoaId} ; /api/v1/auditoria/acesso ; /api/v1/auditoria/cliente ; /api/v1/auth/login ; /api/v1/auth/logout ; /api/v1/auth/me ; /api/v1/auth/refresh ; /api/v1/documento ; /api/v1/documento/email/{envioId}/reenvio ; /api/v1/documento/ficha-atendimento ; /api/v1/documento/{id} ; /api/v1/documento/{id}/email ; /api/v1/documento/{id}/pdf ; /api/v1/ficha/{atendimentoId} ; /api/v1/log ; /api/v1/medicamento ; /api/v1/pessoa ; /api/v1/pessoa/{id} ; /api/v1/prontuario ; /api/v1/prontuario-item ; /api/v1/prontuario-item/{id}/inativacao ; /api/v1/prontuario/{pessoaId} ; /api/v1/sync/alteracoes ; rota-desconhecida
+   colunas de log_acesso: id, data_hora, servico, ip_cliente, profissional_id, metodo, rota, status_code, tempo_ms, request_id
+PASSOU  QA-13 linhas de log_acesso com 'eyJ' ou a senha em qualquer coluna (observado: 0)
+   linhas de acesso em stdout: 503
+   exemplo: {"nivel":"info","tipo":"acesso","dataHora":"2026-11-18T03:16:47.787Z","servico":"dona-cida","ipCliente":"172.30.77.1","profissionalId":"0d5b1c1e-7a10-4c1e-9b11-000000000002","metodo":"PATCH","rota":"/api/v1/pessoa/{id}","statusCode":200,"tempoMs":5,"requestId":"61474999-53d5-48a6-b4c4-62a31dcbd3b0"}
+   exemplo: {"nivel":"info","tipo":"acesso","dataHora":"2026-11-18T03:16:50.156Z","servico":"dona-cida","ipCliente":"172.30.77.1","profissionalId":"0d5b1c1e-7a10-4c1e-9b11-000000000002","metodo":"PATCH","rota":"/api/v1/pessoa/{id}","statusCode":200,"tempoMs":5,"requestId":"cc77d024-3053-46ff-be51-156be1467d6b"}
+   exemplo: {"nivel":"info","tipo":"acesso","dataHora":"2026-11-18T03:17:25.842Z","servico":"dona-cida","ipCliente":"172.30.77.1","profissionalId":null,"metodo":"GET","rota":"/api/v1/medicamento","statusCode":401,"tempoMs":1,"requestId":"6821cc20-20dd-4643-81df-30e4bc19eeeb"}
+--- 20 passaram, 1 falharam

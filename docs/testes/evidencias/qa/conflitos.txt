@@ -1,0 +1,97 @@
+
+=== execução 2026-11-18T03:15:52.495Z (marca MWLJU3QJ) ===
+dispositivo A=? B=?
+offline: prontuário local de A=3a60ddf9-0d41-441c-8407-ff97e1867af9 e de B=449b47f4-2280-4302-a24a-bad7d2f21264 para a mesma pessoa (ids diferentes)
+offline: 0 atendimentos e 0 pessoas com o CPF na central antes da volta
+os dois esvaziaram a fila; 0 operações REJEITADA em A e em B
+1a itens ativos da pessoa com prontuário: Alergia A MWLJU3QJ | Alergia B MWLJU3QJ | Alergia base MWLJU3QJ
+1b itens da pessoa sem prontuário prévio: Alergia A2 MWLJU3QJ | Alergia B2 MWLJU3QJ
+1b atendimentos na central:
+b2dff3a8-8210-4ff9-b2b1-c00ddc33b5a4 prontuario=bac272cc-8b48-44ee-91b8-47bf8facb7ef eventos=1
+185ef97e-e3c4-4467-abdb-98bf9875c271 prontuario=bac272cc-8b48-44ee-91b8-47bf8facb7ef eventos=1
+dcf1affd-affd-445b-8920-7fbbfd49cdee prontuario=3a60ddf9-0d41-441c-8407-ff97e1867af9 eventos=1
+5a711072-58bb-42bc-9958-83ed390bd6fc prontuario=3a60ddf9-0d41-441c-8407-ff97e1867af9 eventos=1
+1b: 1 prontuário por pessoa; 4 atendimentos aceitos, todos com evento, mesmo prontuário
+1c pessoas com o CPF:
+c72d8969-0bea-4a85-8ba0-e6e0f48c24a0 | QA Duplicata A MWLJU3QJ | duplicataDe=null
+53fea2d0-aec7-495a-b1cf-27d269ac4564 | QA Duplicata B MWLJU3QJ | duplicataDe=c72d8969-0bea-4a85-8ba0-e6e0f48c24a0
+dispositivo A, itens locais após ressincronizar: Alergia A MWLJU3QJ | Alergia B MWLJU3QJ | Alergia base MWLJU3QJ
+dispositivo A: prontuário local 3a60ddf9-0d41-441c-8407-ff97e1867af9 × central 3a60ddf9-0d41-441c-8407-ff97e1867af9
+dispositivo B, itens locais após ressincronizar: Alergia A MWLJU3QJ | Alergia B MWLJU3QJ | Alergia base MWLJU3QJ
+dispositivo B: prontuário local 3a60ddf9-0d41-441c-8407-ff97e1867af9 × central 3a60ddf9-0d41-441c-8407-ff97e1867af9
+
+=== execução 2026-11-18T03:16:09.072Z (marca MWLJUGRZ) ===
+1d após B(-10min) e A(-20min, chegou depois): 5122222222 | Contato de A  (HTTP 200/200)
+1d editadoEm mais antigo (HTTP 200) não sobrescreveu o nome
+1d auditoria_clinica da pessoa:
+CRIACAO antes=- depois={"id": "eafcfe08-0b48-432a-b62c-bfeace250b5b", "cns": null, "cpf": null, "nome": "QA LWW MWLJUGRZ", "sexo": null, "telefone": "5100000000", "dataNascimento": null, "naoIdentificada": false, "possivelDuplicataDe": null, "contatoEmergenciaNome": null, "contatoEmergenciaEmail": null, "descricaoIdentificacao": null, "contatoEmergenciaTelefone": null} obs=-
+ALTERACAO antes={"telefone": "5100000000"} depois={"telefone": "5122222222"} obs=-
+ALTERACAO antes={"contatoEmergenciaNome": null} depois={"contatoEmergenciaNome": "Contato de A"} obs=campos mantidos por terem edição mais recente: telefone
+ALTERACAO antes={} depois={} obs=campos mantidos por terem edição mais recente: nome
+ALTERACAO antes={"telefone": "5122222222"} depois={"telefone": "5133333333"} obs=-
+1d relógio adiantado: HTTP 200; carimbo do campo <= agora do servidor? t; observação: editadoEm adiantado (2026-11-19T03:16:10.668Z) limitado ao horário do servidor (2026-11-18T03:16:10.670Z); carimbos={"nome": "2026-11-18T02:16:09.559Z", "telefone": "2026-11-18T03:16:10.670Z", "contatoEmergenciaNome": "2026-11-18T02:56:09.584Z"}
+1d edição legítima posterior ao relógio adiantado: telefone=5144444444
+
+=== execução 2026-11-18T03:16:32.704Z (marca MWLJUZ0C) ===
+dispositivo A=? B=?
+offline: prontuário local de A=d5b5e407-e516-434a-ab07-717e9fb781b3 e de B=96df5be3-06ad-4475-885b-f8379238a2e0 para a mesma pessoa (ids diferentes)
+offline: 0 atendimentos e 0 pessoas com o CPF na central antes da volta
+os dois esvaziaram a fila; 0 operações REJEITADA em A e em B
+1a itens ativos da pessoa com prontuário: Alergia A MWLJUZ0C | Alergia B MWLJUZ0C | Alergia base MWLJUZ0C
+1b itens da pessoa sem prontuário prévio: Alergia A2 MWLJUZ0C | Alergia B2 MWLJUZ0C
+1b atendimentos na central:
+ea95c45a-8b43-47d9-a929-d663e7b1678b prontuario=ca92683c-5673-4972-bf5a-18e9bc9d8f3c eventos=1
+10943161-fc9d-4518-9258-938a2c31362a prontuario=ca92683c-5673-4972-bf5a-18e9bc9d8f3c eventos=1
+e793ff7e-6e7b-4455-81eb-4cccfb684e2d prontuario=d5b5e407-e516-434a-ab07-717e9fb781b3 eventos=1
+5405cf2e-108c-4ae4-bda2-12740d8f885a prontuario=d5b5e407-e516-434a-ab07-717e9fb781b3 eventos=1
+1b: 1 prontuário por pessoa; 4 atendimentos aceitos, todos com evento, mesmo prontuário
+1c pessoas com o CPF:
+78a8b049-1ea9-468b-b1dc-696fc3091e73 | QA Duplicata A MWLJUZ0C | duplicataDe=null
+c4d51d8c-faea-4753-a1c4-f4b6474e251b | QA Duplicata B MWLJUZ0C | duplicataDe=78a8b049-1ea9-468b-b1dc-696fc3091e73
+dispositivo A, itens locais após ressincronizar: Alergia A MWLJUZ0C | Alergia B MWLJUZ0C | Alergia base MWLJUZ0C
+dispositivo A: prontuário local d5b5e407-e516-434a-ab07-717e9fb781b3 × central d5b5e407-e516-434a-ab07-717e9fb781b3
+dispositivo B, itens locais após ressincronizar: Alergia A MWLJUZ0C | Alergia B MWLJUZ0C | Alergia base MWLJUZ0C
+dispositivo B: prontuário local d5b5e407-e516-434a-ab07-717e9fb781b3 × central d5b5e407-e516-434a-ab07-717e9fb781b3
+1c portal: "QA Duplicata B MWLJUZ0C" visível em Possíveis duplicatas (captura conflitos-portal-duplicatas.png)
+1d após B(-10min) e A(-20min, chegou depois): 5122222222 | Contato de A  (HTTP 200/200)
+1d editadoEm mais antigo (HTTP 200) não sobrescreveu o nome
+1d auditoria_clinica da pessoa:
+CRIACAO antes=- depois={"id": "5f67e771-9adf-4665-b0f1-14533e94b655", "cns": null, "cpf": null, "nome": "QA LWW MWLJUZ0C", "sexo": null, "telefone": "5100000000", "dataNascimento": null, "naoIdentificada": false, "possivelDuplicataDe": null, "contatoEmergenciaNome": null, "contatoEmergenciaEmail": null, "descricaoIdentificacao": null, "contatoEmergenciaTelefone": null} obs=-
+ALTERACAO antes={"telefone": "5100000000"} depois={"telefone": "5122222222"} obs=-
+ALTERACAO antes={"contatoEmergenciaNome": null} depois={"contatoEmergenciaNome": "Contato de A"} obs=campos mantidos por terem edição mais recente: telefone
+ALTERACAO antes={} depois={} obs=campos mantidos por terem edição mais recente: nome
+ALTERACAO antes={"telefone": "5122222222"} depois={"telefone": "5133333333"} obs=-
+1d relógio adiantado: HTTP 200; carimbo do campo <= agora do servidor? t; observação: editadoEm adiantado (2026-11-19T03:16:47.785Z) limitado ao horário do servidor (2026-11-18T03:16:47.788Z); carimbos={"nome": "2026-11-18T02:16:46.608Z", "telefone": "2026-11-18T03:16:47.788Z", "contatoEmergenciaNome": "2026-11-18T02:56:46.637Z"}
+1d edição legítima posterior ao relógio adiantado: telefone=5144444444
+
+=== execução 2026-11-18T03:39:53.040Z (marca MWLKOZKC) ===
+dispositivo A=? B=?
+offline: prontuário local de A=fb26a503-760d-4acf-b610-c6e6f104a0e1 e de B=3afac9bc-fb4e-4cd6-ae31-74d5462661eb para a mesma pessoa (ids diferentes)
+offline: 0 atendimentos e 0 pessoas com o CPF na central antes da volta
+os dois esvaziaram a fila; 0 operações REJEITADA em A e em B
+1a itens ativos da pessoa com prontuário: Alergia A MWLKOZKC | Alergia B MWLKOZKC | Alergia base MWLKOZKC
+1b itens da pessoa sem prontuário prévio: Alergia A2 MWLKOZKC | Alergia B2 MWLKOZKC
+1b atendimentos na central:
+518ea359-2b56-4325-978b-671410bbe1b0 prontuario=f3a35715-e1c8-443c-b359-ee1b3d625aaa eventos=1
+d122f975-8431-4129-a8df-f437b0934e8f prontuario=f3a35715-e1c8-443c-b359-ee1b3d625aaa eventos=1
+5ed7f20f-9e06-493d-b4a6-a95a3cd405f8 prontuario=fb26a503-760d-4acf-b610-c6e6f104a0e1 eventos=1
+8e86bd95-1c9e-403b-a534-f241dd8ad2e1 prontuario=fb26a503-760d-4acf-b610-c6e6f104a0e1 eventos=1
+1b: 1 prontuário por pessoa; 4 atendimentos aceitos, todos com evento, mesmo prontuário
+1c pessoas com o CPF:
+308645a3-70d6-4321-a477-91f6f044cf97 | QA Duplicata A MWLKOZKC | duplicataDe=null
+bea52d61-6eff-4ac3-a869-89cf088e4114 | QA Duplicata B MWLKOZKC | duplicataDe=308645a3-70d6-4321-a477-91f6f044cf97
+dispositivo A, itens locais após ressincronizar: Alergia A MWLKOZKC | Alergia B MWLKOZKC | Alergia base MWLKOZKC
+dispositivo A: prontuário local fb26a503-760d-4acf-b610-c6e6f104a0e1 × central fb26a503-760d-4acf-b610-c6e6f104a0e1
+dispositivo B, itens locais após ressincronizar: Alergia A MWLKOZKC | Alergia B MWLKOZKC | Alergia base MWLKOZKC
+dispositivo B: prontuário local fb26a503-760d-4acf-b610-c6e6f104a0e1 × central fb26a503-760d-4acf-b610-c6e6f104a0e1
+1c portal: "QA Duplicata B MWLKOZKC" visível em Possíveis duplicatas (captura conflitos-portal-duplicatas.png)
+1d após B(-10min) e A(-20min, chegou depois): 5122222222 | Contato de A  (HTTP 200/200)
+1d editadoEm mais antigo (HTTP 200) não sobrescreveu o nome
+1d auditoria_clinica da pessoa:
+CRIACAO antes=- depois={"id": "031752c3-cd62-4250-b536-ade9b7974db4", "cns": null, "cpf": null, "nome": "QA LWW MWLKOZKC", "sexo": null, "telefone": "5100000000", "dataNascimento": null, "naoIdentificada": false, "possivelDuplicataDe": null, "contatoEmergenciaNome": null, "contatoEmergenciaEmail": null, "descricaoIdentificacao": null, "contatoEmergenciaTelefone": null} obs=-
+ALTERACAO antes={"telefone": "5100000000"} depois={"telefone": "5122222222"} obs=-
+ALTERACAO antes={"contatoEmergenciaNome": null} depois={"contatoEmergenciaNome": "Contato de A"} obs=campos mantidos por terem edição mais recente: telefone
+ALTERACAO antes={} depois={} obs=campos mantidos por terem edição mais recente: nome
+ALTERACAO antes={"telefone": "5122222222"} depois={"telefone": "5133333333"} obs=-
+1d relógio adiantado: HTTP 200; carimbo do campo <= agora do servidor? t; observação: editadoEm adiantado (2026-11-19T03:40:07.183Z) limitado ao horário do servidor (2026-11-18T03:40:07.187Z); carimbos={"nome": "2026-11-18T02:40:06.013Z", "telefone": "2026-11-18T03:40:07.187Z", "contatoEmergenciaNome": "2026-11-18T03:20:06.043Z"}
+1d edição legítima posterior ao relógio adiantado: telefone=5144444444

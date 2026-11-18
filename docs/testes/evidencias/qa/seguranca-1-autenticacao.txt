@@ -1,0 +1,83 @@
+== QA-01 toda rota do contrato sem token -> 401 (29 rotas)
+PASSOU  QA-01 POST /api/v1/auth/refresh sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/auth/logout sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/auth/me sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/log sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/auditoria/acesso sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/auditoria/cliente sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/medicamento sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/prontuario sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/prontuario/00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/prontuario sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/prontuario-item sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/prontuario-item/00000000-0000-4000-8000-000000000000/inativacao sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/pessoa sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/pessoa sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/pessoa/00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 PATCH /api/v1/pessoa/00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/atendimento/00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/atendimento sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/atendimento sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/atendimento-evento sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/ficha/00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/sync/alteracoes?desde=0 sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/documento/ficha-atendimento sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/documento/00000000-0000-4000-8000-000000000000 sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/documento/00000000-0000-4000-8000-000000000000/pdf sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/documento/00000000-0000-4000-8000-000000000000/email sem token (observado: 401)
+PASSOU  QA-01 GET /api/v1/documento/00000000-0000-4000-8000-000000000000/email sem token (observado: 401)
+PASSOU  QA-01 POST /api/v1/documento/email/00000000-0000-4000-8000-000000000000/reenvio sem token (observado: 401)
+== QA-01b rotas com esquema de autorizacao errado / token vazio
+PASSOU  QA-01b Authorization: Basic (observado: 401)
+PASSOU  QA-01b Authorization: Bearer (vazio) (observado: 401)
+PASSOU  QA-01b token na query string e ignorado (observado: 401)
+== QA-02 tokens forjados nos tres servicos -> 401
+PASSOU  QA-02 token 'assinatura' em /api/v1/auth/me (observado: 401)
+PASSOU  QA-02 token 'assinatura' em /api/v1/auditoria/acesso (observado: 401)
+PASSOU  QA-02 token 'assinatura' em /api/v1/medicamento (observado: 401)
+PASSOU  QA-02 token 'assinatura' em /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 (observado: 401)
+PASSOU  QA-02 token 'payload' em /api/v1/auth/me (observado: 401)
+PASSOU  QA-02 token 'payload' em /api/v1/auditoria/acesso (observado: 401)
+PASSOU  QA-02 token 'payload' em /api/v1/medicamento (observado: 401)
+PASSOU  QA-02 token 'payload' em /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 (observado: 401)
+PASSOU  QA-02 token 'outra-chave' em /api/v1/auth/me (observado: 401)
+PASSOU  QA-02 token 'outra-chave' em /api/v1/auditoria/acesso (observado: 401)
+PASSOU  QA-02 token 'outra-chave' em /api/v1/medicamento (observado: 401)
+PASSOU  QA-02 token 'outra-chave' em /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 (observado: 401)
+PASSOU  QA-02 token 'none' em /api/v1/auth/me (observado: 401)
+PASSOU  QA-02 token 'none' em /api/v1/auditoria/acesso (observado: 401)
+PASSOU  QA-02 token 'none' em /api/v1/medicamento (observado: 401)
+PASSOU  QA-02 token 'none' em /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 (observado: 401)
+PASSOU  QA-02 token 'expirado' em /api/v1/auth/me (observado: 401)
+PASSOU  QA-02 token 'expirado' em /api/v1/auditoria/acesso (observado: 401)
+PASSOU  QA-02 token 'expirado' em /api/v1/medicamento (observado: 401)
+PASSOU  QA-02 token 'expirado' em /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 (observado: 401)
+PASSOU  QA-02 token 'hs256' em /api/v1/auth/me (observado: 401)
+PASSOU  QA-02 token 'hs256' em /api/v1/auditoria/acesso (observado: 401)
+PASSOU  QA-02 token 'hs256' em /api/v1/medicamento (observado: 401)
+PASSOU  QA-02 token 'hs256' em /api/v1/documento?atendimentoId=00000000-0000-4000-8000-000000000000 (observado: 401)
+PASSOU  QA-02 controle: token valido em /medicamento (observado: 200)
+== T-04 PROFISSIONAL em /auditoria/* -> 403; ADMIN -> 200
+PASSOU  T-04 PROFISSIONAL /auditoria/acesso (observado: 403)
+PASSOU  T-04 PROFISSIONAL /auditoria/cliente (observado: 403)
+PASSOU  T-04 ADMIN /auditoria/acesso (observado: 200)
+PASSOU  T-04 ADMIN /auditoria/cliente (observado: 200)
+corpo do 403: {"codigo":"SEM_PERMISSAO","mensagem":"Você não tem permissão para esta operação.","detalhes":[],"requestId":"7f42c311-003f-4556-a8d6-ab4a9ffacc8d"}
+== QA-03 porta de gestao nao e alcancavel pelo gateway
+PASSOU  QA-03 /health/live -> 404
+PASSOU  QA-03 /health/ready -> 404
+PASSOU  QA-03 /jwks.json -> 404
+PASSOU  QA-03 /api/v1/health/live -> 404
+PASSOU  QA-03 /api/v1/auth/jwks.json -> 401
+PASSOU  QA-03 /api/v1/auth/../../jwks.json -> 404
+PASSOU  QA-03 /api/v1/auth/..%2f..%2fjwks.json -> 401
+PASSOU  QA-03 /.well-known/jwks.json -> 404
+PASSOU  QA-03 /metrics -> 404
+PASSOU  QA-03 /api/v1/metrics -> 404
+PASSOU  QA-03 /api/v1/medicamento/../../health/ready -> 404
+PASSOU  QA-03 /docs -> 404
+PASSOU  QA-03 /openapi.json -> 404
+PASSOU  QA-03 /api/v1/documento/docs -> 401
+PASSOU  QA-03 /api/v1/documento/openapi.json -> 401
+--- 76 passaram, 0 falharam

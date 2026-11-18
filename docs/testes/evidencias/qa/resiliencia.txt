@@ -1,0 +1,77 @@
+
+=== execução 2026-11-18T03:33:02.915Z (marca MWLKG7BS) ===
+T-20 offline: 11 operações pendentes no aparelho; central: 0 pessoa, 0 prontuario, 0 atendimento, 0 eventos
+fim: dona-cida-669f4c8f45-8wmzt 1/1 Running 0 ; jaiminho-74994cf7b8-2c4v2 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0
+
+=== execução 2026-11-18T03:33:09.653Z (marca MWLKGCIU) ===
+T-14 Postgres em 0: dona-cida-669f4c8f45-8wmzt 0/1 Running 0 ; jaiminho-74994cf7b8-2c4v2 0/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 0/1 Running 2 ; web-69859d5798-k86n5 1/1 Running 0
+T-14 gateway com o banco fora: /medicamento -> 503 no available server  | /auth/me -> 503 no available server  | /portal/ -> 200
+T-14 app com o banco fora: 5 operações pendentes, 0 rejeitadas
+T-14 após 75 s sem banco: reinícios mike/cida/jaiminho = 2/0/0 (antes: 2/0/0); dona-cida-669f4c8f45-8wmzt 0/1 Running 0 ; jaiminho-74994cf7b8-2c4v2 0/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 0/1 Running 2 ; web-69859d5798-k86n5 1/1 Running 0
+T-14 Postgres de volta: dona-cida-669f4c8f45-8wmzt 1/1 Running 0 ; jaiminho-74994cf7b8-2c4v2 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0
+T-14 depois da volta: central: 1 pessoa, 1 prontuario, 1 atendimento, 2 eventos; contagens antes 26/22/31/5 -> depois 27/23/33/5
+T-23 Jaiminho em 0: dona-cida-669f4c8f45-8wmzt 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0
+T-23 app com o Jaiminho fora: tudo enviado; central: 1 pessoa, 1 prontuario, 1 atendimento, 1 eventos
+T-23 POST /documento/ficha-atendimento com o Jaiminho fora -> 503 "no available server\n"
+T-23 portal, bloco da ficha antes do clique: "FICHA EM PDF E ENVIOS"
+T-23 portal, bloco da ficha depois de "Gerar PDF": "FICHA EM PDF E ENVIOS" (captura resiliencia-t23-portal-pdf-falhou.png)
+fim: dona-cida-669f4c8f45-8wmzt 1/1 Running 0 ; jaiminho-74994cf7b8-kqkxt 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0
+
+=== execução 2026-11-18T03:36:16.521Z (marca MWLKKCPL) ===
+T-20 offline: 16 operações pendentes no aparelho; central: 0 pessoa, 0 prontuario, 0 atendimento, 0 eventos
+T-20 pod apagado após 3 eventos confirmados; 4 s depois: 9 pendentes no aparelho; central: 1 pessoa, 1 prontuario, 1 atendimento, 4 eventos; gateway: 503 no available server 
+T-20 pod novo pronto: dona-cida-669f4c8f45-fhnwc 1/1 Running 0 ; jaiminho-74994cf7b8-kqkxt 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0 (reinícios do contêiner antes: 0)
+T-20 depois da volta: 0 pendentes; central: 1 pessoa, 1 prontuario, 1 atendimento, 13 eventos
+T-20 sincronizar de novo não duplicou; nenhuma op_id repetida em operacao_sync
+T-23 Jaiminho em 0: dona-cida-669f4c8f45-fhnwc 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0
+T-23 app com o Jaiminho fora: tudo enviado; central: 1 pessoa, 1 prontuario, 1 atendimento, 1 eventos
+T-23 POST /documento/ficha-atendimento com o Jaiminho fora -> 503 "no available server\n"
+T-23 portal, bloco "Ficha em PDF e envios" com o Jaiminho fora: "FICHA EM PDF E ENVIOS
+
+Serviço fora do ar
+
+O  erviço que entrega a  ficha  em PDF não re pondeu. Tente de novo em in tante .
+
+Tentar de novo"
+T-23 portal, mensagem depois de clicar em "Gerar PDF": "Serviço fora do ar
+
+O  erviço que entrega a  ficha  em PDF não re pondeu. Tente de novo em in tante .
+
+Tentar de novo" (captura resiliencia-t23-portal-pdf-falhou.png)
+T-18 POST /documento/ficha-atendimento com a DonaCida fora -> 503 {"codigo":"SERVICO_INDISPONIVEL","mensagem":"Serviço clínico indisponível; tente novamente","detalhes":[],"requestId":"a8fe0eb9-b146-474c-a62e-a2e25ecffde4"}
+T-18 documentos na central: 5 antes, 5 depois (nenhum órfão)
+T-23/T-18 com os serviços de volta: ficha gerada (201)
+fim: dona-cida-669f4c8f45-xhzbx 1/1 Running 0 ; jaiminho-74994cf7b8-tfchp 1/1 Running 0 ; mailpit-5dcfd4455c-ktsj2 1/1 Running 0 ; mike-baguncinha-684f449468-nzdcw 1/1 Running 2 ; postgres-0 1/1 Running 0 ; web-69859d5798-k86n5 1/1 Running 0
+
+=== execução 2026-11-18T03:39:08.070Z (marca MWLKO12X) ===
+T-23 Jaiminho em 0: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-sll5x 1/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 1/1 Running 0 ; postgres-0 1/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0
+T-23 app com o Jaiminho fora: tudo enviado; central: 1 pessoa, 1 prontuario, 1 atendimento, 1 eventos
+T-23 POST /documento/ficha-atendimento com o Jaiminho fora -> 503 "no available server\n"
+T-23 portal, bloco "Ficha em PDF e envios" com o Jaiminho fora: "FICHA EM PDF E ENVIOS Serviço fora do ar O serviço que entrega as fichas em PDF não respondeu. Tente de novo em instantes. Tentar de novo"
+T-23 portal, mensagem depois de clicar em "Gerar PDF": "Serviço fora do ar O serviço que entrega as fichas em PDF não respondeu. Tente de novo em instantes. Tentar de novo" (captura resiliencia-t23-portal-pdf-falhou.png)
+T-18 POST /documento/ficha-atendimento com a DonaCida fora -> 503 {"codigo":"SERVICO_INDISPONIVEL","mensagem":"Serviço clínico indisponível; tente novamente","detalhes":[],"requestId":"b6ec9911-5c99-4716-9787-db3ca60c9e69"}
+T-18 documentos na central: 6 antes, 6 depois (nenhum órfão)
+T-23/T-18 com os serviços de volta: ficha gerada (201)
+fim: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-7hwtv 1/1 Running 0 ; jaiminho-549b774f8d-cgcnf 1/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 1/1 Running 0 ; postgres-0 1/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0
+
+=== execução 2026-11-18T03:40:09.926Z (marca MWLKPCTV) ===
+T-20 offline: 16 operações pendentes no aparelho; central: 0 pessoa, 0 prontuario, 0 atendimento, 0 eventos
+T-20 pod apagado após 3 eventos confirmados; 4 s depois: 9 pendentes no aparelho; central: 1 pessoa, 1 prontuario, 1 atendimento, 4 eventos; gateway: 503 no available server 
+T-20 pod novo pronto: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-km95j 1/1 Running 0 ; jaiminho-549b774f8d-cgcnf 1/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 1/1 Running 0 ; postgres-0 1/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0 (reinícios do contêiner antes: 0)
+T-20 depois da volta: 0 pendentes; central: 1 pessoa, 1 prontuario, 1 atendimento, 13 eventos
+T-20 sincronizar de novo não duplicou; nenhuma op_id repetida em operacao_sync
+T-14 Postgres em 0: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-km95j 0/1 Running 0 ; jaiminho-549b774f8d-cgcnf 0/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 0/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0
+T-14 gateway com o banco fora: /medicamento -> 503 no available server  | /auth/me -> 503 no available server  | /portal/ -> 200
+T-14 app com o banco fora: 5 operações pendentes, 0 rejeitadas
+T-14 após 75 s sem banco: reinícios mike/cida/jaiminho = 0/0/0 (antes: 0/0/0); backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-km95j 0/1 Running 0 ; jaiminho-549b774f8d-cgcnf 0/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 0/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0
+T-14 Postgres de volta: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-km95j 1/1 Running 0 ; jaiminho-549b774f8d-cgcnf 1/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 1/1 Running 0 ; postgres-0 1/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0
+T-14 depois da volta: central: 1 pessoa, 1 prontuario, 1 atendimento, 2 eventos; contagens antes 38/34/66/7 -> depois 39/35/68/7
+T-23 Jaiminho em 0: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-km95j 1/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 1/1 Running 0 ; postgres-0 1/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0
+T-23 app com o Jaiminho fora: tudo enviado; central: 1 pessoa, 1 prontuario, 1 atendimento, 1 eventos
+T-23 POST /documento/ficha-atendimento com o Jaiminho fora -> 503 "no available server\n"
+T-23 portal, bloco "Ficha em PDF e envios" com o Jaiminho fora: "FICHA EM PDF E ENVIOS Serviço fora do ar O serviço que entrega as fichas em PDF não respondeu. Tente de novo em instantes. Tentar de novo"
+T-23 portal, mensagem depois de clicar em "Gerar PDF": "Serviço fora do ar O serviço que entrega as fichas em PDF não respondeu. Tente de novo em instantes. Tentar de novo" (captura resiliencia-t23-portal-pdf-falhou.png)
+T-18 POST /documento/ficha-atendimento com a DonaCida fora -> 503 {"codigo":"SERVICO_INDISPONIVEL","mensagem":"Serviço clínico indisponível; tente novamente","detalhes":[],"requestId":"46d20100-19dc-4124-b8c5-a4ccad320597"}
+T-18 documentos na central: 7 antes, 7 depois (nenhum órfão)
+T-23/T-18 com os serviços de volta: ficha gerada (201)
+fim: backup-manual-20261118033822-x4z9h 0/1 Completed 1 ; backup-manual-20261118033851-2mvfq 0/1 Completed 1 ; dona-cida-b9d788794-2kmkt 1/1 Running 0 ; jaiminho-549b774f8d-fkm5s 1/1 Running 0 ; mailpit-f49d74844-gkr7f 1/1 Running 0 ; mike-baguncinha-9f7f86fb5-qs52j 1/1 Running 0 ; postgres-0 1/1 Running 0 ; web-5b6f7657db-ddn67 1/1 Running 0

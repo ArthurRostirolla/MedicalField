@@ -1,0 +1,117 @@
+== QA-04 X-Forwarded-For forjado nao altera ip_cliente (tres servicos)
+PASSOU  QA-04 mike ignorou o XFF forjado (ip_cliente=172.30.77.1)
+PASSOU  QA-04 cida ignorou o XFF forjado (ip_cliente=172.30.77.1)
+PASSOU  QA-04 jaiminho ignorou o XFF forjado (ip_cliente=172.30.77.1)
+PASSOU  QA-04 linhas com 6.6.6.6 em log_acesso (observado: 0)
+== QA-05 cabecalhos de seguranca
+PASSOU  QA-05 /portal/ tem [Content-Security-Policy: default-src 'self']
+PASSOU  QA-05 /app/ tem [Content-Security-Policy: default-src 'self']
+PASSOU  QA-05 /portal/ tem [X-Content-Type-Options: nosniff]
+PASSOU  QA-05 /app/ tem [X-Content-Type-Options: nosniff]
+PASSOU  QA-05 /portal/ tem [X-Frame-Options: DENY]
+PASSOU  QA-05 /app/ tem [X-Frame-Options: DENY]
+PASSOU  QA-05 /portal/ tem [Referrer-Policy: no-referrer]
+PASSOU  QA-05 /app/ tem [Referrer-Policy: no-referrer]
+PASSOU  QA-05 /portal/ tem [Permissions-Policy:]
+PASSOU  QA-05 /app/ tem [Permissions-Policy:]
+PASSOU  QA-05 /portal/ tem [Cross-Origin-Opener-Policy: same-origin]
+PASSOU  QA-05 /app/ tem [Cross-Origin-Opener-Policy: same-origin]
+PASSOU  QA-05 /portal/ tem [frame-ancestors 'none']
+PASSOU  QA-05 /app/ tem [frame-ancestors 'none']
+PASSOU  QA-05 /portal/ tem [object-src 'none']
+PASSOU  QA-05 /app/ tem [object-src 'none']
+PASSOU  QA-05 API tem [X-Content-Type-Options: nosniff]
+PASSOU  QA-05 API tem [X-Frame-Options: DENY]
+PASSOU  QA-05 API tem [Cache-Control: no-store]
+PASSOU  QA-05 sem Server/X-Powered-By
+NOTA    QA-05 HSTS ausente em HTTP (o Traefik so o envia em HTTPS; o cluster local nao tem TLS)
+   CSP: Content-Security-Policy: default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+== QA-06 cookie de refresh
+   Set-Cookie: mf_refresh=<oculto>; Path=/api/v1/auth; Max-Age=2592000; HttpOnly; Secure; SameSite=Strict
+PASSOU  QA-06 cookie com HttpOnly
+PASSOU  QA-06 cookie com SameSite=Strict
+PASSOU  QA-06 cookie com Path=/api/v1/auth
+PASSOU  QA-06 cookie com Secure
+== QA-07 refresh token reutilizado apos rotacao -> 401
+PASSOU  QA-07 1o uso do refresh (observado: 200)
+PASSOU  QA-07 refresh foi rotacionado
+PASSOU  QA-07 reuso do refresh antigo (observado: 401)
+NOTA    QA-07 apos o reuso do antigo, o refresh NOVO respondeu 200 (200 = sem deteccao de reuso; 401 = familia revogada)
+PASSOU  QA-07 refresh lixo (observado: 401)
+PASSOU  QA-07 refresh sem corpo nem cookie (observado: 401)
+PASSOU  QA-07 logout (observado: 204)
+PASSOU  QA-07 refresh apos logout (observado: 401)
+NOTA    QA-07 access token apos logout em /auth/me: 200 (JWT sem revogacao; vale ate expirar)
+== QA-08 injecao de SQL na busca e em campos de texto
+PASSOU  QA-08 busca [' OR '1'='1] tratada como literal: HTTP/tempo 200 0.005923, 0 itens
+PASSOU  QA-08 busca ['; DROP TABLE clinico.pessoa; --] tratada como literal: HTTP/tempo 200 0.006109, 0 itens
+PASSOU  QA-08 busca [%%] tratada como literal: HTTP/tempo 200 0.008397, 0 itens
+PASSOU  QA-08 busca [___________] tratada como literal: HTTP/tempo 200 0.006061, 0 itens
+PASSOU  QA-08 busca [' UNION SELECT null,version()--] tratada como literal: HTTP/tempo 200 0.005526, 0 itens
+PASSOU  QA-08 busca [x' AND (SELECT pg_sleep(5)) IS NULL--] tratada como literal: HTTP/tempo 200 0.005818, 0 itens
+PASSOU  QA-08 tabela clinico.pessoa intacta (observado: 11)
+PASSOU  QA-08 POST /pessoa com nome malicioso -> 201
+PASSOU  QA-08 nome gravado literalmente (observado: QA Robert'); DROP TABLE clinico.pessoa;-- <script>alert(1)</script>)
+PASSOU  QA-08 GET /pessoa?limite=abc -> 422
+PASSOU  QA-08 GET /pessoa?limite=-1 -> 422
+PASSOU  QA-08 GET /pessoa?limite=0 -> 422
+PASSOU  QA-08 GET /pessoa?limite=100000 -> 422
+PASSOU  QA-08 GET /pessoa?cursor=abc -> 422
+FALHOU  QA-08 GET /pessoa?cursor=WyJ4IiwieSJd -> 500 (esperado 422)
+FALHOU  QA-08 GET /pessoa?cursor=WyIyMDI2LTAxLTAxVDAwOjAwOjAwWiIsIm5hby11dWlkIl0= -> 500 (esperado 422)
+PASSOU  QA-08 GET /pessoa?somenteDuplicatas=talvez -> 422
+PASSOU  QA-08 GET /api/v1/pessoa/nao-e-uuid -> 422
+PASSOU  QA-08 GET /api/v1/ficha/1%20OR%201=1 -> 422
+PASSOU  QA-08 GET /api/v1/documento/nao-e-uuid -> 422
+PASSOU  QA-08 GET /api/v1/documento/..%2f..%2fetc%2fpasswd/pdf -> 404
+PASSOU  QA-08 GET /api/v1/sync/alteracoes?desde=-1 -> 422
+FALHOU  QA-08 GET /api/v1/sync/alteracoes?desde=1;select -> 200 (esperado 422|404|400)
+PASSOU  QA-08 GET /api/v1/auditoria/acesso?cursor=zzz -> 422
+PASSOU  QA-08 GET /api/v1/auditoria/acesso?limite=abc -> 422
+PASSOU  QA-08 GET /api/v1/auditoria/acesso?de=ontem -> 422
+FALHOU  QA-08 GET /api/v1/atendimento?cursor=WyJ4IiwieSJd -> 500 (esperado 422|404|400)
+FALHOU  QA-08 GET /api/v1/prontuario?cursor=WyIyMDI2LTAxLTAxVDAwOjAwOjAwWiIsIm5hby11dWlkIl0= -> 500 (esperado 422|404|400)
+FALHOU  QA-08 GET /api/v1/medicamento?cursor=WyJ4IiwieSJd -> 500 (esperado 422|404|400)
+== QA-09 corpos invalidos: JSON quebrado, tipo errado, campo desconhecido, NUL, gigante
+PASSOU  QA-09 JSON quebrado em /pessoa -> 422
+PASSOU  QA-09 JSON quebrado em /log -> 422
+PASSOU  QA-09 JSON quebrado em /documento/ficha-atendimento -> 422
+PASSOU  QA-09 JSON quebrado em /auth/login -> 422
+PASSOU  QA-09 array no lugar de objeto em /atendimento -> 422
+PASSOU  QA-09 campo desconhecido (papel) em /pessoa -> 422
+PASSOU  QA-09 text/plain em /pessoa -> 422
+FALHOU  QA-09 nome com NUL (u0000) em /pessoa -> 500 (esperado 422|400)
+PASSOU  QA-09 acao com NUL (u0000) em /log -> 422
+PASSOU  QA-09 nome de 100 mil caracteres em /pessoa -> 422
+PASSOU  QA-09 evento com campo desconhecido em dados -> 422
+PASSOU  QA-09 atendimento com pessoaId inexistente (422, nao 404) -> 422
+PASSOU  QA-09 e-mail: CRLF no nome (injecao de cabecalho) -> 422
+PASSOU  QA-09 e-mail: LF no endereco -> 422
+PASSOU  QA-09 e-mail: vinculo invalido -> 422
+PASSOU  QA-09 corpo de 20 MB (com token) em /api/v1/pessoa -> 422
+FALHOU  QA-09 corpo de 20 MB (com token) em /api/v1/log -> 100 (esperado 413|422|400)
+PASSOU  QA-09 corpo de 20 MB (com token) em /api/v1/documento/ficha-atendimento -> 422
+FALHOU  QA-09 corpo de 20 MB (com token) em /api/v1/auth/login -> 100 (esperado 413|422|400)
+NOTA    QA-09 corpo de 20 MB SEM token: /pessoa -> 422; /documento/ficha-atendimento -> 000; /log -> 401
+PASSOU  QA-09 reinicios dos pods apos os corpos gigantes (observado: dona-cida-669f4c8f45-8wmzt=0 jaiminho-74994cf7b8-2c4v2=0 mailpit-5dcfd4455c-7r9xj=0 mike-baguncinha-684f449468-nzdcw=0 postgres-0=0 web-69859d5798-k86n5=0 )
+== QA-10 Idempotency-Key malformada / conflitante (T-05, T-06)
+PASSOU  QA-10 chave 'abc' -> 422
+PASSOU  QA-10 chave com SQL -> 422
+PASSOU  QA-10 chave de 10 mil caracteres -> 422
+PASSOU  QA-10 pessoas gravadas com chave invalida (observado: 0)
+PASSOU  T-05 1a vez -> 201
+PASSOU  T-05 repeticao, mesmo corpo -> 200
+PASSOU  T-06 mesma chave, corpo diferente -> 422
+   codigo: CHAVE_IDEMPOTENCIA_CONFLITANTE
+PASSOU  T-05 linhas da pessoa 'QA idem ok' criadas nesta execucao (observado: 1)
+NOTA    QA-10 mesma chave+corpo enviada por OUTRO profissional -> 200
+PASSOU  QA-10 Jaiminho: Idempotency-Key 'abc' no envio de e-mail -> 422
+== QA-11 CORS e metodos
+PASSOU  QA-11 origem estranha nao recebe Access-Control-Allow-Origin
+PASSOU  QA-11 preflight de origem estranha sem Allow-Origin
+   origem do app Android: [Access-Control-Allow-Origin: https://localhost ]
+PASSOU  QA-11 CORS do app sem Allow-Credentials
+PASSOU  QA-11 TRACE /medicamento -> 404
+PASSOU  QA-11 DELETE /medicamento -> 404
+PASSOU  QA-11 PUT /medicamento -> 404
+--- 90 passaram, 9 falharam

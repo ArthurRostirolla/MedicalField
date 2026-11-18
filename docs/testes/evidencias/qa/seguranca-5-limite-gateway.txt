@@ -1,0 +1,4 @@
+== QA-12 (complemento) limite de taxa do gateway: comportamento NAO deterministico
+03:17Z (antes de o pod do Mike reiniciar): 7+2+14 logins em sequencia e depois 16 em sequencia -> nenhum 429 do Traefik (ver seguranca-3).
+03:21Z (depois de o pod do Mike reiniciar por OOM, o Traefik reconstruiu os roteadores): 20 em paralelo -> 10x 422 + 10x 'Too Many Requests' (429 do Traefik); 20 em sequencia -> 20x 429.
+Regras geradas: Path(`/api/v1/auth/login`) e PathPrefix(`/api/v1/auth`) tem ambas 26 caracteres -> mesma prioridade no Traefik; o desempate muda quando a configuracao e reconstruida.

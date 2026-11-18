@@ -1,0 +1,20 @@
+== T-21 rollout restart de todos os Deployments + delete pod postgres-0: nada se perde
+   antes:  atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26
+PASSOU  T-21 todos os workloads voltaram
+   dona-cida-6d8bcd58f8-dgxnv 1/1 Terminating reinicios=0
+   dona-cida-b9d788794-sll5x 1/1 Running reinicios=0
+   jaiminho-549b774f8d-tmdqf 1/1 Running reinicios=0
+   jaiminho-7d9dc98f84-zjw95 1/1 Terminating reinicios=0
+   mailpit-f49d74844-gkr7f 1/1 Running reinicios=0
+   mike-baguncinha-865fcc7989-tgpsn 1/1 Terminating reinicios=0
+   mike-baguncinha-9f7f86fb5-qs52j 1/1 Running reinicios=0
+   postgres-0 1/1 Running reinicios=0
+   web-5b6f7657db-ddn67 1/1 Running reinicios=0
+   depois: atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26
+PASSOU  T-21 contagens identicas (observado: atendimento=26 atendimento_evento=48 auditoria_clinica=155 documento=6 envio_email=5 log_cliente=170 medicamento=14 operacao_sync=115 pessoa=30 profissional=3 prontuario=23 prontuario_item=26)
+PASSOU  T-21 md5 dos ids de atendimento_evento (observado: 678ac1cec8a18f556569ef22a24a97c1)
+PASSOU  T-21 volumes (PVC -> PV) inalterados (observado: backups=pvc-ad3cc359-daf7-408d-af20-6b33f85728c6 dados-postgres-0=pvc-2aa165de-4923-4870-a822-deaf5718ed24 )
+PASSOU  T-21 token novo aceito pela DonaCida apos reiniciar tudo (observado: 200)
+PASSOU  T-21 token novo aceito pelo Jaiminho (observado: 422)
+PASSOU  T-21 token emitido ANTES do reinicio continua valido (chave do Secret, nao efemera) (observado: 200)
+--- 7 passaram, 0 falharam

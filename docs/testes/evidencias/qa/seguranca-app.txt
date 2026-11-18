@@ -1,0 +1,18 @@
+
+=== execução 2026-11-18T03:27:57.230Z ===
+window.__mf em http://localhost:8088/app/#/: tipo=object chaves=consultar
+__mf.consultar leu sync_estado.sessao: campos=[profissional,accessToken,expiraEmMs,refreshToken,precisaLogin] contém JWT=true contém refreshToken=true (valores não gravados na evidência)
+__mf.consultar com CREATE TABLE + INSERT: {"ok":true,"linhas":[]}; SELECT depois: {"ok":true,"linhas":[{"x":42}]}
+app: localStorage=[] sessionStorage=[] document.cookie=0 caracteres
+portal: localStorage={"mf-portal-sessao":"1"} sessionStorage=[] document.cookie=""
+portal: cookie mf_refresh httpOnly=true secure=true sameSite=Strict path=/api/v1/auth
+portal: nome com <script> aparece como texto literal=false; algum alert() disparou=false
+
+=== execução 2026-11-18T03:43:16.913Z ===
+window.__mf em http://localhost:8088/app/#/: tipo=object chaves=consultar
+__mf.consultar leu sync_estado.sessao: campos=[profissional,accessToken,expiraEmMs,refreshToken,precisaLogin] contém JWT=true contém refreshToken=true (valores não gravados na evidência)
+__mf.consultar com CREATE TABLE + INSERT: {"ok":true,"linhas":[]}; SELECT depois: {"ok":true,"linhas":[{"x":42}]}
+app: localStorage=[] sessionStorage=[] document.cookie=0 caracteres
+portal: localStorage={"mf-portal-sessao":"1"} sessionStorage=[] document.cookie=""
+portal: cookie mf_refresh httpOnly=true secure=true sameSite=Strict path=/api/v1/auth
+portal: nome com <script> aparece como texto literal=false; algum alert() disparou=false
