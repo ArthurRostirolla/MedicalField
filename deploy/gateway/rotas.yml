@@ -1,0 +1,58 @@
+# Gateway "freeway": rotas e middlewares do Traefik (provedor de arquivo).
+# Sem regra de Host: atende localhost:8088, 10.0.2.2 (emulador) e o nome publico da VM.
+http:
+  routers:
+    login:
+      rule: Path(`/api/v1/auth/login`)
+      priority: 1000
+      service: mike
+      middlewares: [limite-login, erros-json, cabecalhos-seguranca, cors-app]
+    mike:
+      rule: PathPrefix(`/api/v1/auth`) || PathPrefix(`/api/v1/log`) || PathPrefix(`/api/v1/auditoria`)
+      service: mike
+      middlewares: &padrao [erros-json, cabecalhos-seguranca, cors-app]
+    jaiminho:
+      rule: PathPrefix(`/api/v1/documento`)
+      service: jaiminho
+      middlewares: *padrao
+    cida:
+      rule: >-
+        PathPrefix(`/api/v1/medicamento`) || PathPrefix(`/api/v1/pessoa`) || PathPrefix(`/api/v1/prontuario`)
+        || PathPrefix(`/api/v1/atendimento`) || PathPrefix(`/api/v1/ficha`) || PathPrefix(`/api/v1/sync`)
+      service: cida
+      middlewares: *padrao
+    web:
+      rule: PathPrefix(`/portal`) || PathPrefix(`/app`) || Path(`/`)
+      service: web
+      middlewares: *padrao
+
+  services:
+    mike: { loadBalancer: { servers: [{ url: "http://mike-baguncinha:8080" }] } }
+    cida: { loadBalancer: { servers: [{ url: "http://dona-cida:8080" }] } }
+    jaiminho: { loadBalancer: { servers: [{ url: "http://jaiminho:8080" }] } }
+    web: { loadBalancer: { servers: [{ url: "http://web:8080" }] } }
+
+  middlewares:
+    limite-login:
+      rateLimit: { average: 10, period: 1m, burst: 10 }
+    erros-json:
+      errors: { status: ["502-504"], service: web, query: /_erros/indisponivel.json }
+    cabecalhos-seguranca:
+      headers:
+        contentTypeNosniff: true
+        frameDeny: true
+        referrerPolicy: no-referrer
+        stsSeconds: 31536000
+        permissionsPolicy: "camera=(), microphone=(), payment=(), usb=(), geolocation=(self)"
+        customResponseHeaders:
+          Cross-Origin-Opener-Policy: same-origin
+          Server: ""
+          X-Powered-By: ""
+    cors-app:
+      headers:
+        accessControlAllowOriginList: ["https://localhost", "http://localhost", "capacitor://localhost"]
+        accessControlAllowMethods: ["GET", "POST", "PATCH", "OPTIONS"]
+        accessControlAllowHeaders: ["Authorization", "Content-Type", "X-Request-Id", "X-Dispositivo-Id", "Idempotency-Key"]
+        accessControlExposeHeaders: ["X-Request-Id"]
+        accessControlMaxAge: 600
+        addVaryHeader: true

@@ -1,6 +1,6 @@
 # Roda UMA vez, na primeira partida (diretorio de dados vazio), pelo entrypoint da imagem
-# oficial. Cria os papeis restritos com as senhas do Secret "postgres-credenciais" e aplica
-# deploy/db/schemas.sql. As tabelas vem depois, pelas migracoes (initContainer de cada servico).
+# oficial. Cria os papeis restritos com as senhas do deploy/.env (via compose.yaml) e aplica
+# deploy/db/schemas.sql. As tabelas vem depois, pelas migracoes (servicos migra-* do compose).
 : "${MF_MIKE_SENHA:?}" "${MF_CIDA_SENHA:?}" "${MF_JAIMINHO_SENHA:?}"
 
 psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" \

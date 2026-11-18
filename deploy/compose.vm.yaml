@@ -1,0 +1,19 @@
+# Override da VM: HTTPS com Let's Encrypt no gateway e HTTP so redirecionando.
+# Ativado por COMPOSE_FILE=compose.yaml:compose.vm.yaml em deploy/.env (com MF_PORTA_HTTP=80).
+services:
+  traefik:
+    environment:
+      TRAEFIK_ENTRYPOINTS_WEB_HTTP_REDIRECTIONS_ENTRYPOINT_TO: ":443"
+      TRAEFIK_ENTRYPOINTS_WEB_HTTP_REDIRECTIONS_ENTRYPOINT_SCHEME: https
+      TRAEFIK_ENTRYPOINTS_WEBSECURE_ADDRESS: ":8443"
+      TRAEFIK_ENTRYPOINTS_WEBSECURE_HTTP_TLS_CERTRESOLVER: le
+      TRAEFIK_ENTRYPOINTS_WEBSECURE_HTTP_TLS_DOMAINS_0_MAIN: ${MF_HOST:?defina MF_HOST em deploy/.env}
+      TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_EMAIL: ${MF_ACME_EMAIL:?defina MF_ACME_EMAIL em deploy/.env}
+      TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_STORAGE: /acme/acme.json
+      TRAEFIK_CERTIFICATESRESOLVERS_LE_ACME_HTTPCHALLENGE_ENTRYPOINT: web
+    ports: ["443:8443"]
+    volumes:
+      - acme:/acme
+
+volumes:
+  acme:

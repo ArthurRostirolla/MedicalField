@@ -1,0 +1,178 @@
+# MedicalField inteiro em Docker Compose: banco, migracoes, tres servicos, web, Mailpit e o gateway.
+# Local (padrao): http://localhost:8088. VM: deploy/.env aponta COMPOSE_FILE para este arquivo +
+# compose.vm.yaml (HTTPS). Valores e segredos vem de deploy/.env (deploy/scripts/segredos.sh).
+#
+#   cd deploy && docker compose up -d --build     local, construindo as imagens
+#   cd deploy && docker compose pull && docker compose up -d     VM, imagens do GHCR
+name: medicalfield
+
+x-endurecido: &endurecido
+  restart: unless-stopped
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+
+x-servico: &servico
+  <<: *endurecido
+  tmpfs: ["/tmp:size=64m"]
+  networks: [banco, app]
+
+x-comum: &comum
+  PORTA: "8080"
+  PORTA_GESTAO: "9090"
+  AMBIENTE: producao
+  NIVEL_LOG: info
+  HOME: /tmp
+  # So o gateway pode mandar X-Forwarded-For (IP fixo na rede "app")
+  PROXIES_CONFIAVEIS: 127.0.0.1/32,::1/128,172.30.80.2/32
+
+x-migracao: &migracao
+  image: ${MF_REGISTRO:-medicalfield}-migracoes:${MF_TAG:-dev}
+  restart: "no"
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  networks: [banco]
+  environment:
+    DATABASE_URL: postgres://postgres:${SENHA_POSTGRES_ADMIN:?rode deploy/scripts/segredos.sh}@postgres:5432/medicalfield?sslmode=disable
+  depends_on:
+    postgres: { condition: service_healthy }
+
+services:
+  postgres:
+    <<: *endurecido
+    image: postgres:17-alpine
+    user: "70:70"
+    command: ["-c", "shared_buffers=96MB", "-c", "max_connections=60"]
+    environment:
+      POSTGRES_DB: medicalfield
+      POSTGRES_PASSWORD: ${SENHA_POSTGRES_ADMIN}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      MF_MIKE_SENHA: ${SENHA_MF_MIKE}
+      MF_CIDA_SENHA: ${SENHA_MF_CIDA}
+      MF_JAIMINHO_SENHA: ${SENHA_MF_JAIMINHO}
+      DADOS_DEMO: ${DADOS_DEMO:-off}
+    volumes:
+      - dados:/var/lib/postgresql/data
+      - ./db/10-papeis-e-schemas.sh:/docker-entrypoint-initdb.d/10-papeis-e-schemas.sh:ro
+      - ./db/schemas.sql:/mf-init/schemas.sql:ro
+    tmpfs: ["/tmp", "/var/run/postgresql"]
+    shm_size: 128m
+    stop_grace_period: 60s
+    healthcheck:
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "medicalfield"]
+      interval: 5s
+      timeout: 3s
+      retries: 60
+    mem_limit: 512m
+    networks: [banco]
+
+  migra-mike:
+    <<: *migracao
+    command: [--wait, --wait-timeout=120s, --migrations-dir=/migracoes/mike-baguncinha, --migrations-table=identidade.schema_migrations, --no-dump-schema, up]
+  migra-cida:
+    <<: *migracao
+    command: [--wait, --wait-timeout=120s, --migrations-dir=/migracoes/dona-cida, --migrations-table=clinico.schema_migrations, --no-dump-schema, up]
+  migra-jaiminho:
+    <<: *migracao
+    command: [--wait, --wait-timeout=120s, --migrations-dir=/migracoes/jaiminho, --migrations-table=documentos.schema_migrations, --no-dump-schema, up]
+
+  mike-baguncinha:
+    <<: *servico
+    image: ${MF_REGISTRO:-medicalfield}-mike-baguncinha:${MF_TAG:-dev}
+    build: ../apps/mike-baguncinha
+    environment:
+      <<: *comum
+      DATABASE_URL: postgres://mf_mike:${SENHA_MF_MIKE}@postgres:5432/medicalfield?sslmode=disable
+      JWT_CHAVE_PRIVADA_PEM: ${JWT_CHAVE_PRIVADA_PEM:?rode deploy/scripts/segredos.sh}
+    depends_on:
+      migra-mike: { condition: service_completed_successfully }
+    mem_limit: 128m
+
+  dona-cida:
+    <<: *servico
+    image: ${MF_REGISTRO:-medicalfield}-dona-cida:${MF_TAG:-dev}
+    build: { context: .., dockerfile: apps/dona-cida/Dockerfile }
+    environment:
+      <<: *comum
+      DATABASE_URL: postgres://mf_cida:${SENHA_MF_CIDA}@postgres:5432/medicalfield?sslmode=disable
+      JWKS_URL: http://mike-baguncinha:9090/jwks.json
+    depends_on:
+      migra-cida: { condition: service_completed_successfully }
+    mem_limit: 384m
+
+  jaiminho:
+    <<: *servico
+    image: ${MF_REGISTRO:-medicalfield}-jaiminho:${MF_TAG:-dev}
+    build: ../apps/jaiminho
+    environment:
+      <<: *comum
+      DATABASE_URL: postgres://mf_jaiminho:${SENHA_MF_JAIMINHO}@postgres:5432/medicalfield?sslmode=disable
+      JWKS_URL: http://mike-baguncinha:9090/jwks.json
+      CLINICO_URL: http://dona-cida:8080
+      URL_PUBLICA_PORTAL: ${URL_PUBLICA_PORTAL:-http://localhost:8088/portal}
+      # Padrao: Mailpit. Com SMTP_USUARIO/SMTP_SENHA, use SMTP_SEGURANCA starttls ou tls.
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORTA: ${SMTP_PORTA:-1025}
+      SMTP_SEGURANCA: ${SMTP_SEGURANCA:-nenhuma}
+      SMTP_USUARIO: ${SMTP_USUARIO:-}
+      SMTP_SENHA: ${SMTP_SENHA:-}
+      EMAIL_REMETENTE: ${EMAIL_REMETENTE:-MedicalField <nao-responda@medicalfield.invalid>}
+    depends_on:
+      migra-jaiminho: { condition: service_completed_successfully }
+    mem_limit: 384m
+
+  web:
+    <<: *endurecido
+    image: ${MF_REGISTRO:-medicalfield}-web:${MF_TAG:-dev}
+    build:
+      context: ..
+      dockerfile: deploy/web/Dockerfile
+      # 1 expoe a consulta somente leitura usada pelos testes; a imagem do CI sai sem.
+      args: { VITE_DIAGNOSTICO: "${MF_DIAGNOSTICO:-1}" }
+    tmpfs: ["/tmp:size=32m"]
+    networks: [app]
+    mem_limit: 64m
+
+  mailpit:
+    <<: *endurecido
+    image: axllent/mailpit:v1.27
+    user: "10001:10001"
+    environment:
+      MP_MAX_MESSAGES: "500"
+      MP_SMTP_AUTH_ACCEPT_ANY: "true"
+      MP_SMTP_AUTH_ALLOW_INSECURE: "true"
+      TMPDIR: /tmp
+    tmpfs: ["/tmp:size=128m"]
+    # So no host (na VM: ssh -L 18025:127.0.0.1:18025)
+    ports: ["127.0.0.1:18025:8025"]
+    networks: [app]
+    mem_limit: 96m
+
+  traefik:
+    <<: *endurecido
+    image: traefik:v3.5
+    environment:
+      TRAEFIK_GLOBAL_CHECKNEWVERSION: "false"
+      TRAEFIK_GLOBAL_SENDANONYMOUSUSAGE: "false"
+      TRAEFIK_ENTRYPOINTS_WEB_ADDRESS: ":8000"
+      TRAEFIK_PROVIDERS_FILE_FILENAME: /rotas.yml
+      TRAEFIK_ACCESSLOG: "true"
+    volumes:
+      - ./gateway/rotas.yml:/rotas.yml:ro
+    ports: ["${MF_PORTA_HTTP:-8088}:8000"]
+    networks:
+      app: { ipv4_address: 172.30.80.2 }
+    depends_on: [web]
+    mem_limit: 128m
+
+networks:
+  banco:
+    internal: true
+  app:
+    ipam:
+      # IPs automaticos so na metade de cima: o .2 fica livre para o gateway
+      config: [{ subnet: 172.30.80.0/24, ip_range: 172.30.80.128/25 }]
+
+volumes:
+  dados:
