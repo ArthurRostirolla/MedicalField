@@ -43,7 +43,14 @@ export function Tabela<T>({
   className,
 }: TabelaProps<T>) {
   return (
-    <div className={cx('mf-tabela-rolagem', className)} aria-busy={carregando || undefined}>
+    <div
+      className={cx('mf-tabela-rolagem', className)}
+      aria-busy={carregando || undefined}
+      // Regiao rolavel precisa ser alcancavel por teclado (WCAG 2.1.1).
+      role="region"
+      aria-label={legenda}
+      tabIndex={0}
+    >
       <table className="mf-tabela">
         <caption className="mf-so-leitor">{legenda}</caption>
         <thead>

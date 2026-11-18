@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 import { cx } from '../util';
 import { FaixaDemonstrativa, Marca } from './superficies';
 
@@ -37,8 +37,15 @@ function ItemNav({
     'aria-current': atual ? ('page' as const) : undefined,
     onClick: () => aoNavegar?.(item.id),
   };
+  // Com href E aoNavegar, o clique simples fica com o app (roteador SPA): sem isso o navegador
+  // recarrega a pagina. Clique com tecla modificadora ou botao do meio segue o comportamento do link.
+  const aoClicarLink = (evento: MouseEvent<HTMLAnchorElement>) => {
+    if (!aoNavegar || evento.button !== 0 || evento.metaKey || evento.ctrlKey || evento.shiftKey || evento.altKey) return;
+    evento.preventDefault();
+    aoNavegar(item.id);
+  };
   return item.href ? (
-    <a {...comum} href={item.href}>
+    <a {...comum} onClick={aoClicarLink} href={item.href}>
       {children}
     </a>
   ) : (
