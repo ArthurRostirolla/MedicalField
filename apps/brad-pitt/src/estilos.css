@@ -8,7 +8,7 @@
     margin-bottom: 0;
     font-size: var(--text-titulo-1);
     line-height: var(--text-titulo-1--line-height);
-    font-weight: 780;
+    font-weight: 680;
     font-stretch: 86%;
     text-wrap: balance;
   }
@@ -18,7 +18,7 @@
     margin-bottom: 0;
     padding: 0;
     list-style: none;
-    border-top: 2px solid var(--mf-tinta);
+    border-top: 1px solid var(--mf-fio-forte);
     max-width: 30rem;
   }
   .bp-pauta li {
@@ -70,7 +70,7 @@
     display: flex;
     gap: 0.75rem;
     padding: 1rem;
-    border: 2px solid var(--mf-tinta);
+    border: 1px solid var(--mf-fio-forte);
     background-color: var(--mf-papel);
   }
   .bp-veredito > svg {
@@ -82,7 +82,7 @@
     margin: 0 0 0.25rem;
     font-size: var(--text-titulo-2);
     line-height: var(--text-titulo-2--line-height);
-    font-weight: 780;
+    font-weight: 680;
     font-stretch: 80%;
   }
   .bp-veredito[data-integro='false'] {
@@ -92,5 +92,100 @@
   .bp-veredito[data-integro='false'] > svg,
   .bp-veredito[data-integro='false'] .bp-veredito__titulo {
     color: var(--mf-carmim);
+  }
+
+  /* ───────── Login: frase à esquerda, perfis em cartões + credencial à direita ───────── */
+  .bp-login {
+    display: flex;
+    flex-direction: column;
+    min-height: 100dvh;
+    background-color: var(--mf-mesa);
+  }
+  .bp-login__grade {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .bp-login__editorial {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.25rem;
+    padding: 1.5rem 1.25rem;
+    border-bottom: 1px solid var(--mf-fio);
+    background-color: var(--mf-papel);
+  }
+  /* O bloco fica no centro do painel; dentro dele, marca e frase partem da mesma margem esquerda. */
+  .bp-login__bloco {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: inherit;
+    text-align: left;
+  }
+  .bp-login__frase {
+    margin: 0;
+    max-width: 14ch;
+    font-size: 1.75rem;
+    line-height: 1.04;
+    font-weight: 700;
+    font-stretch: 82%;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  .bp-login__frase em {
+    font-style: normal;
+    color: var(--mf-marca);
+  }
+  .bp-login__lado {
+    display: flex;
+    justify-content: center;
+    padding: 1.5rem 1.25rem 3rem;
+  }
+  @media (min-width: 64rem) {
+    .bp-login__grade {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    }
+    .bp-login__editorial {
+      gap: 2rem;
+      padding: 4rem clamp(2rem, 6vw, 6rem);
+      border-bottom: 0;
+      border-right: 1px solid var(--mf-fio);
+    }
+    .bp-login__frase {
+      font-size: clamp(2.5rem, 4.2vw, 3.75rem);
+    }
+    .bp-login__lado {
+      align-items: center;
+      padding: 2.5rem 1.25rem;
+    }
+  }
+  .bp-login__form {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    max-width: 24rem;
+    animation: bp-entra 220ms cubic-bezier(0.23, 1, 0.32, 1) both;
+  }
+  .bp-login__titulo {
+    margin: 0;
+    font-size: var(--text-titulo-2);
+    line-height: var(--text-titulo-2--line-height);
+    font-weight: 680;
+    font-stretch: 88%;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bp-login__form {
+      animation: none;
+    }
+  }
+}
+
+@keyframes bp-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
   }
 }

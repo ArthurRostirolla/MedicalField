@@ -1,12 +1,19 @@
 import type { TipoRegistro } from '@medicalfield/contratos';
-import { Botao, CampoTexto, FaixaDemonstrativa, Marca, Select, SeletorSegmentado } from '@medicalfield/ui';
-import { CircleAlert, LogIn } from 'lucide-react';
+import { Botao, CampoTexto, FaixaDemonstrativa, Marca, Select, SeletorCartoes, type OpcaoCartao } from '@medicalfield/ui';
+import { Ambulance, CircleAlert, HeartPulse, LogIn, Stethoscope } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useLocation } from 'react-router';
 import { entrar, ErroApi, restaurarSessao } from '../api/cliente';
 import { useSessao, type EstadoRetorno } from './sessao';
 
 const UFS = 'AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
+
+// O título do cartão é a sigla do registro: é o nome do rádio (testes e leitor de tela).
+const PERFIS: ReadonlyArray<OpcaoCartao<TipoRegistro>> = [
+  { valor: 'CRM', titulo: 'CRM', detalhe: 'Medicina', icone: <Stethoscope /> },
+  { valor: 'COREN', titulo: 'COREN', detalhe: 'Enfermagem', icone: <HeartPulse /> },
+  { valor: 'SOCORRISTA', titulo: 'Socorrista', detalhe: 'Identificação própria', icone: <Ambulance /> },
+];
 
 const ROTULO_REGISTRO: Record<TipoRegistro, string> = {
   CRM: 'Número do CRM',
@@ -63,39 +70,24 @@ export function TelaLogin() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-mesa" data-contexto="portal">
+    <div className="bp-login" data-contexto="portal">
       <FaixaDemonstrativa />
-      <main className="mx-auto grid w-full max-w-5xl flex-1 grid-cols-1 content-center items-start gap-x-16 gap-y-8 px-4 py-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">
-        <div>
-          <Marca />
-          <h1 className="bp-titulo-pagina mt-6">Portal administrativo</h1>
-          <ul className="bp-pauta mt-6">
-            <li>Atendimentos com a linha do tempo completa e a passagem de caso</li>
-            <li>Prontuários e cadastros de apoio, somente leitura</li>
-            <li>Ficha em PDF verificável, com envio por e-mail</li>
-          </ul>
-        </div>
+      <main className="bp-login__grade">
+        <section className="bp-login__editorial">
+          <div className="bp-login__bloco">
+            <Marca />
+            <p className="bp-login__frase">
+              A caixa-preta do atendimento <em>pré-hospitalar</em>.
+            </p>
+          </div>
+        </section>
 
-        <form className="mf-secao" onSubmit={aoEnviar} noValidate aria-labelledby="titulo-entrar">
-          <header className="mf-secao__topo">
-            <div>
-              <h2 id="titulo-entrar" className="mf-secao__titulo">
-                Identificação profissional
-              </h2>
-              <p className="mf-secao__descricao">Todo acesso fica registrado no log de auditoria.</p>
-            </div>
-          </header>
-          <div className="mf-secao__corpo grid grid-cols-1 gap-4">
-            <SeletorSegmentado
-              rotulo="Tipo de registro"
-              valor={tipoRegistro}
-              aoMudar={setTipoRegistro}
-              opcoes={[
-                { valor: 'CRM', rotulo: 'CRM' },
-                { valor: 'COREN', rotulo: 'COREN' },
-                { valor: 'SOCORRISTA', rotulo: 'Socorrista' },
-              ]}
-            />
+        <section className="bp-login__lado">
+          <form className="bp-login__form" onSubmit={aoEnviar} noValidate aria-labelledby="titulo-entrar">
+            <h1 id="titulo-entrar" className="bp-login__titulo">
+              Identificação profissional
+            </h1>
+            <SeletorCartoes rotulo="Quem está entrando?" valor={tipoRegistro} aoMudar={setTipoRegistro} opcoes={PERFIS} />
             <div className="mf-grade-campos" style={{ gridTemplateColumns: comUf ? 'minmax(0, 1fr) 6.5rem' : 'minmax(0, 1fr)' }}>
               <CampoTexto
                 rotulo={ROTULO_REGISTRO[tipoRegistro]}
@@ -135,8 +127,8 @@ export function TelaLogin() {
             <Botao type="submit" variante="primario" largo icone={<LogIn aria-hidden />} carregando={enviando}>
               Entrar
             </Botao>
-          </div>
-        </form>
+          </form>
+        </section>
       </main>
     </div>
   );
