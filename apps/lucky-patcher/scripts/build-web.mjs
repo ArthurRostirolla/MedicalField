@@ -14,13 +14,21 @@ const rodar = (comando, args) => execFileSync(comando, args, { stdio: 'inherit',
 rodar('node', ['scripts/worker.mjs']);
 rodar('npx', ['expo', 'export', '--platform', 'web', '--output-dir', saida, '--clear']);
 
-// Manifesto do PWA no index.html (o Expo nao gera).
+// Manifesto do PWA no index.html (o Expo nao gera). O iOS ignora icone SVG: usa o apple-touch-icon em PNG.
 const indice = join(saida, 'index.html');
 writeFileSync(
   indice,
   readFileSync(indice, 'utf8')
     .replace('<html lang="en">', '<html lang="pt-BR">')
-    .replace('</head>', '<link rel="manifest" href="/app/manifest.webmanifest"></head>'),
+    .replace('</head>', [
+        '<link rel="manifest" href="/app/manifest.webmanifest">',
+        '<link rel="apple-touch-icon" href="/app/icone.png">',
+        '<meta name="apple-mobile-web-app-capable" content="yes">',
+        '<meta name="mobile-web-app-capable" content="yes">',
+        '<meta name="apple-mobile-web-app-title" content="MedicalField">',
+        '<meta name="theme-color" content="#ffffff">',
+        '</head>',
+      ].join('')),
 );
 
 const { count, size, warnings } = await generateSW({
