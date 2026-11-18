@@ -1,0 +1,1373 @@
+{
+  "info": {
+    "name": "MedicalField",
+    "description": "Todas as rotas do MedicalField pelo gateway (freeway).\n\n1. Preencha a variável `senha` (senha de demonstração: `services/mike-baguncinha/README.md`).\n2. Rode **Login** — o `accessToken` vai para a variável `token`.\n3. Rode as pastas na ordem: cada requisição guarda os ids que a próxima usa.\n\nTodos os dados são FICTÍCIOS — sem validade clínica.\n\nLinha de comando: `npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF_SENHA_DEMO`",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "// Todo dispositivo se identifica (X-Dispositivo-Id); gerado uma vez por execução.",
+          "if (!pm.collectionVariables.get('dispositivoId')) pm.collectionVariables.set('dispositivoId', pm.variables.replaceIn('{{$guid}}'));",
+          "pm.request.headers.upsert({ key: 'X-Dispositivo-Id', value: pm.collectionVariables.get('dispositivoId') });"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8088/api/v1"
+    },
+    {
+      "key": "senha",
+      "value": ""
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "refreshToken",
+      "value": ""
+    },
+    {
+      "key": "dispositivoId",
+      "value": ""
+    },
+    {
+      "key": "marca",
+      "value": ""
+    },
+    {
+      "key": "pessoaId",
+      "value": ""
+    },
+    {
+      "key": "itemId",
+      "value": ""
+    },
+    {
+      "key": "atendimentoId",
+      "value": ""
+    },
+    {
+      "key": "documentoId",
+      "value": ""
+    },
+    {
+      "key": "envioId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. MikeBaguncinha — identidade e auditoria (Go)",
+      "item": [
+        {
+          "name": "Login (única rota sem token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const sessao = pm.response.json();",
+                  "pm.test('devolve accessToken e profissional', () => { pm.expect(sessao.accessToken).to.be.a('string'); pm.expect(sessao.profissional.papel).to.eql('ADMIN'); });",
+                  "pm.collectionVariables.set('token', sessao.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', sessao.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipoRegistro\": \"CRM\",\n  \"registro\": \"100001\",\n  \"uf\": \"RS\",\n  \"senha\": \"{{senha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "**Enunciado: POST /auth/login.** Autentica por CRM, COREN ou ID de socorrista. O script de teste guarda `accessToken` na variável `token`, usada por todas as demais requisições. Preencha a variável `senha` (ver services/mike-baguncinha/README.md)."
+          },
+          "response": []
+        },
+        {
+          "name": "Quem sou eu",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('profissional do token', () => pm.expect(pm.response.json().registro).to.eql('100001'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sem token: 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', () => pm.expect(pm.response.code).to.be.oneOf([401]));",
+                  "pm.test('codigo NAO_AUTENTICADO', () => pm.expect(pm.response.json().codigo).to.eql('NAO_AUTENTICADO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medicamento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medicamento"
+              ]
+            },
+            "description": "Prova de que as rotas exigem autenticação: sem `Authorization`, o serviço responde 401 `NAO_AUTENTICADO`."
+          },
+          "response": []
+        },
+        {
+          "name": "Renovar sessão (refresh rotativo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "const sessao = pm.response.json();",
+                  "pm.collectionVariables.set('token', sessao.accessToken);",
+                  "pm.collectionVariables.set('refreshToken', sessao.refreshToken);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "refresh"
+              ]
+            },
+            "description": "Troca o refresh token por uma sessão nova; o antigo deixa de valer. O script atualiza `token` e `refreshToken`."
+          },
+          "response": []
+        },
+        {
+          "name": "Enviar logs gerados offline",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('1 aceito', () => pm.expect(pm.response.json()).to.eql({ aceitos: 1, duplicados: 0 }));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"logs\": [\n    {\n      \"id\": \"{{$guid}}\",\n      \"ocorridoEm\": \"{{$isoTimestamp}}\",\n      \"acao\": \"TESTE_POSTMAN\",\n      \"entidade\": \"colecao\",\n      \"resultado\": \"SUCESSO\",\n      \"estavaOnline\": false,\n      \"detalhe\": {\n        \"origem\": \"postman\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/log",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "log"
+              ]
+            },
+            "description": "**Enunciado: POST /log.** Lote de logs do app (máx. 500), idempotente por `id`."
+          },
+          "response": []
+        },
+        {
+          "name": "Auditoria: log de acesso (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('linhas com os 7 campos do enunciado', () => { const l = pm.response.json().itens[0]; pm.expect(l).to.include.keys('dataHora', 'ipCliente', 'profissionalId', 'metodo', 'rota', 'statusCode', 'tempoMs'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auditoria/acesso?limite=5&servico=dona-cida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auditoria",
+                "acesso"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "5"
+                },
+                {
+                  "key": "servico",
+                  "value": "dona-cida",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Auditoria: logs do cliente (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('lista paginada', () => pm.expect(pm.response.json().itens).to.be.an('array'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auditoria/cliente?limite=5",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auditoria",
+                "cliente"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. DonaCida — núcleo clínico e sincronização (NestJS)",
+      "item": [
+        {
+          "name": "Listar medicamentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('catálogo não vazio', () => pm.expect(pm.response.json().itens.length).to.be.above(0));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/medicamento?limite=50&incluirInativos=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medicamento"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "50"
+                },
+                {
+                  "key": "incluirInativos",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            },
+            "description": "**Enunciado: GET /medicamento.**"
+          },
+          "response": []
+        },
+        {
+          "name": "Cadastrar pessoa",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('pessoaId', pm.variables.replaceIn('{{$guid}}'));",
+                  "pm.collectionVariables.set('marca', Date.now().toString(36).toUpperCase());"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test('id do cliente foi mantido', () => pm.expect(pm.response.json().id).to.eql(pm.collectionVariables.get('pessoaId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{pessoaId}}\",\n  \"nome\": \"Pessoa Postman {{marca}}\",\n  \"dataNascimento\": \"1980-01-01\",\n  \"sexo\": \"I\",\n  \"telefone\": \"(51) 90000-0000\",\n  \"descricaoIdentificacao\": \"PESSOA FICTÍCIA — criada pela coleção Postman\",\n  \"editadoEm\": \"{{$isoTimestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pessoa",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoa"
+              ]
+            },
+            "description": "**Enunciado: POST /pessoa.** O `id` é gerado no cliente (pré-script). Pessoa FICTÍCIA."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar pessoas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('encontra a pessoa criada', () => pm.expect(pm.response.json().itens.map((p) => p.id)).to.include(pm.collectionVariables.get('pessoaId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pessoa?busca=Postman&limite=10&somenteDuplicatas=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoa"
+              ],
+              "query": [
+                {
+                  "key": "busca",
+                  "value": "Postman"
+                },
+                {
+                  "key": "limite",
+                  "value": "10"
+                },
+                {
+                  "key": "somenteDuplicatas",
+                  "value": "true",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Obter pessoa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/pessoa/{{pessoaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoa",
+                "{{pessoaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Alterar pessoa (campo mais recente vence)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('telefone alterado', () => pm.expect(pm.response.json().telefone).to.eql('(51) 90000-1111'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"campos\": {\n    \"telefone\": \"(51) 90000-1111\"\n  },\n  \"editadoEm\": \"{{$isoTimestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/pessoa/{{pessoaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "pessoa",
+                "{{pessoaId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cadastrar prontuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test('prontuário com 1 item', () => pm.expect(pm.response.json().itens).to.have.length(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"pessoaId\": \"{{pessoaId}}\",\n  \"tipoSanguineo\": \"O+\",\n  \"observacoes\": \"Dado demonstrativo, sem validade clínica.\",\n  \"itens\": [\n    {\n      \"id\": \"{{$guid}}\",\n      \"tipo\": \"ALERGIA\",\n      \"descricao\": \"Alergia demonstrativa\",\n      \"registradoEm\": \"{{$isoTimestamp}}\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/prontuario",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prontuario"
+              ]
+            },
+            "description": "**Enunciado: POST /prontuario.** Para pessoa que já tem prontuário responde 200 com o existente, unindo os itens."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar prontuários",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('cada item traz a pessoa', () => pm.expect(pm.response.json().itens[0].pessoa.nome).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/prontuario?limite=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prontuario"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "50"
+                }
+              ]
+            },
+            "description": "**Enunciado: GET /prontuario.**"
+          },
+          "response": []
+        },
+        {
+          "name": "Prontuário de uma pessoa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('é da pessoa', () => pm.expect(pm.response.json().pessoaId).to.eql(pm.collectionVariables.get('pessoaId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/prontuario/{{pessoaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prontuario",
+                "{{pessoaId}}"
+              ]
+            },
+            "description": "**Enunciado: GET /prontuario/{id}.** O `{id}` é o id da pessoa."
+          },
+          "response": []
+        },
+        {
+          "name": "Acrescentar item ao prontuário",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('itemId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{itemId}}\",\n  \"pessoaId\": \"{{pessoaId}}\",\n  \"tipo\": \"COMORBIDADE\",\n  \"descricao\": \"Comorbidade demonstrativa\",\n  \"registradoEm\": \"{{$isoTimestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/prontuario-item",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prontuario-item"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Inativar item do prontuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('item inativado', () => pm.expect(pm.response.json().inativadoEm).to.be.a('string'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"inativadoEm\": \"{{$isoTimestamp}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/prontuario-item/{{itemId}}/inativacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "prontuario-item",
+                "{{itemId}}",
+                "inativacao"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Registrar atendimento",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('atendimentoId', pm.variables.replaceIn('{{$guid}}'));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+                  "pm.test('aberto, com prontuário resolvido pelo servidor', () => { const a = pm.response.json(); pm.expect(a.status).to.eql('ABERTO'); pm.expect(a.prontuarioId).to.be.a('string'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{atendimentoId}}\",\n  \"pessoaId\": \"{{pessoaId}}\",\n  \"iniciadoEm\": \"{{$isoTimestamp}}\",\n  \"localDescricao\": \"Sala de aula (demonstração)\",\n  \"queixaPrincipal\": \"Atendimento Postman {{marca}}\",\n  \"eventos\": [\n    {\n      \"id\": \"{{$guid}}\",\n      \"tipo\": \"SINAIS_VITAIS\",\n      \"ocorridoEm\": \"{{$isoTimestamp}}\",\n      \"dados\": {\n        \"pressaoSistolica\": 120,\n        \"pressaoDiastolica\": 80,\n        \"frequenciaCardiaca\": 88,\n        \"saturacao\": 97\n      }\n    },\n    {\n      \"id\": \"{{$guid}}\",\n      \"tipo\": \"GLASGOW\",\n      \"ocorridoEm\": \"{{$isoTimestamp}}\",\n      \"dados\": {\n        \"ocular\": 4,\n        \"verbal\": 5,\n        \"motora\": 6,\n        \"total\": 15\n      }\n    },\n    {\n      \"id\": \"{{$guid}}\",\n      \"tipo\": \"TRIAGEM\",\n      \"ocorridoEm\": \"{{$isoTimestamp}}\",\n      \"dados\": {\n        \"protocolo\": \"MANCHESTER\",\n        \"classificacao\": \"AMARELO\"\n      }\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/atendimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "atendimento"
+              ]
+            },
+            "description": "**Enunciado: POST /atendimento.** Referencia `pessoaId`; o servidor resolve o prontuário. Pode levar eventos iniciais."
+          },
+          "response": []
+        },
+        {
+          "name": "Acrescentar evento à linha do tempo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', () => pm.expect(pm.response.code).to.be.oneOf([201]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{$guid}}\",\n  \"atendimentoId\": \"{{atendimentoId}}\",\n  \"tipo\": \"MEDICACAO\",\n  \"ocorridoEm\": \"{{$isoTimestamp}}\",\n  \"dados\": {\n    \"medicamentoId\": null,\n    \"nome\": \"Medicamento demonstrativo\",\n    \"dose\": \"10\",\n    \"unidade\": \"mg\",\n    \"via\": \"EV\"\n  }\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/atendimento-evento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "atendimento-evento"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar atendimentos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('o novo está no topo', () => pm.expect(pm.response.json().itens[0].id).to.eql(pm.collectionVariables.get('atendimentoId')));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/atendimento?limite=50",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "atendimento"
+              ],
+              "query": [
+                {
+                  "key": "limite",
+                  "value": "50"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atendimentos de uma pessoa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('1 atendimento', () => pm.expect(pm.response.json().itens).to.have.length(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/atendimento/{{pessoaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "atendimento",
+                "{{pessoaId}}"
+              ]
+            },
+            "description": "**Enunciado: GET /atendimento/{id}.** O `{id}` é o id da pessoa."
+          },
+          "response": []
+        },
+        {
+          "name": "Ficha completa (atendimento + resumo)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('4 eventos e resumo', () => { const f = pm.response.json(); pm.expect(f.eventos).to.have.length(4); pm.expect(f.resumo.medicacoes).to.have.length(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ficha/{{atendimentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ficha",
+                "{{atendimentoId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Sincronização: alterações desde o cursor",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('traz cursor', () => pm.expect(pm.response.json()).to.include.keys('medicamentos', 'pessoas', 'prontuarios', 'prontuarioItens', 'proximoCursor', 'temMais'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/sync/alteracoes?desde=0&limite=500",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "sync",
+                "alteracoes"
+              ],
+              "query": [
+                {
+                  "key": "desde",
+                  "value": "0"
+                },
+                {
+                  "key": "limite",
+                  "value": "500"
+                }
+              ]
+            },
+            "description": "Descida do app. `desde=0` na primeira vez; depois, o `proximoCursor` recebido."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Jaiminho — PDF e e-mail (FastAPI)",
+      "item": [
+        {
+          "name": "Gerar a ficha em PDF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201 ou 200', () => pm.expect(pm.response.code).to.be.oneOf([201, 200]));",
+                  "const d = pm.response.json();",
+                  "pm.test('código de verificação', () => pm.expect(d.codigoVerificacao).to.match(/^MF-/));",
+                  "pm.collectionVariables.set('documentoId', d.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"atendimentoId\": \"{{atendimentoId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documento/ficha-atendimento",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento",
+                "ficha-atendimento"
+              ]
+            },
+            "description": "**Rota de PDF pedida no enunciado.** 201 na primeira vez; 200 se já existe documento com o mesmo conteúdo."
+          },
+          "response": []
+        },
+        {
+          "name": "Documentos de um atendimento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('1 documento', () => pm.expect(pm.response.json().itens).to.have.length(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documento?atendimentoId={{atendimentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento"
+              ],
+              "query": [
+                {
+                  "key": "atendimentoId",
+                  "value": "{{atendimentoId}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Metadados e integridade",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('íntegro', () => pm.expect(pm.response.json().integro).to.eql(true));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documento/{{documentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento",
+                "{{documentoId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Baixar o PDF",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('é um PDF', () => { pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'); pm.expect(pm.response.text().slice(0, 5)).to.eql('%PDF-'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documento/{{documentoId}}/pdf",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento",
+                "{{documentoId}}",
+                "pdf"
+              ]
+            },
+            "description": "**Rota de PDF pedida no enunciado (download).** No Postman, use \"Send and Download\"."
+          },
+          "response": []
+        },
+        {
+          "name": "Enviar a ficha por e-mail",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 202', () => pm.expect(pm.response.code).to.be.oneOf([202]));",
+                  "const e = pm.response.json();",
+                  "pm.test('na fila', () => pm.expect(e.status).to.be.oneOf(['PENDENTE', 'ENVIANDO', 'ENVIADO']));",
+                  "pm.collectionVariables.set('envioId', e.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Idempotency-Key",
+                "value": "{{$guid}}",
+                "description": "UUID novo a cada envio; repetir a mesma chave devolve a resposta original."
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinatarioNome\": \"Familiar Postman\",\n  \"destinatarioEmail\": \"familiar.postman@exemplo.test\",\n  \"vinculo\": \"FAMILIAR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/documento/{{documentoId}}/email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento",
+                "{{documentoId}}",
+                "email"
+              ]
+            },
+            "description": "**Rota de e-mail pedida no enunciado.** Só enfileira (202); o worker envia em seguida."
+          },
+          "response": []
+        },
+        {
+          "name": "Situação dos envios",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+                  "pm.test('1 envio', () => pm.expect(pm.response.json().itens).to.have.length(1));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documento/{{documentoId}}/email",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento",
+                "{{documentoId}}",
+                "email"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Reenviar (só após falha definitiva)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 422', () => pm.expect(pm.response.code).to.be.oneOf([422]));",
+                  "pm.test('recusado por não estar em FALHA_DEFINITIVA', () => pm.expect(pm.response.json().codigo).to.eql('VALIDACAO'));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/documento/email/{{envioId}}/reenvio",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "documento",
+                "email",
+                "{{envioId}}",
+                "reenvio"
+              ]
+            },
+            "description": "Recoloca na fila um envio em `FALHA_DEFINITIVA` (202). O envio desta coleção não falhou, então a resposta esperada aqui é **422 VALIDACAO** — a regra de negócio funcionando."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Encerrar",
+      "item": [
+        {
+          "name": "Sair (revoga o refresh token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 204', () => pm.expect(pm.response.code).to.be.oneOf([204]));"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
