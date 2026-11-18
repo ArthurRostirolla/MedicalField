@@ -12,49 +12,38 @@ Todos os dados são **fictícios e sem validade clínica**.
 | --- | --- | --- |
 | **Portal** (BradPitt) | <http://localhost:8088/portal/> | Dra. Helena Prado — CRM `100001`, UF `RS` (ADMIN) |
 | **Cliente** (LuckyPatcher) | <http://localhost:8088/app/> | Enf. Caio Brandão — COREN `200002`, UF `RS` |
-| **Banco central** | `kubectl exec` no pod `postgres-0` | administrador `postgres` |
-| **Caixa de e-mail** (Mailpit) | <http://localhost:18025> (depois do encaminhamento de porta) | — |
+| **Banco central** | `docker compose exec` no contêiner `postgres` | administrador `postgres` |
+| **Caixa de e-mail** (Mailpit) | <http://localhost:18025> | — |
 
 A **senha de demonstração** é a mesma para todos e está em [`apps/mike-baguncinha/README.md`](../../apps/mike-baguncinha/README.md). Ela não é repetida aqui.
 
-Os endereços acima são os do **cluster local**. Na VM da Univates troque `http://localhost:8088` pelo endereço público — a implantação na VM **não foi executada** (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
+Os endereços acima são os do **modo Compose local**. Na VM da Univates troque `http://localhost:8088` por `https://177-44-248-60.sslip.io` e use o Mailpit por túnel SSH — a implantação na VM está **a validar** (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
 
 ## 2. Preparar o ambiente
 
-Tudo no **Git Bash**, a partir da raiz do repositório. Requer Docker em execução, `kubectl` e Google Chrome.
+Tudo no **Git Bash**, a partir da raiz do repositório. Requer Docker (com Compose v2) em execução e Google Chrome.
 
-### 2.1 Subir o cluster
-
-```bash
-bash deploy/scripts/cluster-local.sh subir       # cria ou retoma o k3s local
-bash deploy/scripts/cluster-local.sh status      # confere
-```
-
-Esperado no `status`: os seis pods em `1/1 Running` — `postgres-0`, `mike-baguncinha`, `dona-cida`, `jaiminho`, `web`, `mailpit`.
-
-Só na **primeira vez** (ou depois de `derrubar`), antes do `status`:
+### 2.1 Subir o sistema
 
 ```bash
-bash deploy/scripts/cluster-local.sh construir-imagens    # as 5 imagens; alguns minutos
-bash deploy/scripts/cluster-local.sh implantar            # importa, cria os Secrets e aplica os manifestos
+bash deploy/scripts/segredos.sh                  # só na primeira vez: cria deploy/.env
+cd deploy && docker compose up -d --build        # constrói as 5 imagens (alguns minutos na primeira vez) e sobe
+docker compose ps                                # confere
+cd ..
 ```
+
+Esperado no `ps`: `postgres` em `healthy`; `mike-baguncinha`, `dona-cida`, `jaiminho`, `web`, `mailpit` e `traefik` em `running`. Os três `migra-*` aparecem só com `ps -a`, em `Exited (0)`.
 
 ### 2.2 Abrir a caixa de e-mail
 
-O Mailpit não é exposto pelo gateway. Deixe este comando rodando num terminal à parte:
-
-```bash
-bash deploy/scripts/cluster-local.sh kubectl -n medicalfield port-forward svc/mailpit 18025:8025
-```
-
-Abra <http://localhost:18025>.
+O Mailpit não é exposto pelo gateway; o Compose o publica só em `127.0.0.1`. Abra <http://localhost:18025>.
 
 ### 2.3 Deixar um atalho para o SQL
 
-Os comandos de banco deste roteiro usam esta função (cole no terminal):
+Os comandos de banco deste roteiro usam esta função (cole no terminal, na raiz do repositório):
 
 ```bash
-mfsql() { bash deploy/scripts/cluster-local.sh kubectl -n medicalfield exec postgres-0 -- psql -U postgres -d medicalfield -c "$1"; }
+mfsql() { (cd deploy && docker compose exec -T postgres psql -U postgres -d medicalfield -c "$1"); }
 mfsql "SELECT count(*) FROM clinico.medicamento;"      # teste: deve responder um número
 ```
 
@@ -164,14 +153,14 @@ O app já sincroniza sozinho ao entrar; este passo repete pelo botão, para fica
 
 ### Passo 9 — Portal: Inserir novos medicamentos via Banco de Dados
 
-O catálogo não tem tela de cadastro: o enunciado pede a inserção pelo banco. O comando roda o `psql` dentro do pod do Postgres:
+O catálogo não tem tela de cadastro: o enunciado pede a inserção pelo banco. O comando roda o `psql` dentro do contêiner do Postgres (em `deploy/`):
 
 ```bash
-bash deploy/scripts/cluster-local.sh kubectl -n medicalfield exec postgres-0 -- psql -U postgres -d medicalfield -c \
+docker compose exec -T postgres psql -U postgres -d medicalfield -c \
   "INSERT INTO clinico.medicamento (nome, principio_ativo, apresentacao) VALUES ('Medicamento Roteiro AULA1', 'principio demonstrativo', 'ampola 1 mL') RETURNING id, nome, seq;"
 ```
 
-Fora do script do cluster local (na VM, por exemplo), é o mesmo comando sem o prefixo: `kubectl -n medicalfield exec postgres-0 -- psql -U postgres -d medicalfield -c "..."`. Para uma sessão interativa, veja [`../operacao/banco-manual.md`](../operacao/banco-manual.md).
+Na VM é o mesmo comando, em `/opt/medicalfield/deploy`. Para uma sessão interativa, veja [`../operacao/banco-manual.md`](../operacao/banco-manual.md).
 
 **Esperado:** a saída mostra a linha criada com `id` e **`seq` preenchidos pelo banco** — ninguém informou esses valores. Termina com `INSERT 0 1`.
 
@@ -287,7 +276,7 @@ mfsql "SELECT (SELECT count(*) FROM clinico.pessoa p WHERE p.nome = 'Pessoa Offl
 
 No banco: `mfsql "SELECT destinatario_email, vinculo, status, tentativas, enviado_em FROM documentos.envio_email ORDER BY criado_em DESC LIMIT 1;"` — `ENVIADO`, 1 tentativa.
 
-> **Limite:** o e-mail é entregue ao Mailpit, um servidor SMTP real de captura dentro do cluster. O envio a uma caixa externa (Gmail, por exemplo) depende de credenciais SMTP no Secret e **não foi testado**.
+> **Limite:** o e-mail é entregue ao Mailpit, um servidor SMTP real de captura dentro do Compose. O envio a uma caixa externa (Gmail, por exemplo) depende de credenciais SMTP em `deploy/.env` e **não foi testado**.
 
 ## 4. Resumo para conferência
 
@@ -301,7 +290,7 @@ No banco: `mfsql "SELECT destinatario_email, vinculo, status, tentativas, enviad
 | 6 | Cliente: Sincronizar (receber) | App → Início → Sincronizar agora | Medicamentos e pacientes no aparelho |
 | 7 | Cliente: Online — registrar atendimento | App → Pacientes → paciente → Iniciar atendimento | "Tudo enviado"; 1 linha na central |
 | 8 | Portal: ver o atendimento | Portal → Atendimentos → Atualizar | Atendimento do passo 7 no topo |
-| 9 | Inserir medicamento pelo banco | `kubectl exec` + `psql` | Linha criada com `seq`; aparece no portal |
+| 9 | Inserir medicamento pelo banco | `docker compose exec` + `psql` | Linha criada com `seq`; aparece no portal |
 | 10 | Portal: Listar atendimentos | Portal → Atendimentos → Atualizar | Sem mudança |
 | 11 | Cliente: Sincronizar (receber) | App → Início → Sincronizar agora | Medicamento do passo 9 no aparelho |
 | 12 | Cliente: Offline — pessoa, prontuário, atendimento | App, chave Simular offline ligada | 7 pendentes; nenhuma requisição `/api`; sobrevive ao `F5` |
@@ -313,16 +302,16 @@ No banco: `mfsql "SELECT destinatario_email, vinculo, status, tentativas, enviad
 
 ## 5. Execução automatizada
 
-`e2e/roteiro.spec.ts` executa os mesmos 17 passos com o Playwright, dirigindo o Chrome: o portal (1440 px) e o cliente (390 px) em dois contextos de navegador separados, como dois usuários. O passo 9 roda o `INSERT` por `kubectl exec`; o passo 12 confere que nenhuma requisição `/api` saiu; o passo 17 consulta a API do Mailpit.
+`e2e/roteiro.spec.ts` executa os mesmos 17 passos com o Playwright, dirigindo o Chrome: o portal (1440 px) e o cliente (390 px) em dois contextos de navegador separados, como dois usuários. O passo 9 roda o `INSERT` por `docker compose exec`; o passo 12 confere que nenhuma requisição `/api` saiu; o passo 17 consulta a API do Mailpit.
 
 ```bash
-# com o cluster local no ar (seção 2.1)
+# com o modo Compose no ar (seção 2.1)
 export MF_SENHA_DEMO='<senha de demonstração>'       # apps/mike-baguncinha/README.md
 npm install                                          # uma vez
 npm run roteiro -w @medicalfield/e2e
 ```
 
-Requer Chrome instalado, `kubectl` no `PATH` e o arquivo `deploy/.local/kubeconfig` (criado pelo `cluster-local.sh subir`). O próprio teste abre e fecha o encaminhamento de porta do Mailpit.
+Requer Chrome instalado e `docker` no `PATH`. `MF_ALVO=dev` aponta o SQL e o Mailpit para o modo desenvolvimento (`scripts/dev-*.sh`).
 
 Cada execução regrava, em [`evidencias/roteiro/`](evidencias/roteiro/):
 
@@ -332,7 +321,7 @@ Cada execução regrava, em [`evidencias/roteiro/`](evidencias/roteiro/):
 | `passo-01.png` … `passo-17.png` | Uma captura de tela por passo |
 | `ficha-do-roteiro.pdf` | O PDF baixado no passo 16 |
 
-Última execução registrada: **17 de 17 passos**, em 18/11/2026, contra o cluster k3s local (`http://localhost:8088`). Evidência E-007 em [`../VALIDATION_EVIDENCE.md`](../VALIDATION_EVIDENCE.md).
+Última execução registrada: **17 de 17 passos**, em 18/11/2026, contra o cluster k3s local (`http://localhost:8088`), antes da troca para o Docker Compose; no Compose, a repetir. Evidência E-007 em [`../VALIDATION_EVIDENCE.md`](../VALIDATION_EVIDENCE.md).
 
 Cada execução usa um sufixo novo nos nomes (derivado do relógio), então pode ser repetida sobre o mesmo banco sem limpar nada.
 
@@ -348,19 +337,19 @@ mfsql "UPDATE clinico.medicamento SET ativo = false WHERE nome = 'Medicamento Ro
 
 Para voltar a um sistema **zerado**, só com a carga de demonstração, são dois lados — e é preciso fazer os dois:
 
-**1. O servidor** (apaga o cluster e todos os dados; as imagens já construídas são reaproveitadas):
+**1. O servidor** (apaga todos os dados; as imagens já construídas são reaproveitadas):
 
 ```bash
-bash deploy/scripts/cluster-local.sh derrubar
-bash deploy/scripts/cluster-local.sh subir
-bash deploy/scripts/cluster-local.sh implantar
+cd deploy
+docker compose down -v
+docker compose up -d
 ```
 
 **2. O aparelho** (o banco local do app): na janela B, `F12` → **Application** → **Storage** → **Clear site data**, e recarregue.
 
 Não pule o segundo passo depois de recriar o servidor: o app guarda o cursor de sincronização e a fila do servidor antigo, e um banco central novo recomeça a numeração do cursor.
 
-Só parar, mantendo os dados: `bash deploy/scripts/cluster-local.sh parar` (e `subir` retoma).
+Só parar, mantendo os dados: `docker compose down` (e `docker compose up -d` retoma).
 
 ## 7. Se algo não sair como esperado
 
@@ -368,9 +357,9 @@ Só parar, mantendo os dados: `bash deploy/scripts/cluster-local.sh parar` (e `s
 | --- | --- | --- |
 | Login responde "Muitas tentativas" | 5 senhas erradas em 15 min para o mesmo registro, ou mais de 10 logins por minuto | Esperar; ou entrar com outro profissional de demonstração |
 | App mostra "já está aberto em outra aba" | Duas abas do cliente | Fechar a outra aba |
-| Tira do app fica em Offline com a chave desligada | Servidor fora do ar | `cluster-local.sh status`; ver [`../operacao/troubleshooting.md`](../operacao/troubleshooting.md) |
+| Tira do app fica em Offline com a chave desligada | Servidor fora do ar | `docker compose ps -a`; ver [`../operacao/troubleshooting.md`](../operacao/troubleshooting.md) |
 | "Sincronizar agora" desabilitado | Chave Simular offline ligada | Desligar a chave |
 | Passo 11 diz "0 recebidos" | O app já havia sincronizado sozinho | Conferir pela lista de medicamentos |
-| Envio fica em "Na fila" | Mailpit ou SMTP fora | `cluster-local.sh status`; o envio é refeito sozinho (1, 5, 15 e 60 min) |
-| `kubectl exec` reclama de TTY no Git Bash | Uso de `-it` | Os comandos deste roteiro não usam `-it`; para sessão interativa, prefixe com `winpty` |
-| <http://localhost:18025> não abre | O encaminhamento de porta caiu | Rodar de novo o comando da seção 2.2 |
+| Envio fica em "Na fila" | Mailpit ou SMTP fora | `docker compose ps -a`; o envio é refeito sozinho (1, 5, 15 e 60 min) |
+| `docker compose exec` reclama de TTY no Git Bash | Sessão interativa | Os comandos deste roteiro usam `-T`; para sessão interativa, prefixe com `winpty` |
+| <http://localhost:18025> não abre | Mailpit parado | `docker compose ps -a`; `docker compose up -d` |

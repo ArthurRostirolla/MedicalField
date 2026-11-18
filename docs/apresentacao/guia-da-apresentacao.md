@@ -2,7 +2,7 @@
 
 Roteiro de fala para cerca de **15 minutos**, com o que mostrar, o que dizer sobre cada requisito do enunciado, o plano B e as perguntas prováveis.
 
-Regra de ouro: **só afirmar o que foi feito.** O sistema está validado num cluster Kubernetes local e o app Android, num **emulador**. A VM da Univates, o e-mail em caixa externa e um aparelho Android físico **não** foram executados — diga isso antes que perguntem (seção 5).
+Regra de ouro: **só afirmar o que foi feito.** O sistema foi validado num cluster Kubernetes local, antes da troca para o Docker Compose, e o app Android, num **emulador**. A repetição no Compose, a VM da Univates, o e-mail em caixa externa e um aparelho Android físico **não** foram executados — diga isso antes que perguntem (seção 5).
 
 Passo a passo detalhado de cada clique: [`../testes/roteiro-de-testes.md`](../testes/roteiro-de-testes.md).
 
@@ -10,7 +10,7 @@ Passo a passo detalhado de cada clique: [`../testes/roteiro-de-testes.md`](../te
 
 Faça com 30 minutos de antecedência. Os comandos estão no roteiro de testes, seção 2.
 
-- [ ] Docker em execução; `bash deploy/scripts/cluster-local.sh subir` e `status` — seis pods em `1/1 Running`.
+- [ ] Docker em execução; `cd deploy && docker compose up -d` e `docker compose ps` — `postgres` em `healthy`, os outros seis contêineres em `running`.
 - [ ] Encaminhamento do Mailpit rodando num terminal; <http://localhost:18025> aberto.
 - [ ] Função `mfsql` colada num terminal, com o comando do passo 9 já digitado (sem dar Enter).
 - [ ] **Janela A:** portal em <http://localhost:8088/portal/>, na tela de entrada.
@@ -50,7 +50,7 @@ Pontos para tocar, um por frase:
 - **Banco central:** um PostgreSQL, quatro schemas, um papel de banco por serviço. A linha do tempo clínica e as auditorias são somente-inserção **no banco**, não só no código.
 - **Banco local:** SQLite de verdade dentro do navegador (WebAssembly, gravando em arquivo).
 - **Comunicação:** HTTP síncrono; o único fluxo assíncrono, o e-mail, usa uma fila em tabela.
-- **Implantação:** Kubernetes (k3s), mostrado no segundo diagrama.
+- **Implantação:** Docker Compose, mostrado no segundo diagrama (o plano previa Kubernetes; a VM tem 1,6 GB de RAM).
 
 Não se alongue nos padrões aqui — eles aparecem na demonstração.
 
@@ -148,7 +148,7 @@ O script dirige o WebView por depuração remota e confere o banco central. No e
 
 Diga, sem rodeio:
 
-> "Três coisas que **não** fiz. Primeiro, isto está rodando num Kubernetes local, não na VM da Univates: não tive acesso à VM; o procedimento e os manifestos estão prontos, mas não foram executados lá. Segundo, o e-mail vai para um servidor SMTP de captura; não testei numa caixa externa. Terceiro, o app Android: o APK foi construído e validado num emulador — login, registro offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado —, mas não num aparelho físico, e é um APK de depuração, não assinado."
+> "Três coisas que **não** fiz. Primeiro, isto está rodando em Docker Compose na minha máquina, não na VM da Univates: o procedimento e o arquivo da VM estão prontos, mas ainda não foram validados lá. Segundo, o e-mail vai para um servidor SMTP de captura; não testei numa caixa externa. Terceiro, o app Android: o APK foi construído e validado num emulador — login, registro offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado —, mas não num aparelho físico, e é um APK de depuração, não assinado."
 
 Feche com o que **está** provado: 17 passos automatizados, offline com queda e reabertura no navegador e no emulador Android, idempotência conferida no banco.
 
@@ -159,7 +159,7 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 | Três serviços em linguagens diferentes | Diagrama geral | "Go, TypeScript e Python — três processos, três imagens, três schemas." |
 | Persistência dual | `modelagem.md` | "PostgreSQL na central; SQLite embarcado no app." |
 | Aplicação cliente com interface gráfica | App no navegador e no emulador Android | "O mesmo código: PWA no navegador e APK no Android, validado em emulador." |
-| Execução na VM da Univates | Bloco 5 | "**Não executado na VM.** Validado em k3s local; o caminho para a VM está documentado." |
+| Execução na VM da Univates | Bloco 5 | "**A validar na VM.** Validado localmente; o caminho para a VM está documentado." |
 | Todas as rotas autenticadas, menos o login | Postman, requisição "Sem token: 401" | "Cada serviço valida o JWT sozinho, com a chave pública do serviço de identidade." |
 | Credenciais do profissional | Telas de login | "CRM, COREN ou ID de socorrista, mais a UF." |
 | Middleware de log de acesso com os 7 campos | `mfsql` no log de acesso | "Mesma cadeia nos três: request-id, log de acesso, autenticação, handler." |
@@ -178,24 +178,24 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 
 | Se… | Faça |
 | --- | --- |
-| **O cluster não sobe** ou um pod não fica pronto | `bash deploy/scripts/cluster-local.sh status`. Se não resolver em um minuto, passe ao **modo desenvolvimento**: `bash scripts/dev-db.sh subir && bash scripts/dev-db.sh migrar`, `bash scripts/dev-servicos.sh subir`, e os dois `npm run dev` — portal em `localhost:5181/portal/`, app em `localhost:5182/app/`, Mailpit em `localhost:8025`. Nesse modo o SQL do passo 9 é `docker exec medicalfield-dev-pg psql -U postgres -d medicalfield -c "..."`. Diga que mudou para o modo de desenvolvimento. |
+| **O sistema não sobe** ou um contêiner não fica pronto | `cd deploy && docker compose ps -a` e `docker compose logs <serviço>`. Se não resolver em um minuto, passe ao **modo desenvolvimento**: `bash scripts/dev-db.sh subir && bash scripts/dev-db.sh migrar`, `bash scripts/dev-servicos.sh subir`, e os dois `npm run dev` — portal em `localhost:5181/portal/`, app em `localhost:5182/app/`, Mailpit em `localhost:8025`. Nesse modo o SQL do passo 9 é `docker exec medicalfield-dev-pg psql -U postgres -d medicalfield -c "..."`. Diga que mudou para o modo de desenvolvimento. |
 | **A demonstração ao vivo trava no meio** | Abra [`../testes/evidencias/roteiro/resultado.md`](../testes/evidencias/roteiro/resultado.md) e as capturas `passo-NN.png`: a execução automatizada dos mesmos 17 passos, com data. Continue a partir da captura do passo em que parou. |
 | **O e-mail não chega** | Mostre a linha na tabela de envios do portal ("Na fila") e explique a retentativa: 1, 5, 15 e 60 minutos, depois falha definitiva com botão de reenvio. Confira o encaminhamento de porta do Mailpit (seção 2.2 do roteiro). Mostre `ficha-do-roteiro.pdf` e `passo-17.png` nas evidências. |
-| **O Mailpit não abre** (`localhost:18025`) | O envio pode ter saído mesmo assim: confira pelo status "Enviado" no portal e por `mfsql "SELECT status, tentativas, enviado_em FROM documentos.envio_email ORDER BY criado_em DESC LIMIT 1;"`. Rode de novo o `port-forward`. |
+| **O Mailpit não abre** (`localhost:18025`) | O envio pode ter saído mesmo assim: confira pelo status "Enviado" no portal e por `mfsql "SELECT status, tentativas, enviado_em FROM documentos.envio_email ORDER BY criado_em DESC LIMIT 1;"`. Confira o contêiner com `docker compose ps -a`. |
 | **Login bloqueado** ("Muitas tentativas") | Entre com outro profissional de demonstração: a Soc. Lia Moura (Socorrista `300003`) no app. O bloqueio é por registro e por IP, e some em 15 minutos. |
 | **O app diz "já está aberto em outra aba"** | Feche a aba duplicada e recarregue. |
 | **O app não abre o banco local** | Use o Chrome (não uma janela anônima antiga nem outro navegador). Em último caso: DevTools → Application → Clear site data, e entre de novo — o que já subiu não se perde. |
 | **Sem projetor para o terminal** | O passo 9 pode ser mostrado pela consequência: Medicamentos → Atualizar no portal. |
-| **Perguntam pela VM** | Abra [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) e `deploy/overlays/univates/kustomization.yaml`. É o mesmo conjunto de manifestos do cluster local, com imagens do registro e o nome público. Não foi executado. |
+| **Perguntam pela VM** | Abra [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) e `deploy/compose.vm.yaml`. É o mesmo `compose.yaml` do modo local, com imagens do GHCR, HTTPS e o nome público. A validar. |
 | **Perguntam pelo Android**, ou o emulador não sobe | Mostre as capturas em [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md) (início sincronizado, atendimento offline, reaberto com pendências, sincronizado) e o `resultado.md`. Detalhes: [`../../apps/lucky-patcher/docs/nativo.md`](../../apps/lucky-patcher/docs/nativo.md) e a evidência E-008. Diga o limite: emulador, APK de depuração, sem TLS. |
 
 ## 5. Perguntas prováveis e respostas curtas
 
 **Por que não está na VM da Univates?**
-Não tive acesso à VM durante o desenvolvimento. Validei num k3s de nó único em Docker, com os mesmos manifestos. O overlay da VM e o passo a passo estão escritos, mas eu não os executei, então não afirmo que funcionam lá.
+A implantação na VM ainda está a validar. O arquivo da VM (`compose.vm.yaml`) e o passo a passo estão escritos, mas enquanto eu não os executar lá, não afirmo que funcionam.
 
-**O enunciado diz que não precisa de contêiner. Por que Kubernetes?**
-Foi uma escolha, não uma exigência. Três linguagens significam três ambientes de execução; o contêiner dá a mesma forma de empacotar, subir e reiniciar para os três. Usei k3s, que é um binário só e cabe numa VM pequena — cerca de 263 MB de aplicação medidos.
+**O enunciado diz que não precisa de contêiner. Por que contêiner? E por que não Kubernetes, como no plano?**
+Contêiner foi uma escolha, não uma exigência: três linguagens significam três ambientes de execução, e o contêiner dá a mesma forma de empacotar, subir e reiniciar para os três. O plano previa k3s, mas a VM tem 1 vCPU e 1,6 GB de RAM; o k3s pede ao menos 2 GB e gasta 450–600 MB só orquestrando, contra uns 70 MB do Docker. Troquei para Docker Compose, com as mesmas imagens e o mesmo endurecimento — a aplicação mediu cerca de 263 MB.
 
 **Por que não RabbitMQ ou Kafka?**
 Só existe um fluxo assíncrono, o e-mail, com um produtor e um consumidor no mesmo serviço. Uma tabela com `FOR UPDATE SKIP LOCKED` já é durável, transacional com o pedido e visível por SQL. Um broker seria mais um componente para operar sem entregar nada a mais. Eu reconsideraria se um mesmo evento precisasse de vários consumidores.
@@ -249,4 +249,4 @@ Entrada única, roteamento por prefixo, limite de taxa no login, cabeçalhos de 
 Uma instância, mas um schema e um papel por serviço: um serviço não consegue ler o schema do outro. Tem o isolamento de dados sem triplicar memória, backup e operação numa VM pequena.
 
 **Quanto disso foi testado?**
-Testes automatizados nos três serviços e nos pacotes, testes de ponta a ponta do portal e do app contra o backend real, e o roteiro de 17 passos contra o cluster. A matriz em `docs/VALIDATION_MATRIX.md` diz, item por item, o que foi validado no sistema rodando e o que só tem teste de módulo.
+Testes automatizados nos três serviços e nos pacotes, testes de ponta a ponta do portal e do app contra o backend real, e o roteiro de 17 passos contra o sistema implantado. A matriz em `docs/VALIDATION_MATRIX.md` diz, item por item, o que foi validado no sistema rodando e o que só tem teste de módulo.

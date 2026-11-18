@@ -2,6 +2,8 @@
 
 > Fase de planejamento. Nada foi criado, instalado ou alterado. Único arquivo escrito: este plano.
 
+> **Decisão revista (implantação):** o Kubernetes (k3s + Kustomize + Argo CD) deste plano foi substituído por **Docker Compose**. A VM da Univates tem 1 vCPU e 1,6 GB de RAM; o k3s pede ao menos 2 GB e gasta 450–600 MB só com a orquestração (o Docker, cerca de 70 MB). Kubernetes era requisito próprio, não do enunciado. Como está implementado: [`arquitetura.md`](arquitetura.md), seção 3.
+
 ## Contexto
 
 **O que é:** trabalho final de Arquiteturas de Software (Univates, 2026/B, Prof. Fabrício) — prontuário médico de emergência *Offline-First* para equipes pré-hospitalares, com ≥3 serviços backend em linguagens distintas, portal administrativo, cliente com banco local e simulador de rede, PDF da ficha e envio por e-mail.

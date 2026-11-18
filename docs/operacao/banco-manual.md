@@ -2,13 +2,15 @@
 
 O catálogo de medicamentos não tem tela de cadastro: o roteiro pede a inserção **pelo banco**. O app recebe os novos na próxima sincronização (`GET /api/v1/sync/alteracoes`), porque um gatilho preenche `seq` em todo `INSERT`/`UPDATE`.
 
-## Abrir o psql no cluster
+## Abrir o psql
+
+Em `deploy/` (local ou na VM, em `/opt/medicalfield/deploy`):
 
 ```bash
-kubectl -n medicalfield exec -it postgres-0 -- psql -U postgres -d medicalfield
+docker compose exec postgres psql -U postgres -d medicalfield
 ```
 
-No cluster local: `deploy/scripts/cluster-local.sh kubectl -n medicalfield exec -it postgres-0 -- psql -U postgres -d medicalfield` (no Git Bash do Windows, prefixe com `winpty` se o terminal reclamar de TTY).
+No Git Bash do Windows, prefixe com `winpty` se o terminal reclamar de TTY.
 
 ## Inserir
 
@@ -25,7 +27,7 @@ RETURNING id, nome, seq;
 Sem abrir sessão interativa:
 
 ```bash
-kubectl -n medicalfield exec postgres-0 -- psql -U postgres -d medicalfield -c \
+docker compose exec -T postgres psql -U postgres -d medicalfield -c \
   "INSERT INTO clinico.medicamento (nome, principio_ativo, apresentacao) VALUES ('Morfina 10 mg/mL', 'sulfato de morfina', 'ampola 1 mL') RETURNING id, seq;"
 ```
 

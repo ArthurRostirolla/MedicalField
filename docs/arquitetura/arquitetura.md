@@ -15,7 +15,7 @@ O MedicalField é um prontuário de emergência pré-hospitalar **Offline-First*
 | Serviço de identidade e auditoria | **MikeBaguncinha** | Login, tokens, chave pública, log de acesso, logs do app | Go (`net/http` + `pgx`) | `apps/mike-baguncinha` |
 | Núcleo clínico e sincronização | **DonaCida** | Pessoas, prontuários, atendimentos, idempotência, conflitos, cursor | TypeScript (NestJS) | `apps/dona-cida` |
 | Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | Python (FastAPI) | `apps/jaiminho` |
-| Gateway | **freeway** | Roteamento por prefixo, limite de taxa no login, cabeçalhos | Traefik (Ingress do k3s) | `deploy/base/gateway` |
+| Gateway | **freeway** | Roteamento por prefixo, limite de taxa no login, cabeçalhos | Traefik 3.5 (provedor de arquivo) | `deploy/gateway` |
 | Portal administrativo | **BradPitt** | Consulta, PDF, e-mail, auditoria (somente leitura clínica) | React + Vite (SPA) | `apps/brad-pitt` |
 | App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, outbox, simulador de rede | React + Vite (PWA) + Capacitor | `apps/lucky-patcher` |
 | Banco central | — | Um PostgreSQL, quatro schemas, um papel por serviço | PostgreSQL 17 | `apps/*/migrations` |
@@ -67,84 +67,79 @@ flowchart LR
 
 Como ler:
 
-- **Uma só entrada.** Portal e app falam com o gateway, sempre em caminhos relativos `/api/v1/...`. O gateway roteia por prefixo **sem remover o prefixo** e **não autentica**: cada serviço valida o token sozinho (`deploy/base/gateway/ingress.yaml`).
+- **Uma só entrada.** Portal e app falam com o gateway, sempre em caminhos relativos `/api/v1/...`. O gateway roteia por prefixo **sem remover o prefixo** e **não autentica**: cada serviço valida o token sozinho (`deploy/gateway/rotas.yml`).
 - **Um dono por dado.** Cada serviço escreve só no próprio schema, com o próprio papel de banco. A DonaCida não lê `identidade`; o Jaiminho não lê `clinico` — ele pede a ficha à DonaCida por HTTP.
-- **A chave pública não passa pelo gateway.** A DonaCida e o Jaiminho buscam o JWKS na porta de gestão (9090) do MikeBaguncinha, que só existe dentro do cluster.
+- **A chave pública não passa pelo gateway.** A DonaCida e o Jaiminho buscam o JWKS na porta de gestão (9090) do MikeBaguncinha, que só é alcançável dentro das redes Docker do sistema.
 - **O app não depende do servidor para funcionar.** Toda tela lê e grava no banco local; a rede só é usada pelo motor de sincronização.
 
-## 3. Implantação no Kubernetes
+## 3. Implantação com Docker Compose
 
-Validado em **k3s de nó único rodando em Docker** na máquina de desenvolvimento (`deploy/scripts/cluster-local.sh`, overlay `deploy/overlays/local`). O overlay `deploy/overlays/univates` e o Argo CD (`deploy/argocd/`) estão escritos para a VM da Univates, mas **não foram executados**: não houve acesso à VM (ver seção 10).
+Tudo roda em **Docker Compose** num único host: `deploy/compose.yaml` (modo local, `http://localhost:8088`) e, na VM da Univates, o mesmo arquivo somado a `deploy/compose.vm.yaml` (HTTPS com Let's Encrypt em `https://177-44-248-60.sslip.io`). Na VM, as imagens vêm do GHCR, publicadas pelo CI. A implantação na VM está **a validar** (ver seção 10).
+
+> **Decisão revista.** O plano previa Kubernetes (k3s + Kustomize + Argo CD) — uma escolha própria, não uma exigência do enunciado. A VM entregue tem **1 vCPU e 1,6 GB de RAM**: o k3s pede no mínimo 2 GB e gasta cerca de 450–600 MB só com a orquestração, contra uns 70 MB do Docker. A implantação passou para Docker Compose, mantendo as mesmas imagens e o mesmo endurecimento dos contêineres. As evidências registradas antes da troca foram obtidas num k3s local.
 
 ```mermaid
 flowchart TB
   cliente["Navegador ou app"]
 
-  subgraph k3s["k3s, no unico"]
-    subgraph kubesystem["namespace kube-system"]
-      traefik["Traefik 3.3<br/>entrada na porta 80"]
+  subgraph host["Host Docker (maquina local ou VM)"]
+    traefik["traefik: freeway<br/>8088 local; 80 e 443 na VM<br/>IP fixo 172.30.80.2"]
+
+    subgraph redeapp["rede app"]
+      web["web<br/>nginx sem root"]
+      mail["mailpit<br/>SMTP 1025, UI so em 127.0.0.1:18025"]
     end
 
-    subgraph ns["namespace medicalfield"]
-      ing["Ingress freeway<br/>+ freeway-login com limite de taxa"]
-
-      subgraph deployments["Deployments, 1 replica cada"]
-        dweb["web<br/>nginx sem root"]
-        dmike["mike-baguncinha<br/>API 8080, gestao 9090"]
-        dcida["dona-cida<br/>API 8080, gestao 9090"]
-        djai["jaiminho<br/>API 8080, gestao 9090"]
-        dmail["mailpit<br/>SMTP 1025"]
-      end
-
-      init["initContainer migracoes<br/>dbmate como administrador"]
-      sts["StatefulSet postgres<br/>postgres:17-alpine"]
-      pvc1[("PVC dados, 5Gi")]
-      cron["CronJob backup<br/>pg_dump diario 03:15"]
-      pvc2[("PVC backups, 2Gi")]
-      sec["Secrets<br/>senhas e chave Ed25519"]
-      cm["ConfigMaps<br/>configuracao por servico"]
-      np["NetworkPolicies<br/>negar tudo + liberacoes"]
+    subgraph ambas["redes app e banco"]
+      mike["mike-baguncinha<br/>API 8080, gestao 9090"]
+      cida["dona-cida<br/>API 8080, gestao 9090"]
+      jai["jaiminho<br/>API 8080, gestao 9090"]
     end
+
+    subgraph redebanco["rede banco (internal, sem saida)"]
+      migra["migra-mike, migra-cida, migra-jaiminho<br/>dbmate como administrador, uma vez"]
+      pg["postgres<br/>postgres:17-alpine"]
+      vol[("volume dados")]
+    end
+
+    env["deploy/.env<br/>senhas e chave Ed25519"]
   end
 
-  cliente --> traefik --> ing
-  ing --> dweb
-  ing --> dmike
-  ing --> dcida
-  ing --> djai
-  dmike --> sts
-  dcida --> sts
-  djai --> sts
-  djai --> dcida
-  djai --> dmail
-  dcida -. "JWKS 9090" .-> dmike
-  djai -. "JWKS 9090" .-> dmike
-  init -- "antes de cada servico subir" --> sts
-  sts --- pvc1
-  cron --> sts
-  cron --- pvc2
+  cliente --> traefik
+  traefik --> web
+  traefik --> mike
+  traefik --> cida
+  traefik --> jai
+  mike --> pg
+  cida --> pg
+  jai --> pg
+  jai --> cida
+  jai --> mail
+  cida -. "JWKS 9090" .-> mike
+  jai -. "JWKS 9090" .-> mike
+  migra -- "antes de cada servico subir" --> pg
+  pg --- vol
 ```
 
 | Recurso | Arquivo | Observação |
 | --- | --- | --- |
-| Namespace `medicalfield` | `deploy/base/namespace.yaml` | Tudo do sistema fica nele. |
-| `Ingress` `freeway` e `freeway-login` | `deploy/base/gateway/ingress.yaml` | O segundo é a rota exata de login, com o middleware `limite-login` (10/min por IP). |
-| Middlewares do Traefik | `deploy/base/gateway/middlewares.yaml` | Limite de taxa, cabeçalhos de segurança, CORS para o WebView do Android. |
-| Deployments dos três serviços | `deploy/base/<servico>/deployment.yaml` | `initContainer` de migrações, probes na porta de gestão, raiz somente leitura, sem root, sem *capabilities*. |
-| `StatefulSet` `postgres` | `deploy/base/postgres/statefulset.yaml` | PVC de 5 Gi (`local-path`); papéis e schemas criados na primeira partida (`10-papeis-e-schemas.sh`). |
-| `CronJob` `backup` | `deploy/base/backup/cronjob.yaml` | `pg_dump` diário; ver [`operacao/backup-e-recuperacao.md`](../operacao/backup-e-recuperacao.md). |
-| NetworkPolicies | `deploy/base/networkpolicies/networkpolicies.yaml` | "Negar tudo" e uma liberação por caminho real. |
+| Composição | `deploy/compose.yaml` | Projeto `medicalfield`: Postgres, três migrações, três serviços, `web`, Mailpit e Traefik. |
+| Override da VM | `deploy/compose.vm.yaml` | Porta 443, certificado Let's Encrypt (desafio HTTP-01, volume `acme`), HTTP só redireciona. |
+| Rotas e middlewares do gateway | `deploy/gateway/rotas.yml` | Roteamento por prefixo; a rota exata de login tem o `limite-login` (10/min por IP); cabeçalhos de segurança, CORS do app. |
+| Serviços | `deploy/compose.yaml` | Raiz somente leitura, sem root, `cap_drop: ALL`, `no-new-privileges`, limite de memória; sobem só depois da própria migração. |
+| Migrações | `migra-*` em `deploy/compose.yaml`, imagem `deploy/migracoes/Dockerfile` | Serviços de execução única (`dbmate` + as migrações dos três serviços). |
+| Postgres | `deploy/compose.yaml`, `deploy/db/` | Volume nomeado `dados`; papéis e schemas criados na primeira partida (`10-papeis-e-schemas.sh`). |
+| Redes | `deploy/compose.yaml` | `banco` (interna: Postgres, migrações, serviços) e `app` (gateway, serviços, `web`, Mailpit). |
+| Backup | `deploy/scripts/backup.sh`, `restore.sh` | `pg_dump` diário pelo cron do host; ver [`operacao/backup-e-recuperacao.md`](../operacao/backup-e-recuperacao.md). |
 | Imagem `web` | `deploy/web/Dockerfile`, `deploy/web/nginx.conf` | Um nginx sem root serve os dois front-ends (`/portal/` e `/app/`). |
-| Imagem `migracoes` | `deploy/migracoes/Dockerfile` | `dbmate` + as migrações dos três serviços. |
-| Secrets | `deploy/scripts/criar-secrets.sh` | Criados fora do Git, a partir de `deploy/secrets.local.env` (gerado). |
-| Ajuste do Traefik | `deploy/argocd/traefik-helmchartconfig.yaml` | `externalTrafficPolicy: Local` e `trustedIPs` do `X-Forwarded-For`. |
-| CI | `.github/workflows/ci.yml` | Testes dos três serviços e dos pacotes npm. |
+| Segredos | `deploy/scripts/segredos.sh` → `deploy/.env` | Fora do Git, `chmod 600`; gerados na máquina. |
+| CI | `.github/workflows/ci.yml` | Testes dos três serviços e dos pacotes npm; valida os dois modos do Compose; em `main`, publica as 5 imagens no GHCR com as tags `<sha>` e `latest`. |
 
-Consumo medido no cluster local (`kubectl top`, evidência E-007): cerca de 263 Mi de aplicação — Jaiminho 96 Mi, Mike 65 Mi, Cida 44 Mi, Postgres 29 Mi, Mailpit 16 Mi, web 13 Mi.
+Consumo medido no k3s local, antes da troca (`kubectl top`, evidência E-007): cerca de 263 Mi de aplicação — Jaiminho 96 Mi, Mike 65 Mi, Cida 44 Mi, Postgres 29 Mi, Mailpit 16 Mi, web 13 Mi. No Compose, os limites de memória somam 1,7 GB no pior caso; o consumo real na VM está a medir (`docker stats`).
 
 ## 4. Tecnologias utilizadas
 
-Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, dos Dockerfiles, dos manifestos e — onde o arquivo só fixa um mínimo — dos contêineres em execução no cluster local.
+Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, dos Dockerfiles, do `compose.yaml` e — onde o arquivo só fixa um mínimo — dos contêineres em execução no ambiente local.
 
 ### Backend
 
@@ -199,12 +194,10 @@ Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, do
 
 | Tecnologia | Versão | Onde | Por quê |
 | --- | --- | --- | --- |
-| k3s | v1.33.5+k3s1 | Cluster local (`rancher/k3s`) | Kubernetes de um binário, com Traefik, CoreDNS, `local-path` e NetworkPolicy inclusos. |
-| Traefik | 3.3.6 (o que vem no k3s) | Gateway "freeway" | Já está no k3s; roteamento por `Ingress` e middlewares por CRD. |
-| Kustomize | o do `kubectl` (5.7.1) | `deploy/base` + `deploy/overlays` | Uma base, dois ambientes, sem template. |
+| Docker Compose | v2 | `deploy/compose.yaml` (+ `compose.vm.yaml`) | Um arquivo, dois ambientes; cabe na VM de 1,6 GB (seção 3). |
+| Traefik | v3.5 (`traefik:v3.5`) | Gateway "freeway" | Roteamento e middlewares por arquivo; Let's Encrypt embutido. |
 | nginx (sem root) | 1.29 (`nginxinc/nginx-unprivileged:1.29-alpine`) | Imagem `web` | Servidor estático dos dois front-ends. |
 | Mailpit | v1.27 | Servidor SMTP de captura | E-mail demonstrável sem credencial externa. |
-| Argo CD | — | `deploy/argocd/application.yaml` | Manifesto escrito; **não instalado nem sincronizado**. |
 | Vitest | 5.1.0 | Testes de TS | — |
 | Playwright | 1.65.1 | E2E do portal, do app e o roteiro de 17 passos | Dirige o Chrome instalado. |
 | pytest · Ruff | ≥ 8 · ≥ 0.8 | Jaiminho | Testes e lint. |
@@ -241,7 +234,7 @@ Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, do
 
 | Fluxo | Estilo | Implementação |
 | --- | --- | --- |
-| Portal e app → gateway → serviço | HTTP síncrono, JSON | `deploy/base/gateway/ingress.yaml` |
+| Portal e app → gateway → serviço | HTTP síncrono, JSON | `deploy/gateway/rotas.yml` |
 | Subida da sincronização | HTTP síncrono, **um comando por requisição**, a partir da fila persistente no dispositivo | `apps/lucky-patcher/src/sync/motor.ts` (`subir`) |
 | Descida da sincronização | HTTP síncrono, *pull* por cursor | `motor.ts` (`descer`) → `GET /sync/alteracoes` |
 | Jaiminho → DonaCida | HTTP síncrono, com o JWT do usuário | `apps/jaiminho/src/jaiminho/infra/clinico.py` |
@@ -259,7 +252,7 @@ O único fluxo realmente assíncrono do sistema é o envio de e-mail. Ele usa a 
 - Falhou: nova tentativa em 1, 5, 15 e 60 min; na 5ª tentativa vira `FALHA_DEFINITIVA` (`dominio/regras.py`, `proxima_situacao`). `ENVIANDO` há mais de 5 min volta a `PENDENTE`.
 - Entrega **ao menos uma vez**, com `Message-ID` fixo por envio.
 
-Um broker foi avaliado e rejeitado: há um produtor e um consumidor, dentro do mesmo serviço, com volume de unidades por dia. O RabbitMQ custaria mais um StatefulSet, credenciais, filas mortas e cerca de 150 MB de memória, sem entregar nada que a tabela não entregue — ela já é durável, transacional com o pedido, visível por SQL e guarda cada tentativa. Faria sentido se um mesmo fato precisasse de vários consumidores independentes.
+Um broker foi avaliado e rejeitado: há um produtor e um consumidor, dentro do mesmo serviço, com volume de unidades por dia. O RabbitMQ custaria mais um contêiner com estado, credenciais, filas mortas e cerca de 150 MB de memória, sem entregar nada que a tabela não entregue — ela já é durável, transacional com o pedido, visível por SQL e guarda cada tentativa. Faria sentido se um mesmo fato precisasse de vários consumidores independentes.
 
 Na sincronização, a durabilidade está **no dispositivo** (o outbox): o trecho não confiável é o rádio do celular, não a rede interna do servidor, então um broker no servidor não ajudaria.
 
@@ -306,27 +299,26 @@ Código compartilhado entre o backend TypeScript e os dois front-ends (monorepo 
 | --- | --- | --- | --- |
 | Banco local no navegador | `jeep-sqlite` (sql.js + IndexedDB) | **SQLite WASM oficial em OPFS** (`opfs-sahpool`) | No teste de queda, o `jeep-sqlite` perdeu 5 de 5 gravações; o SQLite WASM manteve 5 de 5 (`apps/lucky-patcher/docs/durabilidade.md`). Só o adaptador web mudou. |
 | Referência do atendimento | `prontuarioId` enviado pelo cliente | **`pessoaId`**; o servidor resolve (ou cria) o prontuário | Dois aparelhos podem criar prontuário para a mesma pessoa offline; com o id do cliente o atendimento seria rejeitado por chave estrangeira. |
-| Migrações | Papel do serviço | **Administrador**, por uma imagem única de migrações em `initContainer`; o serviço usa papel restrito | Se o papel do serviço fosse dono das tabelas, o "somente inserção" da linha do tempo e da auditoria não valeria. |
+| Migrações | Papel do serviço | **Administrador**, por uma imagem única de migrações, num contêiner de execução única antes do serviço; o serviço usa papel restrito | Se o papel do serviço fosse dono das tabelas, o "somente inserção" da linha do tempo e da auditoria não valeria. |
 | Nome do profissional | — | `profissional_nome` copiado no atendimento e no evento | A DonaCida não lê o schema `identidade`. |
 | Acesso a dados no Go | `sqlc` + `pgx` | Só `pgx`, SQL escrito à mão | Poucas consultas; gerador não se pagava. |
 | Formulários | React Hook Form + zod | Estado do React + zod | Sem dependência extra; a validação é a do contrato. |
 | Sessão do app | *Refresh token* no Keystore (Android) / cookie (web) | Sessão inteira no **banco local** (cifrado só no Android); o cookie `HttpOnly` é usado apenas pelo portal | O app precisa abrir sem rede; ver [segurança](seguranca.md). |
 | App Android | APK entregue | **APK de depuração**, validado em **emulador**; não assinado para publicação, sem teste em aparelho físico | O Gradle exigiu uma pasta temporária de caminho curto (D-09); ver `apps/lucky-patcher/docs/nativo.md`. |
-| Implantação | VM da Univates, Argo CD | **k3s local em Docker**, `kubectl apply -k` | Sem acesso à VM. |
+| Implantação | Kubernetes (k3s) na VM, Kustomize, Argo CD | **Docker Compose**, imagens do GHCR, atualização por `docker compose pull && up -d` | A VM tem 1 vCPU e 1,6 GB de RAM; o k3s pede ao menos 2 GB (seção 3). |
 
 ## 10. Estado atual
 
 | Item | Situação |
 | --- | --- |
-| Três serviços, gateway, portal e app integrados | Validado no k3s local |
+| Três serviços, gateway, portal e app integrados | Validado no Docker Compose local (roteiro de 17 passos) |
 | Roteiro acadêmico de 17 passos | Validado, automatizado (`e2e/roteiro.spec.ts`) |
 | Offline-First (outbox, reabertura, queda no meio, resposta perdida) | Validado no navegador |
 | Coleção Postman de todas as rotas | Validada com Newman contra o gateway |
 | Conflito com dois clientes reais | Só testes de integração do servidor |
-| NetworkPolicy e backup/restauração | Executados uma vez; não repetidos de forma independente |
+| Isolamento de rede e backup/restauração | Backup/restauração executados no Compose local; isolamento pelas redes Docker a validar |
 | App Android | APK de depuração construído e validado em emulador (`e2e/android/android.mjs`, E-008): login, offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado. **Não testado em aparelho físico**; APK não assinado; HTTP sem TLS até o gateway local |
-| Argo CD | Manifesto escrito; não instalado |
-| VM da Univates e acesso público HTTPS | **Não executado** — documentado em [`operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) |
+| VM da Univates e acesso público HTTPS | **A validar** — documentado em [`operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) |
 | E-mail em caixa externa | Não testado — validado contra o Mailpit (SMTP real de captura) |
 
 Fonte: [`VALIDATION_MATRIX.md`](../VALIDATION_MATRIX.md), [`VALIDATION_EVIDENCE.md`](../VALIDATION_EVIDENCE.md), [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md).

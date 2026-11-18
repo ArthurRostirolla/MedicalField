@@ -32,7 +32,7 @@ São **14 tabelas**. Cada schema tem ainda uma `schema_migrations`, do `dbmate`.
 
 Cargas de demonstração (dados fictícios, com ids fixos): `..._000150_profissionais_demo.sql` (3 profissionais) e `..._000250_dados_demo.sql` (12 medicamentos, 3 pessoas, 3 prontuários, 6 itens).
 
-Os schemas e os `GRANT USAGE` são criados por `deploy/db/schemas.sql`; os papéis, por `deploy/base/postgres/10-papeis-e-schemas.sh` (cluster) ou `scripts/dev-db.sh` (desenvolvimento).
+Os schemas e os `GRANT USAGE` são criados por `deploy/db/schemas.sql`; os papéis, por `deploy/db/10-papeis-e-schemas.sh` (Docker Compose, na primeira partida do Postgres) ou `scripts/dev-db.sh` (desenvolvimento).
 
 **Não há chave estrangeira entre schemas.** Um serviço referencia o dado de outro por id, sem restrição no banco — é o que mantém cada schema independente. Nos diagramas, linha contínua é chave estrangeira real; linha tracejada é referência lógica.
 
@@ -288,9 +288,9 @@ erDiagram
 
 ### 1.5 Papéis de banco e privilégios
 
-As migrações rodam como **administrador** (`postgres`), por uma imagem única (`deploy/migracoes/Dockerfile`) num `initContainer`. Os serviços se conectam com um papel restrito, que **não é dono** das tabelas — é isso que torna o "somente inserção" uma regra do banco, e não uma promessa do código.
+As migrações rodam como **administrador** (`postgres`), por uma imagem única (`deploy/migracoes/Dockerfile`), nos serviços `migra-*` do Compose, antes de cada serviço subir. Os serviços se conectam com um papel restrito, que **não é dono** das tabelas — é isso que torna o "somente inserção" uma regra do banco, e não uma promessa do código.
 
-Privilégios reais (`information_schema.role_table_grants`, conferidos no cluster local):
+Privilégios reais (`information_schema.role_table_grants`, conferidos no k3s local, antes da troca para o Docker Compose):
 
 | Tabela | `mf_mike` | `mf_cida` | `mf_jaiminho` |
 | --- | --- | --- | --- |

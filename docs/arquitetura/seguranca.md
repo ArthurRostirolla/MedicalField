@@ -21,7 +21,7 @@ Relacionados: [`arquitetura.md`](arquitetura.md) · [`sincronizacao.md`](sincron
 - **Não revela se o registro existe:** quando o profissional não é encontrado, um *hash* falso é verificado mesmo assim, para o tempo de resposta ser o mesmo; a mensagem é sempre "Registro ou senha inválidos" (`internal/aplicacao/autenticacao.go`).
 - **Limite de tentativas, em duas camadas:**
   - no serviço: 5 falhas em 15 min para o mesmo IP + registro → 429 (`internal/aplicacao/limitador.go`);
-  - no gateway: 10 requisições por minuto por IP na rota de login (`deploy/base/gateway/middlewares.yaml`, `limite-login`).
+  - no gateway: 10 requisições por minuto por IP na rota de login (`deploy/gateway/rotas.yml`, `limite-login`).
 
 ### Tokens
 
@@ -125,7 +125,7 @@ Uma linha por requisição em `/api/v1/*`, em **todos** os serviços:
 | Tempo de Processamento (ms) | `tempo_ms` | `tempoMs` |
 | (a mais) | `servico`, `request_id` | `servico`, `requestId` |
 
-Linha real, do stdout da DonaCida no cluster local:
+Linha real, do stdout da DonaCida no cluster k3s local usado antes da troca para o Docker Compose:
 
 ```json
 {"nivel":"info","tipo":"acesso","dataHora":"2026-11-18T03:07:13.577Z","servico":"dona-cida","ipCliente":"172.30.77.1","profissionalId":"0d5b1c1e-7a10-4c1e-9b11-000000000002","metodo":"POST","rota":"/api/v1/atendimento","statusCode":201,"tempoMs":9,"requestId":"4109aacc-637a-4fe5-9f9a-8a53a4072c5b"}
@@ -180,11 +180,11 @@ O serviço fica atrás do gateway, então o par direto da conexão é o Traefik.
 | DonaCida | `src/http/ip-cliente.ts` (`resolverIpCliente`) |
 | Jaiminho | `src/jaiminho/http/middlewares.py` (`ip_do_cliente`) |
 
-- `PROXIES_CONFIAVEIS` no cluster: `127.0.0.1/32, ::1/128, 10.42.0.0/16` — a rede de pods do k3s, onde está o Traefik (`deploy/base/kustomization.yaml`).
-- O Traefik só aceita `X-Forwarded-For` vindo de `127.0.0.1` e roda com `externalTrafficPolicy: Local`, para enxergar o IP de origem (`deploy/argocd/traefik-helmchartconfig.yaml`).
+- `PROXIES_CONFIAVEIS` no Compose: `127.0.0.1/32, ::1/128, 172.30.80.2/32` — só o Traefik, que tem IP fixo na rede `app` (`deploy/compose.yaml`).
+- O Traefik não confia em `X-Forwarded-For` de ninguém (nenhum `trustedIPs` configurado): grava o IP da conexão que recebeu.
 - Um cliente que forje o cabeçalho não engana o log: o Traefik o descarta, e o serviço só confia no que veio do Traefik.
 
-Observado no cluster local (E-004): as chamadas externas registram `172.30.77.1` — o endereço real visto pelo nó, que é o gateway da rede Docker onde o k3s roda; a chamada interna Jaiminho → DonaCida registra o IP do pod. A forja de cabeçalho é coberta por teste de unidade (`internal/http/ip_test.go`), não por teste no cluster.
+Observado no k3s local, antes da troca (E-004): as chamadas externas registravam `172.30.77.1` — o gateway da rede Docker onde o k3s rodava; a chamada interna Jaiminho → DonaCida registrava o IP do pod. No Compose, se o IP público do cliente chega aos logs na VM está **a validar** (no Docker Desktop costuma aparecer o gateway da rede Docker). A forja de cabeçalho é coberta por teste de unidade (`internal/http/ip_test.go`).
 
 ## 5. LGPD
 
@@ -208,42 +208,51 @@ Dado de saúde é dado pessoal sensível (LGPD, art. 5º, II). O enquadramento j
 - **O banco local no navegador não é cifrado.** Fica no OPFS da origem, protegido só pelo perfil do navegador. O cliente web serve à demonstração e a ambiente controlado. No Android o adaptador usa SQLCipher com segredo no armazenamento seguro do sistema — validado em **emulador** (o arquivo `databases/medicalfieldSQLite.db` não traz o cabeçalho SQLite em claro; E-008), não em aparelho físico.
 - **A sessão do app (inclusive o *refresh token*) fica nesse mesmo banco local.**
 - **Todas as pessoas descem para o aparelho.** Serve ao porte acadêmico; em produção seria preciso recortar por base ou região e prever limpeza remota.
-- **Sem TLS no ambiente validado** — inclusive do app Android até o gateway local. O cluster local atende em `http://localhost:8088`. HTTPS depende do acesso público na VM, documentado em [`../operacao/acesso-publico.md`](../operacao/acesso-publico.md) e não executado. `Secure` no cookie e HSTS só valem em HTTPS.
+- **Sem TLS no ambiente validado** — inclusive do app Android até o gateway local. O modo local atende em `http://localhost:8088`. Na VM, o Traefik obtém um certificado Let's Encrypt para `177-44-248-60.sslip.io` ([`../operacao/acesso-publico.md`](../operacao/acesso-publico.md)) — **a validar**. `Secure` no cookie e HSTS só valem em HTTPS.
 - **Sem exclusão nem anonimização de titular.** Retenção legal de prontuário e base legal do envio por e-mail não são decididas pelo software.
 - **Reutilizar um *refresh token* já rotacionado** é apenas recusado (401); as outras sessões do profissional não são revogadas.
 - **O limite de tentativas de login** fica em memória, por processo.
 - **Fusão de pessoas duplicadas não existe** — só a sinalização para revisão humana.
 
-## 6. Segurança no Kubernetes
+## 6. Segurança na implantação (Docker Compose)
 
 | Medida | Como | Arquivo |
 | --- | --- | --- |
-| Contêiner sem root | `runAsNonRoot`, uid sem privilégio (10001 nos serviços, 101 no nginx, 70 no Postgres) | `deploy/base/*/deployment.yaml` |
-| Raiz somente leitura | `readOnlyRootFilesystem: true`; `/tmp` em `emptyDir` limitado | idem |
-| Sem privilégios | `allowPrivilegeEscalation: false`, `capabilities.drop: ["ALL"]`, `seccompProfile: RuntimeDefault` | idem |
-| Sem token da API do cluster | `automountServiceAccountToken: false` | idem |
-| Limite de memória | `resources.limits.memory` em todo contêiner | idem |
-| Rede negada por padrão | `negar-tudo` + uma liberação por caminho real | `deploy/base/networkpolicies/networkpolicies.yaml` |
-| Porta de gestão isolada | 9090 fora do `Ingress`; só o kubelet e (no Mike) os dois serviços que buscam o JWKS | `ingress.yaml`, `networkpolicies.yaml` |
-| Segredos fora do Git | `Secret` criado por script; senhas e chave Ed25519 geradas na máquina | `deploy/scripts/criar-secrets.sh`, `deploy/secrets.env.example` |
-| Migração separada do serviço | `initContainer` com credencial de administrador; o contêiner do serviço só tem o papel restrito | `deploy/base/*/deployment.yaml` |
-| Cabeçalhos no gateway | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, HSTS | `deploy/base/gateway/middlewares.yaml` |
+| Contêiner sem root | uid sem privilégio (10001 nos serviços e no Mailpit, 101 no nginx, 70 no Postgres). Exceção: o Traefik roda como root, mas sem nenhuma *capability* | `deploy/compose.yaml`, Dockerfiles |
+| Raiz somente leitura | `read_only: true`; `/tmp` em `tmpfs` limitado | `deploy/compose.yaml` (`x-endurecido`) |
+| Sem privilégios | `cap_drop: [ALL]`, `security_opt: no-new-privileges:true` | idem |
+| Limite de memória | `mem_limit` em todo contêiner | idem |
+| Rede separada | Rede `banco` **interna** (sem saída e sem porta publicada): Postgres, migrações e os três serviços. Rede `app`: gateway, serviços, `web`, Mailpit | idem |
+| Portas publicadas | Só o gateway (8088 local; 80 e 443 na VM). A interface do Mailpit só em `127.0.0.1:18025` | idem |
+| Porta de gestão isolada | 9090 sem rota no gateway; alcançável só dentro das redes Docker | `deploy/gateway/rotas.yml` |
+| Proxy confiável único | O Traefik tem IP fixo (`172.30.80.2`); é o único em `PROXIES_CONFIAVEIS` | `deploy/compose.yaml` |
+| Segredos fora do Git | `deploy/.env` (`chmod 600`, ignorado pelo Git); senhas e chave Ed25519 geradas na máquina | `deploy/scripts/segredos.sh`, `deploy/.env.example` |
+| Migração separada do serviço | Serviços `migra-*` com credencial de administrador, só na rede `banco`; o contêiner do serviço só tem o papel restrito | `deploy/compose.yaml` |
+| Cabeçalhos no gateway | `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy`, HSTS | `deploy/gateway/rotas.yml` |
+| Limite de taxa no login | 10 por minuto por IP | `deploy/gateway/rotas.yml` (`limite-login`) |
+| HTTPS | Let's Encrypt (HTTP-01) no Traefik; HTTP só redireciona — **a validar** na VM | `deploy/compose.vm.yaml` |
 | CSP nos front-ends | `default-src 'self'`; `wasm-unsafe-eval` só para o SQLite do app | `deploy/web/nginx.conf` |
-| Backup | `pg_dump` diário, 7 cópias | `deploy/base/backup/cronjob.yaml` |
+| Backup | `pg_dump` diário pelo cron do host, 7 cópias | `deploy/scripts/backup.sh` |
 
-Caminhos de rede liberados pelas NetworkPolicies:
+Quem alcança quem:
 
 ```mermaid
 flowchart LR
-  traefik["Traefik<br/>kube-system"]
-  web["web"]
-  mike["mike-baguncinha"]
-  cida["dona-cida"]
-  jai["jaiminho"]
-  pg[("postgres")]
-  mail["mailpit"]
-  fora["SMTP externo<br/>portas 587 e 465"]
-  bkp["backup"]
+  subgraph app["rede app"]
+    traefik["traefik"]
+    web["web"]
+    mail["mailpit"]
+  end
+  subgraph ambas["app + banco"]
+    mike["mike-baguncinha"]
+    cida["dona-cida"]
+    jai["jaiminho"]
+  end
+  subgraph banco["rede banco (internal)"]
+    pg[("postgres")]
+    migra["migra-*"]
+  end
+  fora["SMTP externo"]
 
   traefik -- "8080" --> web
   traefik -- "8080" --> mike
@@ -255,12 +264,12 @@ flowchart LR
   mike -- "5432" --> pg
   cida -- "5432" --> pg
   jai -- "5432" --> pg
-  bkp -- "5432" --> pg
+  migra -- "5432" --> pg
   jai -- "1025" --> mail
-  jai -- "587, 465" --> fora
+  jai -- "pela rede app" --> fora
 ```
 
-O que não está nesse desenho é negado — por exemplo, `web` e `mailpit` não alcançam o Postgres. **Situação:** as políticas foram aplicadas e o sistema funciona com elas; o teste de bloqueio (tentar um caminho proibido) foi relatado uma vez e não repetido de forma independente (item K8-07 da matriz).
+`web`, `mailpit` e `traefik` não estão na rede `banco`, então não alcançam o Postgres; o Postgres e as migrações não têm saída para fora. Diferente das NetworkPolicies do k3s, as redes Docker não filtram por porta: dentro da rede `app` os contêineres se alcançam livremente. O teste de bloqueio no Compose está **a validar** (no k3s, as NetworkPolicies foram testadas uma vez — item K8-07 da matriz).
 
 ## 7. Conteúdo clínico: o que é demonstrativo
 

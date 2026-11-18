@@ -14,7 +14,7 @@ Os três `openapi/*.yaml` são **cópias** dos arquivos que vivem com cada servi
 
 ## 1. Endereço e roteamento
 
-Tudo passa pelo gateway **freeway** (Traefik). No cluster local:
+Tudo passa pelo gateway **freeway** (Traefik). No modo Compose local (na VM, `https://177-44-248-60.sslip.io/api/v1`):
 
 ```
 http://localhost:8088/api/v1
@@ -101,7 +101,7 @@ Todas ganharam o prefixo `/api/v1`.
 
 ### Porta de gestão (fora do gateway)
 
-Cada serviço tem uma segunda porta (9090 no cluster), **sem autenticação e nunca roteada pelo gateway**, usada pelas *probes* do Kubernetes:
+Cada serviço tem uma segunda porta (9090 no Compose), **sem autenticação e nunca roteada pelo gateway**, alcançável só dentro das redes Docker — usada para diagnóstico, pelos testes de resiliência e (o JWKS) pelos outros serviços:
 
 | Método | Rota | Serviço | Resposta |
 | --- | --- | --- | --- |
@@ -220,7 +220,7 @@ Outro endereço: acrescente `--env-var baseUrl=http://<host>/api/v1`.
 
 ### Resultado da validação
 
-Executado em 18/11/2026 com Newman 6.2.3 contra o gateway do cluster k3s local (`http://localhost:8088/api/v1`):
+Executado em 18/11/2026 com Newman 6.2.3 contra o gateway do cluster k3s local (`http://localhost:8088/api/v1`), antes da troca para o Docker Compose:
 
 ```
 ┌─────────────────────────┬────────────────────┬───────────────────┐

@@ -1,115 +1,107 @@
 # Instalação na VM da Univates
 
-> **Situação:** este roteiro **ainda não foi executado na VM** — não houve acesso a ela. Os mesmos manifestos, scripts e a instalação do Argo CD foram validados em um k3s local de nó único (`deploy/scripts/cluster-local.sh`). Marque cada passo ao executá-lo de verdade.
+> **Situação:** este roteiro **ainda não foi executado na VM** — a validar. Marque cada passo ao executá-lo de verdade.
 
-Tudo roda como um usuário com `sudo` na VM. Onde aparecer **TROCAR**, há um valor que só você conhece.
+| VM | Valor |
+| --- | --- |
+| Endereço | `177.44.248.60` (Ubuntu 26.04), usuário `univates` |
+| Recursos | 1 vCPU, 1,6 GB de RAM — por isso Docker Compose e não k3s ([arquitetura](../arquitetura/arquitetura.md), seção 3) |
+| Endereço público | `https://177-44-248-60.sslip.io` ([acesso-publico.md](acesso-publico.md)) |
 
-## 0. Verificar a VM (antes de instalar qualquer coisa)
+## 0. Verificar a VM
 
 | O que | Comando | Preciso de |
 | --- | --- | --- |
-| SO e kernel | `cat /etc/os-release; uname -r` | Linux 64 bits recente |
-| vCPU / RAM / disco | `nproc; free -h; df -h /` | ≥ 2 vCPU; RAM conforme a tabela abaixo; ≥ 15 GB livres |
-| root | `sudo -v` | sudo funcionando |
-| VM ou contêiner | `systemd-detect-virt` | `kvm`, `vmware`, `microsoft`… — `lxc`/`openvz` = problema (ver contingências) |
-| cgroups v2 | `stat -fc %T /sys/fs/cgroup` | `cgroup2fs` |
+| SO, RAM, disco | `cat /etc/os-release; free -h; df -h /` | ≥ 10 GB livres |
 | Saída para GitHub / GHCR | `curl -sI https://github.com \| head -1; curl -sI https://ghcr.io/v2/ \| head -1` | resposta HTTP (200/401) |
 | Saída SMTP | `nc -zv smtp.gmail.com 587` | só se for usar SMTP externo |
-| IP público / entrada 80 e 443 | `ip -4 addr`; de fora: `curl -I http://<ip>` | define o acesso público ([acesso-publico.md](acesso-publico.md)) |
-| Firewall | `sudo ufw status` ou `sudo firewall-cmd --list-all` | 80/443 liberadas se for Ingress direto |
-| Nome DNS, política de túneis, prazo da VM, snapshot | perguntar à TI / professor | — |
+| Firewall | `sudo ufw status` | 80 e 443 liberadas (passo 1) |
 
-| RAM da VM | Decisão |
+## 1. Docker e firewall
+
+```bash
+sudo apt update && sudo apt install -y docker.io docker-compose-v2
+sudo usermod -aG docker univates       # saia e entre de novo na sessão SSH
+docker compose version
+sudo ufw allow 443/tcp                 # a 80 já está liberada
+```
+
+**Atenção:** porta publicada pelo Docker passa por fora do `ufw`. Só o gateway publica portas para fora (80 e 443); o Mailpit fica em `127.0.0.1:18025` e só é alcançável por túnel SSH (passo 5).
+
+## 2. Repositório
+
+```bash
+sudo git clone https://github.com/ArthurRostirolla/MedicalField.git /opt/medicalfield
+sudo chown -R univates: /opt/medicalfield
+cd /opt/medicalfield
+```
+
+## 3. `deploy/.env` (fora do Git)
+
+```bash
+cp deploy/.env.example deploy/.env
+```
+
+Em `deploy/.env`, descomente o bloco **VM** e preencha `MF_ACME_EMAIL`:
+
+| Variável | Valor |
 | --- | --- |
-| ≥ 8 GB | Plano completo. |
-| 4–6 GB | Plano completo (Argo CD enxuto, como está em `deploy/argocd`). |
-| 2–4 GB | k3s com `--disable metrics-server` e **sem Argo CD**: `kubectl apply -k deploy/overlays/univates`. |
-| < 2 GB | Abaixo do mínimo do k3s: pedir mais recurso. |
+| `COMPOSE_FILE` | `compose.yaml:compose.vm.yaml` (ativa HTTPS) |
+| `MF_REGISTRO` | `ghcr.io/arthurrostirolla/medicalfield` |
+| `MF_TAG` | `latest` (ou o SHA de um commit, para fixar a versão) |
+| `MF_PORTA_HTTP` | `80` |
+| `MF_HOST` | `177-44-248-60.sslip.io` |
+| `MF_ACME_EMAIL` | e-mail para o Let's Encrypt |
+| `URL_PUBLICA_PORTAL` | `https://177-44-248-60.sslip.io/portal` (vai no QR do PDF) |
+| `SMTP_*` | só se for usar SMTP externo; vazio = Mailpit |
 
-## 1. k3s (nó único)
-
-```bash
-curl -sfL https://get.k3s.io | INSTALL_K3S_CHANNEL=stable sh -s - --write-kubeconfig-mode 644
-export KUBECONFIG=/etc/rancher/k3s/k3s.yaml      # ponha no ~/.bashrc
-kubectl get nodes                                # STATUS Ready
-```
-
-Traefik, `local-path` e o controlador de NetworkPolicy já vêm no k3s — não desative nenhum deles.
-
-## 2. Repositório e ajustes do Traefik
+Depois gere as senhas e a chave do JWT:
 
 ```bash
-git clone https://github.com/DONO-DO-REPOSITORIO/medicalfield.git && cd medicalfield   # TROCAR
-kubectl apply -f deploy/argocd/traefik-helmchartconfig.yaml
-kubectl -n kube-system rollout status deploy/traefik
+deploy/scripts/segredos.sh             # completa deploy/.env e aplica chmod 600
 ```
 
-## 3. Marcadores a trocar (uma vez, no Git)
+**Guarde uma cópia de `deploy/.env` fora da VM**: as senhas do banco só são aplicadas na primeira partida do Postgres.
 
-| Arquivo | Marcador | Valor |
-| --- | --- | --- |
-| `deploy/overlays/univates/kustomization.yaml` | `host-publico.exemplo.invalid` (3 lugares) | nome público do sistema ([acesso-publico.md](acesso-publico.md)) |
-| `deploy/overlays/univates/kustomization.yaml` | `dono-do-registro` | nada a fazer: o CI grava o dono e a tag no primeiro push em `main` |
-| `deploy/argocd/application.yaml` | `DONO-DO-REPOSITORIO` | dono do repositório no GitHub |
+**Imagens do GHCR:** os 5 pacotes `medicalfield-*` precisam ser públicos (GitHub → Packages → Package settings → Change visibility), ou faça `docker login ghcr.io` na VM com um token `read:packages`.
 
-Faça commit e push. Espere o CI terminar: ele publica as 5 imagens no GHCR e grava a tag no overlay.
-
-**Imagens do GHCR:** deixe os 5 pacotes `medicalfield-*` públicos (GitHub → Packages → Package settings → Change visibility), ou autentique o k3s criando `/etc/rancher/k3s/registries.yaml`:
-
-```yaml
-configs:
-  ghcr.io:
-    auth: { username: SEU_USUARIO, password: TOKEN_COM_read:packages }
-```
-
-e `sudo systemctl restart k3s`.
-
-## 4. Secrets (fora do Git)
+## 4. Subir
 
 ```bash
-cp deploy/secrets.env.example deploy/secrets.env     # preencha SMTP_* se for usar SMTP externo
-deploy/scripts/criar-secrets.sh deploy/secrets.env   # gera senhas e a chave Ed25519 do JWT que faltarem
-kubectl -n medicalfield get secrets
+cd /opt/medicalfield/deploy
+docker compose pull
+docker compose up -d
+docker compose ps                      # migra-* "Exited (0)"; o resto "running"/"healthy"
 ```
 
-O script grava o que gerou de volta em `deploy/secrets.env`. **Guarde uma cópia desse arquivo fora da VM**: as senhas do banco só são aplicadas na primeira partida do Postgres.
-
-## 5. Argo CD e primeira sincronização
+## 5. Conferir
 
 ```bash
-kubectl apply --server-side -k deploy/argocd
-kubectl -n argocd rollout status statefulset/argocd-application-controller
-kubectl -n argocd rollout status deploy/argocd-repo-server deploy/argocd-server
-kubectl apply -f deploy/argocd/application.yaml
-kubectl -n argocd get application medicalfield -w     # até Synced / Healthy
+curl -s -o /dev/null -w '%{http_code}\n' https://177-44-248-60.sslip.io/portal/   # 200, certificado válido
+docker stats --no-stream               # orçamento de memória real
+deploy/scripts/backup.sh               # primeiro backup
 ```
 
-- Repositório **privado**: antes do `application.yaml`, cadastre a credencial —
-  `kubectl -n argocd create secret generic repo-medicalfield --from-literal=type=git --from-literal=url=https://github.com/DONO/medicalfield.git --from-literal=username=USUARIO --from-literal=password=TOKEN && kubectl -n argocd label secret repo-medicalfield argocd.argoproj.io/secret-type=repository`
-- UI (nunca exposta publicamente): `kubectl -n argocd port-forward svc/argocd-server 8443:443` → `https://localhost:8443`, usuário `admin`, senha em `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d`.
+Mailpit, da sua máquina: `ssh -L 18025:127.0.0.1:18025 univates@177.44.248.60` e abra `http://localhost:18025`.
 
-## 6. Conferir
+Agende o backup diário (`crontab -e` do usuário `univates`):
 
-```bash
-kubectl -n medicalfield get pods,pvc,ingress,cronjob
-curl -s -o /dev/null -w '%{http_code}\n' -H 'Host: host-publico.exemplo.invalid' http://localhost/portal/   # TROCAR -> 200
-kubectl top pods -A          # medir o orçamento de memória real
-deploy/scripts/backup.sh     # primeiro backup, e prova de que o CronJob funciona
+```
+15 3 * * * /opt/medicalfield/deploy/scripts/backup.sh agora
 ```
 
-Depois: [acesso-publico.md](acesso-publico.md) para abrir o sistema para fora, e [banco-manual.md](banco-manual.md) para o passo 9 do roteiro.
+Depois: [deploy-e-rollback.md](deploy-e-rollback.md) para atualizar, [banco-manual.md](banco-manual.md) para o passo 9 do roteiro.
 
 ## Contingências
 
 | Achado | Resposta |
 | --- | --- |
-| Sem saída para o GitHub (Argo CD inviável) | Pule o passo 5. `kubectl apply -k deploy/overlays/univates` a cada versão; mesmos manifestos. |
-| Sem saída para o GHCR | Na sua máquina: `docker save ghcr.io/…/medicalfield-web:<tag> … -o imagens.tar`; copie para a VM; `sudo k3s ctr images import imagens.tar`. |
-| Pouca RAM | `--disable metrics-server` na instalação do k3s; sem Argo CD. |
-| Sem root, ou contêiner LXC sem suporte a k3s | Pedir à TI/professor. Não há como cumprir "Kubernetes na VM" sem isso; a decisão de alternativa é do autor do trabalho. |
+| Sem saída para o GHCR | Na sua máquina: `docker save ghcr.io/arthurrostirolla/medicalfield-web:latest … -o imagens.tar`; copie para a VM; `docker load -i imagens.tar`; `docker compose up -d` (sem `pull`). |
+| Certificado não sai | A 80 precisa responder de fora (desafio HTTP-01): `docker compose logs traefik`. |
+| Falta memória | `docker stats`; ver [troubleshooting.md](troubleshooting.md). |
 
 ## Dados de demonstração (`DADOS_DEMO`)
 
-Os profissionais, pessoas e medicamentos fictícios só são criados quando o ConfigMap `postgres-configuracao` tem `DADOS_DEMO=on` **na primeira partida do banco** (o script de inicialização grava `medicalfield.dados_demo = 'on'` no banco e as migrações de carga leem esse parâmetro). Os overlays `local` e `univates` vêm com `on`, porque são ambientes de demonstração. **Num ambiente com dados reais, troque para `off` antes da primeira implantação**: `on` cria a conta ADMIN de demonstração, cuja senha é pública.
+Os profissionais, pessoas e medicamentos fictícios só são criados quando `deploy/.env` tem `DADOS_DEMO=on` **na primeira partida do banco** (o script de inicialização grava `medicalfield.dados_demo = 'on'` no banco e as migrações de carga leem esse parâmetro). O `.env.example` vem com `on`, porque é ambiente de demonstração. **Num ambiente com dados reais, troque para `off` antes da primeira partida**: `on` cria a conta ADMIN de demonstração, cuja senha é pública.
 
-A imagem `web` de produção não expõe a consulta de diagnóstico do app (`window.__mf`); o cluster local a constrói com `--build-arg VITE_DIAGNOSTICO=1`, que os testes automatizados usam. O roteiro automatizado (`e2e/roteiro.spec.ts`) e o teste Android dependem desse modo.
+A imagem `web` publicada pelo CI não expõe a consulta de diagnóstico do app (`window.__mf`); o modo local a constrói com `VITE_DIAGNOSTICO=1` (padrão de `MF_DIAGNOSTICO`), que os testes automatizados usam. O roteiro automatizado (`e2e/roteiro.spec.ts`) depende desse modo.

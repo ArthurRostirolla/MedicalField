@@ -13,13 +13,13 @@ O profissional de saúde em campo registra o atendimento pré-hospitalar (sinais
 | Serviço de identidade e auditoria | **MikeBaguncinha** | Login (CRM, COREN, socorrista), tokens, log de acesso | **Go** | [`apps/mike-baguncinha`](apps/mike-baguncinha) |
 | Núcleo clínico e sincronização | **DonaCida** | Pessoas, prontuários, atendimentos, idempotência, conflitos | **TypeScript** (NestJS) | [`apps/dona-cida`](apps/dona-cida) |
 | Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | **Python** (FastAPI) | [`apps/jaiminho`](apps/jaiminho) |
-| Gateway | **freeway** | Roteamento, limite de taxa no login | Traefik | [`deploy/base/gateway`](deploy/base/gateway) |
+| Gateway | **freeway** | Roteamento, limite de taxa no login | Traefik | [`deploy/gateway`](deploy/gateway) |
 | Portal administrativo | **BradPitt** | Consulta, PDF, e-mail, auditoria | React + Vite | [`apps/brad-pitt`](apps/brad-pitt) |
 | App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, simulador de rede | React + Vite (PWA) + Capacitor | [`apps/lucky-patcher`](apps/lucky-patcher) |
 | Banco central | — | Quatro schemas, um papel por serviço | PostgreSQL 17 | `apps/*/migrations` |
 | Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS | `apps/lucky-patcher/src/banco` |
 | Pacotes compartilhados | — | Contratos (zod), funções de domínio, design system | TypeScript | [`packages/`](packages) |
-| Implantação | — | Kubernetes (k3s), Kustomize | — | [`deploy/`](deploy) |
+| Implantação | — | Docker Compose, imagens no GHCR | — | [`deploy/`](deploy) |
 
 Três serviços em três linguagens, uma interface administrativa e uma aplicação cliente com interface gráfica e simulador de conectividade — os requisitos do [enunciado](docs/enunciado-final_project_as_2026b.pdf).
 
@@ -36,10 +36,9 @@ Três serviços em três linguagens, uma interface administrativa e uma aplicaç
 
 | Ferramenta | Para quê |
 | --- | --- |
-| **Docker** em execução | Postgres, os três serviços e o cluster k3s local rodam em contêiner |
+| **Docker** em execução, com Compose v2 | Postgres, os três serviços, o portal, o app e o gateway rodam em contêiner |
 | **Node.js 22 ou mais novo** + npm | Front-ends, pacotes, DonaCida, testes (usado: Node 24) |
 | **Git Bash** (no Windows) | Os scripts são `bash` |
-| **kubectl** | Só para o modo cluster |
 | **Google Chrome** | Testes de ponta a ponta (Playwright usa o Chrome instalado) |
 
 **Go e Python não precisam estar instalados**: o serviço Go compila e testa em contêiner, e o Python depende de bibliotecas (Pango) que não rodam nativamente no Windows.
@@ -56,15 +55,14 @@ A **senha de demonstração** dos três profissionais fictícios está em [`apps
 
 Há dois modos. Os comandos são executados no Git Bash, na raiz do repositório.
 
-### Modo cluster local — o sistema implantado
+### Modo Compose — o sistema implantado
 
-É o modo usado na validação e o indicado para a apresentação: k3s de nó único rodando dentro do Docker, com os mesmos manifestos de `deploy/`.
+É o modo indicado para a apresentação e o mesmo da VM: tudo em Docker Compose (`deploy/compose.yaml`) — Postgres, migrações, os três serviços, a imagem `web` (portal e app), o Mailpit e o gateway.
 
 ```bash
-bash deploy/scripts/cluster-local.sh subir                # cria (ou retoma) o cluster e ajusta o Traefik
-bash deploy/scripts/cluster-local.sh construir-imagens    # 5 imagens: os 3 serviços, web e migrações
-bash deploy/scripts/cluster-local.sh implantar            # importa as imagens, cria os Secrets, aplica o overlay local
-bash deploy/scripts/cluster-local.sh status               # nós, pods, volumes, Ingress
+bash deploy/scripts/segredos.sh                # cria deploy/.env (fora do Git) com senhas e chave do JWT
+cd deploy && docker compose up -d --build      # constrói as 5 imagens e sobe tudo
+docker compose ps                              # estado de cada contêiner
 ```
 
 | O quê | Endereço |
@@ -72,15 +70,9 @@ bash deploy/scripts/cluster-local.sh status               # nós, pods, volumes,
 | Portal | <http://localhost:8088/portal/> |
 | App | <http://localhost:8088/app/> |
 | API (gateway) | `http://localhost:8088/api/v1` |
+| Mailpit (caixa de e-mail de demonstração) | <http://localhost:18025> — só em `127.0.0.1`, fora do gateway |
 
-O Mailpit (caixa de e-mail de demonstração) não é exposto pelo gateway:
-
-```bash
-bash deploy/scripts/cluster-local.sh kubectl -n medicalfield port-forward svc/mailpit 18025:8025
-# depois: http://localhost:18025
-```
-
-Outros comandos do mesmo script: `kubectl <args>` (já apontado para o cluster), `parar` (mantém os dados; `subir` retoma) e `derrubar` (remove o cluster **e os dados**). As senhas e a chave de assinatura são geradas na primeira implantação em `deploy/secrets.local.env`, que fica fora do Git.
+Outros comandos, sempre em `deploy/`: `docker compose logs -f <serviço>`, `docker compose down` (mantém os dados; `up -d` retoma) e `docker compose down -v` (apaga **também os dados**). As senhas e a chave de assinatura ficam em `deploy/.env`, gerado pelo `segredos.sh`.
 
 ### Modo desenvolvimento — serviços em contêiner, front-ends no Vite
 
@@ -117,7 +109,7 @@ Os dois modos usam portas diferentes e podem ficar no ar ao mesmo tempo.
 
 ### Roteiro acadêmico de 17 passos (automatizado)
 
-Contra o cluster local no ar:
+Contra o modo Compose no ar:
 
 ```bash
 export MF_SENHA_DEMO='<senha de demonstração>'
@@ -136,7 +128,7 @@ npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF
 
 ### App Android (emulador)
 
-Com o cluster local no ar, um emulador (ou aparelho) visível em `adb devices` e o APK de depuração instalado — como gerar e instalar: [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md):
+Com o modo Compose no ar, um emulador (ou aparelho) visível em `adb devices` e o APK de depuração instalado — como gerar e instalar: [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md):
 
 ```bash
 export MF_SENHA_DEMO='<senha de demonstração>'
@@ -145,7 +137,7 @@ node e2e/android/android.mjs
 
 > **Pendente:** este roteiro dirige o WebView do app Capacitor e não funciona com o app Expo (React Native não tem WebView). Ele precisa ser refeito, por exemplo com um fluxo Maestro. Até lá, o roteiro no aparelho (Android e iOS) é manual ([`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md)).
 
-Dirigia o WebView do app por depuração remota, confere o banco central por `kubectl exec` e regrava [`docs/testes/evidencias/android/`](docs/testes/evidencias/android/resultado.md). No emulador o servidor é `http://10.0.2.2:8088`; num aparelho físico, defina `MF_SERVIDOR_ANDROID`.
+Dirigia o WebView do app por depuração remota, confere o banco central pelo `psql` do contêiner do Postgres e regrava [`docs/testes/evidencias/android/`](docs/testes/evidencias/android/resultado.md). No emulador o servidor é `http://10.0.2.2:8088`; num aparelho físico, defina `MF_SERVIDOR_ANDROID`.
 
 ### Por peça
 
@@ -187,7 +179,7 @@ Cada serviço e o portal têm um `README.md` próprio, com variáveis de ambient
 
 **Validado** — executado no sistema integrado, com evidência registrada:
 
-- Os três serviços, o gateway, o portal e o app rodando juntos num cluster **k3s local**.
+- Os três serviços, o gateway, o portal e o app rodando juntos — no **Docker Compose local** (o roteiro de 17 passos passou de novo após a troca do k3s pelo Compose).
 - O roteiro acadêmico de 17 passos, de ponta a ponta, automatizado.
 - Offline-First no navegador: registrar sem rede, fechar e reabrir, voltar a rede, não duplicar; queda no meio da subida; resposta perdida; operação rejeitada.
 - Todas as rotas pelo gateway, com a coleção Postman (Newman: 31 requisições, 57 verificações, nenhuma falha).
@@ -199,13 +191,12 @@ Cada serviço e o portal têm um `README.md` próprio, com variáveis de ambient
 
 | Item | Situação |
 | --- | --- |
-| **VM da Univates** | **Não implantado.** Não houve acesso à VM. O procedimento está em [`docs/operacao/instalacao-vm.md`](docs/operacao/instalacao-vm.md) e os manifestos em `deploy/overlays/univates`, com pontos marcados `TROCAR`; nada disso foi executado. |
-| **Acesso público HTTPS** | Não executado; depende da VM. |
-| **Argo CD** | Manifesto escrito (`deploy/argocd/`), não instalado. O cluster local é implantado com `kubectl apply -k`. |
+| **VM da Univates** | **A validar.** Procedimento em [`docs/operacao/instalacao-vm.md`](docs/operacao/instalacao-vm.md) (Docker Compose com `deploy/compose.vm.yaml`); ainda não executado na VM. |
+| **Acesso público HTTPS** | **A validar.** `https://177-44-248-60.sslip.io`, com certificado Let's Encrypt emitido pelo Traefik; depende da VM. |
 | **Aparelho Android físico** | Não testado. O APK de depuração foi construído e o app validado num **emulador** (ver acima); falta um aparelho real, um APK assinado para publicação e TLS até o servidor. Ver [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md). |
 | **E-mail em caixa externa** | Não testado. O envio é validado contra o Mailpit (SMTP real, de captura); faltam credenciais de um provedor. |
 | **Conflito com dois aparelhos reais** | As quatro estratégias são cobertas por testes de integração do servidor, não por dois clientes ao mesmo tempo. |
-| **NetworkPolicy e backup/restauração** | Executados uma vez; não repetidos de forma independente. |
+| **Isolamento de rede e backup/restauração** | Executados uma vez no k3s (NetworkPolicy, CronJob); no Compose, `backup.sh` → `restore.sh --sim` foi executado localmente (contagens iguais, API respondendo sem reiniciar); o isolamento pelas redes Docker está **a validar**. |
 | **Navegadores** | Medido só no Chrome para desktop (e no WebView do Android, no emulador). |
 | **iOS** | Não é entregue. |
 

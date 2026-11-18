@@ -1,91 +1,41 @@
 # Acesso público
 
-O sistema roda sempre na VM; aqui se decide só a **porta de entrada**. Nenhuma das opções abaixo foi executada na VM nesta fase — são os passos a seguir conforme o que a verificação da VM ([instalacao-vm.md](instalacao-vm.md), passo 0) encontrar.
+> **Situação:** a validar — ainda não executado na VM.
 
-**Antes de abrir:** confirmar com o professor/TI se túnel de saída é permitido; só dados fictícios; nada além de 443 para fora.
+Opção escolhida: **entrada direta no gateway + Let's Encrypt**, em `https://177-44-248-60.sslip.io`.
 
-## Árvore de decisão
+## Por que esta opção
 
-```
-A VM tem IP público e aceita entrada em 80/443?
-├─ sim ─────────────────────────────► A. Ingress direto + Let's Encrypt
-└─ não: a VM consegue SAIR para a internet e a TI permite túnel?
-        ├─ sim ─────────────────────► B. Tailscale Funnel   (URL estável)
-        │                              C. Cloudflare Quick Tunnel (reserva para o dia)
-        └─ não ─────────────────────► D. Só rede interna / VPN — acesso público NÃO é entregue
-```
+- A VM (`177.44.248.60`) tem IP público e todas as portas chegam até ela; quem filtra é só o `ufw` da própria VM.
+- O [sslip.io](https://sslip.io) resolve `177-44-248-60.sslip.io` para `177.44.248.60` sem cadastro, o que dá um nome DNS para o certificado.
+- O Traefik obtém o certificado sozinho pelo desafio HTTP-01 na porta 80. Não há túnel nem serviço de terceiros no caminho.
 
-Em todas, o nome escolhido entra em `deploy/overlays/univates/kustomization.yaml` no lugar de `host-publico.exemplo.invalid` (host dos dois Ingress e `URL_PUBLICA_PORTAL`, que vira o QR do PDF). Commit e push; o Argo CD aplica.
+## Como está configurado
 
-## A. Ingress direto + Let's Encrypt
+`deploy/compose.vm.yaml`, ativado por `COMPOSE_FILE=compose.yaml:compose.vm.yaml` em `deploy/.env` ([instalacao-vm.md](instalacao-vm.md), passo 3):
 
-Precisa de um nome DNS apontando para o IP da VM (o da Univates, ou um subdomínio gratuito tipo DuckDNS) e das portas 80/443 abertas.
+| O quê | Valor |
+| --- | --- |
+| Portas publicadas | 80 (`MF_PORTA_HTTP=80`, só redireciona para HTTPS e atende o desafio ACME) e 443 |
+| Nome do certificado | `MF_HOST=177-44-248-60.sslip.io` |
+| Conta Let's Encrypt | `MF_ACME_EMAIL` |
+| Onde fica o certificado | volume `acme` (`/acme/acme.json`); sobrevive a `down`, só `down -v` o apaga |
+| QR do PDF | `URL_PUBLICA_PORTAL=https://177-44-248-60.sslip.io/portal` |
+| Firewall | `sudo ufw allow 443/tcp` (a 80 já está liberada) |
 
-1. Em `deploy/argocd/traefik-helmchartconfig.yaml`, acrescente ao `valuesContent` e reaplique o arquivo:
+As rotas (`deploy/gateway/rotas.yml`) não têm regra de `Host`: o mesmo gateway atende o nome público, `localhost` e o `10.0.2.2` do emulador.
 
-   ```yaml
-       persistence:
-         enabled: true            # guarda o acme.json
-       additionalArguments:        # junto dos que já existem
-         - "--certificatesresolvers.le.acme.email=SEU_EMAIL"
-         - "--certificatesresolvers.le.acme.storage=/data/acme.json"
-         - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
-         - "--entryPoints.web.http.redirections.entryPoint.to=websecure"
-         - "--entryPoints.web.http.redirections.entryPoint.scheme=https"
-   ```
+O Traefik é a borda: não confia em `X-Forwarded-For` de ninguém e grava o IP da conexão. Se o IP real do cliente chega aos logs através da publicação de portas do Docker está a validar (coluna `ipCliente` do log de acesso).
 
-2. No overlay `univates`, acrescente aos dois Ingress (`freeway` e `freeway-login`) as anotações:
-
-   ```yaml
-   patches:
-     - target: { kind: Ingress, name: "freeway.*" }
-       patch: |-
-         - op: add
-           path: /metadata/annotations/traefik.ingress.kubernetes.io~1router.entrypoints
-           value: websecure
-         - op: add
-           path: /metadata/annotations/traefik.ingress.kubernetes.io~1router.tls.certresolver
-           value: le
-   ```
-
-3. `curl -I https://SEU_HOST/portal/` → 200 com certificado válido.
-
-Aqui o Traefik é a borda: mantenha `trustedIPs=127.0.0.1/32` (não confia em `X-Forwarded-For` de ninguém; grava o IP real da conexão). **Não validado nesta sessão** — o cluster local não tem nome público para o desafio ACME.
-
-## B. Tailscale Funnel (sem IP público)
-
-```bash
-curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up                      # autentica a VM na sua conta
-sudo tailscale funnel --bg 80          # publica https://<maquina>.<tailnet>.ts.net -> Traefik :80
-tailscale funnel status
-```
-
-- Host no overlay: `<maquina>.<tailnet>.ts.net`. TLS é do Tailscale; o Traefik continua em HTTP.
-- IP do cliente: o Funnel chega ao Traefik a partir do próprio nó e manda o IP real em `X-Forwarded-For`. Veja com que origem ele aparece (`kubectl -n kube-system logs deploy/traefik`, ou a coluna `ipCliente` do log de acesso) e acrescente **só esse endereço** ao `trustedIPs` de `traefik-helmchartconfig.yaml`. Sem isso, a auditoria registra o IP do nó em vez do IP do usuário — funciona, mas perde informação.
-- Limites: plano pessoal, uso não comercial, banda limitada, portas 443/8443/10000.
-
-## C. Cloudflare Quick Tunnel (reserva para o dia)
-
-```bash
-cloudflared tunnel --url http://localhost:80 --http-host-header SEU_HOST_DO_OVERLAY
-```
-
-Devolve uma URL `https://<aleatorio>.trycloudflare.com` que **muda a cada reinício**. O `--http-host-header` faz o pedido casar com o host do Ingress sem mexer no Git. O QR do PDF continua apontando para `URL_PUBLICA_PORTAL` (o host do overlay), não para a URL do túnel. Sem garantia de disponibilidade; só para demonstração.
-
-## D. Só rede interna / VPN
-
-Acesso público **não é entregue** — diga isso na apresentação e na documentação.
-
-- Use no overlay o nome interno da VM; se só houver IP, remova os dois `patches` de host do overlay (o Ingress passa a responder em qualquer nome/IP) e ponha `URL_PUBLICA_PORTAL=http://<ip>/portal`.
-- O navegador funciona em `http://<vm>/portal/`. O *service worker* da PWA e o app Android exigem HTTPS: sem TLS, o app offline só roda em `localhost` ou com exceção explícita de tráfego em claro no build Android.
+O Let's Encrypt limita os certificados por domínio registrado; o `sslip.io` é compartilhado por muita gente. Se a emissão falhar por limite, `docker compose logs traefik` mostra o erro.
 
 ## Depois de abrir
 
 ```bash
-curl -s -o /dev/null -w '%{http_code}\n' https://SEU_HOST/portal/                 # 200
-curl -s -o /dev/null -w '%{http_code}\n' https://SEU_HOST/api/v1/medicamento      # 401 (sem token)
-for i in $(seq 15); do curl -s -o /dev/null -w '%{http_code} ' -X POST https://SEU_HOST/api/v1/auth/login; done   # termina em 429
+curl -s -o /dev/null -w '%{http_code}\n' https://177-44-248-60.sslip.io/portal/                 # 200
+curl -s -o /dev/null -w '%{http_code}\n' https://177-44-248-60.sslip.io/api/v1/medicamento      # 401 (sem token)
+curl -s -o /dev/null -w '%{http_code}\n' http://177-44-248-60.sslip.io/portal/                  # redireciona para HTTPS
+for i in $(seq 15); do curl -s -o /dev/null -w '%{http_code} ' -X POST https://177-44-248-60.sslip.io/api/v1/auth/login; done   # termina em 429
 ```
 
-No app Android, o "endereço do servidor" é configurável: trocar de opção não exige novo APK.
+No app, o "endereço do servidor" é configurável: trocar de endereço não exige novo build.
