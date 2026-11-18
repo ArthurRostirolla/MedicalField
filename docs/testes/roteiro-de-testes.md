@@ -17,7 +17,7 @@ Todos os dados são **fictícios e sem validade clínica**.
 
 A **senha de demonstração** é a mesma para todos e está em [`apps/mike-baguncinha/README.md`](../../apps/mike-baguncinha/README.md). Ela não é repetida aqui.
 
-Os endereços acima são os do **modo Compose local**. Na VM da Univates troque `http://localhost:8088` por `https://177-44-248-60.sslip.io` e use o Mailpit por túnel SSH — a implantação na VM está **a validar** (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
+Os endereços acima são os do **modo Compose local**. Na VM da Univates troque `http://localhost:8088` por `https://177-44-248-60.sslip.io` e use o Mailpit por túnel SSH — a VM está no ar desde 2026-11-18; o roteiro completo contra ela ainda não foi repetido (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
 
 ## 2. Preparar o ambiente
 

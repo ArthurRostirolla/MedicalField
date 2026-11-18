@@ -1,6 +1,6 @@
 # Acesso público
 
-> **Situação:** a validar — ainda não executado na VM.
+> **Situação:** em produção desde 2026-11-18: certificado Let's Encrypt emitido, HTTP redirecionando para HTTPS.
 
 Opção escolhida: **entrada direta no gateway + Let's Encrypt**, em `https://177-44-248-60.sslip.io`.
 
@@ -25,7 +25,7 @@ Opção escolhida: **entrada direta no gateway + Let's Encrypt**, em `https://17
 
 As rotas (`deploy/gateway/rotas.yml`) não têm regra de `Host`: o mesmo gateway atende o nome público, `localhost` e o `10.0.2.2` do emulador.
 
-O Traefik é a borda: não confia em `X-Forwarded-For` de ninguém e grava o IP da conexão. Se o IP real do cliente chega aos logs através da publicação de portas do Docker está a validar (coluna `ipCliente` do log de acesso).
+O Traefik é a borda: não confia em `X-Forwarded-For` de ninguém e grava o IP da conexão. Conferido na VM: o IP real do cliente chega aos logs através da publicação de portas do Docker (coluna `ip_cliente` de `auditoria.log_acesso`).
 
 O Let's Encrypt limita os certificados por domínio registrado; o `sslip.io` é compartilhado por muita gente. Se a emissão falhar por limite, `docker compose logs traefik` mostra o erro.
 

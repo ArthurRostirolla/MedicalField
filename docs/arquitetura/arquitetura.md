@@ -318,7 +318,7 @@ Código compartilhado entre o backend TypeScript e os dois front-ends (monorepo 
 | Conflito com dois clientes reais | Só testes de integração do servidor |
 | Isolamento de rede e backup/restauração | Backup/restauração executados no Compose local; isolamento pelas redes Docker a validar |
 | App Android | APK de depuração construído e validado em emulador (`e2e/android/android.mjs`, E-008): login, offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado. **Não testado em aparelho físico**; APK não assinado; HTTP sem TLS até o gateway local |
-| VM da Univates e acesso público HTTPS | **A validar** — documentado em [`operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) |
+| VM da Univates e acesso público HTTPS | **No ar** em 2026-11-18 em `https://177-44-248-60.sslip.io` — [`operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) |
 | E-mail em caixa externa | Não testado — validado contra o Mailpit (SMTP real de captura) |
 
 Fonte: [`VALIDATION_MATRIX.md`](../VALIDATION_MATRIX.md), [`VALIDATION_EVIDENCE.md`](../VALIDATION_EVIDENCE.md), [`KNOWN_ISSUES.md`](../KNOWN_ISSUES.md).

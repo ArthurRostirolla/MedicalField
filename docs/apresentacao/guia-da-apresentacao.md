@@ -159,7 +159,7 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 | Três serviços em linguagens diferentes | Diagrama geral | "Go, TypeScript e Python — três processos, três imagens, três schemas." |
 | Persistência dual | `modelagem.md` | "PostgreSQL na central; SQLite embarcado no app." |
 | Aplicação cliente com interface gráfica | App no navegador e no emulador Android | "O mesmo código: PWA no navegador e APK no Android, validado em emulador." |
-| Execução na VM da Univates | Bloco 5 | "**A validar na VM.** Validado localmente; o caminho para a VM está documentado." |
+| Execução na VM da Univates | Bloco 5 | "**No ar na VM:** https://177-44-248-60.sslip.io (HTTPS com Let's Encrypt, Docker Compose)." |
 | Todas as rotas autenticadas, menos o login | Postman, requisição "Sem token: 401" | "Cada serviço valida o JWT sozinho, com a chave pública do serviço de identidade." |
 | Credenciais do profissional | Telas de login | "CRM, COREN ou ID de socorrista, mais a UF." |
 | Middleware de log de acesso com os 7 campos | `mfsql` no log de acesso | "Mesma cadeia nos três: request-id, log de acesso, autenticação, handler." |
@@ -186,13 +186,13 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 | **O app diz "já está aberto em outra aba"** | Feche a aba duplicada e recarregue. |
 | **O app não abre o banco local** | Use o Chrome (não uma janela anônima antiga nem outro navegador). Em último caso: DevTools → Application → Clear site data, e entre de novo — o que já subiu não se perde. |
 | **Sem projetor para o terminal** | O passo 9 pode ser mostrado pela consequência: Medicamentos → Atualizar no portal. |
-| **Perguntam pela VM** | Abra [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) e `deploy/compose.vm.yaml`. É o mesmo `compose.yaml` do modo local, com imagens do GHCR, HTTPS e o nome público. A validar. |
+| **Perguntam pela VM** | Abra [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) e `deploy/compose.vm.yaml`. É o mesmo `compose.yaml` do modo local, com imagens do GHCR, HTTPS e o nome público. No ar desde 2026-11-18. |
 | **Perguntam pelo Android**, ou o emulador não sobe | Mostre as capturas em [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md) (início sincronizado, atendimento offline, reaberto com pendências, sincronizado) e o `resultado.md`. Detalhes: [`../../apps/lucky-patcher/docs/nativo.md`](../../apps/lucky-patcher/docs/nativo.md) e a evidência E-008. Diga o limite: emulador, APK de depuração, sem TLS. |
 
 ## 5. Perguntas prováveis e respostas curtas
 
-**Por que não está na VM da Univates?**
-A implantação na VM ainda está a validar. O arquivo da VM (`compose.vm.yaml`) e o passo a passo estão escritos, mas enquanto eu não os executar lá, não afirmo que funcionam.
+**Por que Docker Compose e não Kubernetes na VM?**
+A VM tem 1 vCPU e 1,6 GB de RAM; o k3s sozinho pede 2 GB e gasta ~500 MB só de orquestração. Com Compose o sistema inteiro usa ~640 MB e está no ar em https://177-44-248-60.sslip.io.
 
 **O enunciado diz que não precisa de contêiner. Por que contêiner? E por que não Kubernetes, como no plano?**
 Contêiner foi uma escolha, não uma exigência: três linguagens significam três ambientes de execução, e o contêiner dá a mesma forma de empacotar, subir e reiniciar para os três. O plano previa k3s, mas a VM tem 1 vCPU e 1,6 GB de RAM; o k3s pede ao menos 2 GB e gasta 450–600 MB só orquestrando, contra uns 70 MB do Docker. Troquei para Docker Compose, com as mesmas imagens e o mesmo endurecimento — a aplicação mediu cerca de 263 MB.

@@ -1,6 +1,6 @@
 # Instalação na VM da Univates
 
-> **Situação:** este roteiro **ainda não foi executado na VM** — a validar. Marque cada passo ao executá-lo de verdade.
+> **Situação:** executado na VM em 2026-11-18. O sistema está no ar em `https://177-44-248-60.sslip.io`.
 
 | VM | Valor |
 | --- | --- |

@@ -8,7 +8,7 @@ Nenhum de severidade Crítica ou Alta.
 
 | ID | Severidade | Problema | Situação |
 | --- | --- | --- | --- |
-| D-QA-10 | Média | Sem TLS nem redirecionamento para HTTPS | `deploy/compose.vm.yaml` acrescenta Let's Encrypt e o redirecionamento na VM ([`docs/operacao/acesso-publico.md`](operacao/acesso-publico.md)); a validar (X-01). O modo local continua só em HTTP |
+| D-QA-10 | Média | Sem TLS nem redirecionamento para HTTPS | `deploy/compose.vm.yaml` acrescenta Let's Encrypt e o redirecionamento na VM ([`docs/operacao/acesso-publico.md`](operacao/acesso-publico.md)); validado na VM em 2026-11-18 (certificado Let's Encrypt, 301 de HTTP para HTTPS, HSTS). O modo local continua só em HTTP |
 | D-QA-21 | Baixa | Itens menores da revisão de código que não foram tratados (limitador de login em memória, access token válido por até 15 min após o logout, `?desde=1;select` lido como `desde=1`, entre outros) | Aceitos; lista em `docs/testes/defeitos-qa.md` |
 | D-06 | Baixa | Logs e documentos mostram só o id do profissional | Aceito: fora do escopo |
 | D-07 | Baixa | `npm audit` aponta vulnerabilidades só em ferramentas de build/teste (`--omit=dev` devolve 0) | Aceito |
@@ -21,7 +21,7 @@ Nenhum de severidade Crítica ou Alta.
 
 | ID | Bloqueio | Impacto | O que falta |
 | --- | --- | --- | --- |
-| X-01 | Implantação na VM da Univates ainda não executada | Implantação real e acesso público a validar | Seguir `docs/operacao/instalacao-vm.md` na VM (1 vCPU, 1,6 GB: Docker Compose, não k3s) |
+| X-01 | Roteiro de 17 passos não repetido contra a VM | Implantação e acesso público validados em 2026-11-18; falta o roteiro completo em `https://177-44-248-60.sslip.io` | Rodar o roteiro manual ([`docs/testes/roteiro-de-testes.md`](testes/roteiro-de-testes.md)) contra a VM |
 | X-02 | Sem credencial de SMTP real | E-mail é validado contra o Mailpit (SMTP real de captura), não contra uma caixa externa | Informar `SMTP_*` em `deploy/.env` |
 | X-03 | Go não instalado na máquina de desenvolvimento | Nenhum: o serviço Go compila e testa em contêiner | — |
 
