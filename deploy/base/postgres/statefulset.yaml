@@ -42,6 +42,12 @@ spec:
               value: medicalfield
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
+            # "on" carrega os dados ficticios de demonstracao (so vale na PRIMEIRA partida do banco).
+            - name: DADOS_DEMO
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-configuracao
+                  key: DADOS_DEMO
           envFrom:
             # POSTGRES_PASSWORD e MF_*_SENHA (deploy/scripts/criar-secrets.sh)
             - secretRef:

@@ -25,6 +25,12 @@ images:
     newName: ghcr.io/dono-do-registro/medicalfield-migracoes # TROCAR (CI)
     newTag: inicial
 configMapGenerator:
+  # TROCAR para "off" se este ambiente for receber dados reais: "on" cria a conta ADMIN de demonstracao, cuja senha e publica.
+  - name: postgres-configuracao
+    namespace: medicalfield
+    behavior: merge
+    literals:
+      - DADOS_DEMO=on
   - name: jaiminho-configuracao
     namespace: medicalfield
     behavior: merge

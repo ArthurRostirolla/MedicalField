@@ -52,3 +52,7 @@ Executado no k3s local em 2026-11-17:
 4. `backup.sh exportar` → `restore.sh --sim <arquivo local>` → idem.
 
 Na VM, repita o ensaio uma vez antes da apresentação.
+
+## Depois de restaurar: o cursor de sincronização
+
+O `restore.sh` avança a sequence `clinico.seq_alteracao` em 1.000.000 ao final. Sem isso, o banco restaurado reutilizaria números de cursor que os aparelhos já receberam, e eles deixariam de receber cadastros novos sem nenhum aviso. Limite conhecido: o que um aparelho baixou **depois** do backup e não existe mais na central (por exemplo, um medicamento cadastrado nesse intervalo) continua no banco local dele até o app ser reinstalado.

@@ -8,7 +8,7 @@ metadata:
   labels:
     app.kubernetes.io/name: freeway
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: medicalfield-cabecalhos-seguranca@kubernetescrd,medicalfield-cors-app@kubernetescrd
+    traefik.ingress.kubernetes.io/router.middlewares: medicalfield-erros-json@kubernetescrd,medicalfield-cabecalhos-seguranca@kubernetescrd,medicalfield-cors-app@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:
@@ -35,7 +35,9 @@ spec:
           - { path: /, pathType: Exact, backend: { service: { name: web, port: { name: http } } } }
 ---
 # Mesma rota de login, em Ingress separado so para receber o limite de taxa.
-# Caminho exato e mais especifico: tem prioridade sobre o prefixo /api/v1/auth acima.
+# O Traefik ordena as rotas pelo TAMANHO da regra, e Path(/api/v1/auth/login) empata com
+# PathPrefix(/api/v1/auth): sem prioridade explicita o limite de taxa ficava ligado ou desligado
+# ao acaso (D-QA-04). A anotacao router.priority abaixo garante que esta rota vence.
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -43,7 +45,8 @@ metadata:
   labels:
     app.kubernetes.io/name: freeway
   annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: medicalfield-limite-login@kubernetescrd,medicalfield-cabecalhos-seguranca@kubernetescrd,medicalfield-cors-app@kubernetescrd
+    traefik.ingress.kubernetes.io/router.priority: "1000"
+    traefik.ingress.kubernetes.io/router.middlewares: medicalfield-limite-login@kubernetescrd,medicalfield-erros-json@kubernetescrd,medicalfield-cabecalhos-seguranca@kubernetescrd,medicalfield-cors-app@kubernetescrd
 spec:
   ingressClassName: traefik
   rules:

@@ -6,6 +6,8 @@ import { defineConfig } from '@playwright/test';
 //   MF_SENHA_DEMO  senha de demonstracao (services/mike-baguncinha/README.md)
 export default defineConfig({
   testDir: '.',
+  // So o roteiro: outras specs (e2e/qa) tem configuracao propria e derrubam pods.
+  testMatch: 'roteiro.spec.ts',
   outputDir: './resultados',
   workers: 1,
   timeout: 10 * 60_000,
@@ -16,7 +18,8 @@ export default defineConfig({
     baseURL: process.env.MF_BASE ?? 'http://localhost:8088',
     locale: 'pt-BR',
     timezoneId: 'America/Sao_Paulo',
-    trace: 'retain-on-failure',
+    // Sem rastro: o trace.zip guardaria a senha digitada e os tokens dentro do repositorio.
+    trace: 'off',
     serviceWorkers: 'allow',
   },
 });

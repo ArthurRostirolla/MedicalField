@@ -15,6 +15,12 @@ images:
   - name: medicalfield-migracoes
     newTag: dev
 configMapGenerator:
+  # Cluster local de demonstracao: carrega profissionais, pessoas e medicamentos ficticios.
+  - name: postgres-configuracao
+    namespace: medicalfield
+    behavior: merge
+    literals:
+      - DADOS_DEMO=on
   - name: jaiminho-configuracao
     namespace: medicalfield
     behavior: merge

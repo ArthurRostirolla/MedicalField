@@ -30,6 +30,11 @@ else
   no_pod "${RESTAURAR[@]}" "$origem"
 fi
 
+# O backup traz a sequence do cursor com o valor ANTIGO; dispositivos que sincronizaram depois dele
+# ja tem cursores maiores e deixariam de receber novidades (D-QA-05). Avanca com folga.
+no_pod psql -U postgres -d medicalfield -Atc \
+  "SELECT 'cursor de sincronizacao avancado para: ' || setval('clinico.seq_alteracao', (SELECT last_value FROM clinico.seq_alteracao) + 1000000)"
+
 no_pod psql -U postgres -d medicalfield -Atc \
   "SELECT 'tabelas restauradas: ' || count(*) FROM information_schema.tables WHERE table_schema IN ('identidade','auditoria','clinico','documentos')"
 echo "Restauracao concluida. Os servicos reconectam sozinhos; nao e preciso reinicia-los."

@@ -12,6 +12,10 @@ RUN --mount=type=bind,target=/src cd /src \
     done \
  && cp -r packages apps /repo/
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
+# VITE_DIAGNOSTICO=1 expoe no app a consulta SOMENTE LEITURA ao banco local usada pelos testes
+# automatizados. Padrao: desligado (imagem de producao). O cluster local de demonstracao liga.
+ARG VITE_DIAGNOSTICO=
+ENV VITE_DIAGNOSTICO=${VITE_DIAGNOSTICO}
 RUN npm run build --if-present --workspace=packages/contratos --workspace=packages/dominio --workspace=packages/ui \
  && npm run build --workspace=apps/brad-pitt --workspace=apps/lucky-patcher
 

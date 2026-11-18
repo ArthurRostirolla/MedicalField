@@ -37,6 +37,8 @@ criar_banco() {
     docker exec "$CONTAINER" createdb -U postgres "$banco"
   fi
   sql "$banco" < "$RAIZ/deploy/db/schemas.sql"
+  # Desenvolvimento sempre usa os dados ficticios de demonstracao (ver migracoes *_demo.sql).
+  docker exec "$CONTAINER" psql -q -U postgres -d postgres -c "ALTER DATABASE \"$banco\" SET medicalfield.dados_demo = 'on'"
 }
 
 migrar_servico() {

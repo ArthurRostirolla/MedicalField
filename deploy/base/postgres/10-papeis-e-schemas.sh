@@ -11,3 +11,11 @@ CREATE ROLE mf_jaiminho LOGIN PASSWORD :'senha_jaiminho';
 SQL
 
 psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" -f /mf-init/schemas.sql
+
+# Dados de demonstracao (profissionais ficticios com senha publicada, pessoas e medicamentos)
+# so entram quando DADOS_DEMO=on: as migracoes de carga leem este parametro do banco.
+# NUNCA ligue num ambiente com dados reais.
+if [ "${DADOS_DEMO:-off}" = "on" ]; then
+  psql -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB" \
+    -c "ALTER DATABASE \"$POSTGRES_DB\" SET medicalfield.dados_demo = 'on'"
+fi

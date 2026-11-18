@@ -107,3 +107,9 @@ Depois: [acesso-publico.md](acesso-publico.md) para abrir o sistema para fora, e
 | Sem saída para o GHCR | Na sua máquina: `docker save ghcr.io/…/medicalfield-web:<tag> … -o imagens.tar`; copie para a VM; `sudo k3s ctr images import imagens.tar`. |
 | Pouca RAM | `--disable metrics-server` na instalação do k3s; sem Argo CD. |
 | Sem root, ou contêiner LXC sem suporte a k3s | Pedir à TI/professor. Não há como cumprir "Kubernetes na VM" sem isso; a decisão de alternativa é do autor do trabalho. |
+
+## Dados de demonstração (`DADOS_DEMO`)
+
+Os profissionais, pessoas e medicamentos fictícios só são criados quando o ConfigMap `postgres-configuracao` tem `DADOS_DEMO=on` **na primeira partida do banco** (o script de inicialização grava `medicalfield.dados_demo = 'on'` no banco e as migrações de carga leem esse parâmetro). Os overlays `local` e `univates` vêm com `on`, porque são ambientes de demonstração. **Num ambiente com dados reais, troque para `off` antes da primeira implantação**: `on` cria a conta ADMIN de demonstração, cuja senha é pública.
+
+A imagem `web` de produção não expõe a consulta de diagnóstico do app (`window.__mf`); o cluster local a constrói com `--build-arg VITE_DIAGNOSTICO=1`, que os testes automatizados usam. O roteiro automatizado (`e2e/roteiro.spec.ts`) e o teste Android dependem desse modo.

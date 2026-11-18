@@ -25,3 +25,6 @@ apps/lucky-patcher/android/local.properties
 playwright-report/
 test-results/
 .DS_Store
+resultados/
+.playwright-artifacts-*/
+dist-android/

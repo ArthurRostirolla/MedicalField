@@ -8,6 +8,10 @@ resources:
 generatorOptions:
   disableNameSuffixHash: true
 configMapGenerator:
+  # "on" so em ambiente de demonstracao (os overlays decidem). Vale na primeira partida do banco.
+  - name: postgres-configuracao
+    literals:
+      - DADOS_DEMO=off
   - name: postgres-init
     files:
       - 10-papeis-e-schemas.sh
