@@ -191,7 +191,7 @@ Cada serviço e o portal têm um `README.md` próprio, com variáveis de ambient
 
 | Item | Situação |
 | --- | --- |
-| **VM da Univates** | **No ar** em 2026-11-18 (Docker Compose com `deploy/compose.vm.yaml`, imagens do GHCR). Login real, 401 sem token, 429 no login, IP real do cliente no log de acesso, backup no cron e volta sozinha após reiniciar a VM. ~640 MB de RAM em uso de 1,6 GB. Procedimento: [`docs/operacao/instalacao-vm.md`](docs/operacao/instalacao-vm.md). O roteiro de 17 passos ainda não foi repetido contra a VM. |
+| **VM da Univates** | **No ar** em 2026-11-18 (Docker Compose com `deploy/compose.vm.yaml`, imagens do GHCR). Login real, 401 sem token, 429 no login, IP real do cliente no log de acesso, backup no cron e volta sozinha após reiniciar a VM. ~640 MB de RAM em uso de 1,6 GB. Procedimento: [`docs/operacao/instalacao-vm.md`](docs/operacao/instalacao-vm.md). O roteiro automatizado de 17 passos passou contra a VM (17 de 17). |
 | **Acesso público HTTPS** | **No ar:** <https://177-44-248-60.sslip.io/portal/> e `/app/`, certificado Let's Encrypt válido emitido pelo Traefik; HTTP redireciona (301) para HTTPS. |
 | **Aparelho Android físico** | Não testado. O APK de depuração foi construído e o app validado num **emulador** (ver acima); falta um aparelho real, um APK assinado para publicação e TLS até o servidor. Ver [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md). |
 | **E-mail em caixa externa** | Não testado. O envio é validado contra o Mailpit (SMTP real, de captura); faltam credenciais de um provedor. |

@@ -17,7 +17,7 @@ Todos os dados são **fictícios e sem validade clínica**.
 
 A **senha de demonstração** é a mesma para todos e está em [`apps/mike-baguncinha/README.md`](../../apps/mike-baguncinha/README.md). Ela não é repetida aqui.
 
-Os endereços acima são os do **modo Compose local**. Na VM da Univates troque `http://localhost:8088` por `https://177-44-248-60.sslip.io` e use o Mailpit por túnel SSH — a VM está no ar desde 2026-11-18; o roteiro completo contra ela ainda não foi repetido (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
+Os endereços acima são os do **modo Compose local**. Na VM da Univates troque `http://localhost:8088` por `https://177-44-248-60.sslip.io` e use o Mailpit por túnel SSH — a VM está no ar desde 2026-11-18 e o roteiro automatizado passou nela (17 de 17) no mesmo dia (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
 
 ## 2. Preparar o ambiente
 
@@ -313,6 +313,15 @@ npm run roteiro -w @medicalfield/e2e
 
 Requer Chrome instalado e `docker` no `PATH`. `MF_ALVO=dev` aponta o SQL e o Mailpit para o modo desenvolvimento (`scripts/dev-*.sh`).
 
+Contra a VM (a imagem `web` publicada não tem a porta de diagnóstico que o roteiro usa: troque-a temporariamente pela construída localmente com `VITE_DIAGNOSTICO=1` e volte depois com `sudo docker compose pull web && sudo docker compose up -d web`):
+
+```bash
+ssh -N -L 18026:127.0.0.1:18025 univates@177.44.248.60 &     # Mailpit da VM
+MF_BASE=https://177-44-248-60.sslip.io MF_ALVO=vm MF_PORTA_MAILPIT=18026 npm run roteiro -w @medicalfield/e2e
+```
+
+Com `MF_ALVO=vm` o SQL do passo 9 vai por SSH (`MF_VM_SSH`, padrão `univates@177.44.248.60`).
+
 Cada execução regrava, em [`evidencias/roteiro/`](evidencias/roteiro/):
 
 | Arquivo | Conteúdo |
@@ -321,7 +330,7 @@ Cada execução regrava, em [`evidencias/roteiro/`](evidencias/roteiro/):
 | `passo-01.png` … `passo-17.png` | Uma captura de tela por passo |
 | `ficha-do-roteiro.pdf` | O PDF baixado no passo 16 |
 
-Última execução registrada: **17 de 17 passos**, em 18/11/2026, contra o cluster k3s local (`http://localhost:8088`), antes da troca para o Docker Compose; no Compose, a repetir. Evidência E-007 em [`../VALIDATION_EVIDENCE.md`](../VALIDATION_EVIDENCE.md).
+Última execução registrada: **17 de 17 passos**, em 18/11/2026, contra a **VM da Univates** (`https://177-44-248-60.sslip.io`, `MF_ALVO=vm`); no mesmo dia também passou no Compose local. Antes, no k3s local: evidência E-007 em [`../VALIDATION_EVIDENCE.md`](../VALIDATION_EVIDENCE.md).
 
 Cada execução usa um sufixo novo nos nomes (derivado do relógio), então pode ser repetida sobre o mesmo banco sem limpar nada.
 

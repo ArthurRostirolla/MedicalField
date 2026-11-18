@@ -21,7 +21,6 @@ Nenhum de severidade Crítica ou Alta.
 
 | ID | Bloqueio | Impacto | O que falta |
 | --- | --- | --- | --- |
-| X-01 | Roteiro de 17 passos não repetido contra a VM | Implantação e acesso público validados em 2026-11-18; falta o roteiro completo em `https://177-44-248-60.sslip.io` | Rodar o roteiro manual ([`docs/testes/roteiro-de-testes.md`](testes/roteiro-de-testes.md)) contra a VM |
 | X-02 | Sem credencial de SMTP real | E-mail é validado contra o Mailpit (SMTP real de captura), não contra uma caixa externa | Informar `SMTP_*` em `deploy/.env` |
 | X-03 | Go não instalado na máquina de desenvolvimento | Nenhum: o serviço Go compila e testa em contêiner | — |
 
