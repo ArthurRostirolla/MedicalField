@@ -37,11 +37,10 @@ n429=0; for i in $(seq 1 14); do s=$(cod -X POST "$BASE/api/v1/auth/login" "${J[
 [ "$n429" -ge 1 ] && ok "QA-12 gateway respondeu 429 em $n429 de 14 logins em rajada" || falhou "QA-12 nenhuma das 14 tentativas em rajada recebeu 429"
 echo "   esperando 65 s para o balde do gateway esvaziar..."; sleep 65
 
-echo "== QA-13 logs dos pods e auditoria.log_acesso sem senha, token, corpo ou dado de paciente"
+echo "== QA-13 logs dos conteineres e auditoria.log_acesso sem senha, token, corpo ou dado de paciente"
 TOK=$(token_prof)
 : > "$EVID/logs-pods.txt"
-for d in mike-baguncinha dona-cida jaiminho web; do k logs "deploy/$d" --all-containers --tail=-1 >> "$EVID/logs-pods.txt" 2>/dev/null; done
-k -n kube-system logs deploy/traefik --tail=-1 >> "$EVID/logs-pods.txt" 2>/dev/null
+dc logs --no-color --no-log-prefix mike-baguncinha dona-cida jaiminho web traefik >> "$EVID/logs-pods.txt" 2>/dev/null
 echo "   $(wc -l < "$EVID/logs-pods.txt") linhas de log coletadas (mike, cida, jaiminho, web, traefik)"
 achou() { grep -c -F -- "$1" "$EVID/logs-pods.txt"; }
 confere QA-13 "ocorrencias da senha de demonstracao nos logs" 0 "$(achou "$MF_SENHA_DEMO")"

@@ -1,6 +1,7 @@
-// QA — resiliência no Kubernetes com o app aberto num navegador e operações pendentes.
-// T-20 (pod da DonaCida morto no meio da sincronização), T-14 (Postgres em 0 réplicas),
-// T-23/T-18 (Jaiminho e DonaCida fora). Reinicia PODS; não apaga dados. Sempre devolve as réplicas.
+// QA — resiliência no Docker Compose com o app aberto num navegador e operações pendentes.
+// T-20 (pod da DonaCida morto no meio da sincronização), T-14 (Postgres parado),
+// T-23/T-18 (Jaiminho e DonaCida fora). Para e reinicia CONTÊINERES; não apaga dados. Sempre sobe tudo de volta.
+import { execFileSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
 import { resolve } from 'node:path';
 import { expect, test, type Page } from '@playwright/test';
@@ -15,20 +16,25 @@ import {
   simularOffline,
   sincronizar,
 } from '../../apps/lucky-patcher/e2e/apoio.ts';
-import { anotar, api, BASE, contar, EVIDENCIAS, kubectl, sql, tokenDe } from './apoio-qa.ts';
+import { anotar, api, BASE, compose, contar, EVIDENCIAS, sql, tokenDe } from './apoio-qa.ts';
 
 const marca = Date.now().toString(36).toUpperCase();
 const EV = 'resiliencia.txt';
 const dormir = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const prontos = () => kubectl('get', 'pods', '--no-headers').split('\n').map((l) => l.trim().split(/\s+/).slice(0, 4).join(' ')).join(' ; ');
-const reinicios = (app: string) => kubectl('get', 'pods', '-l', `app.kubernetes.io/name=${app}`, '-o', 'jsonpath={.items[*].status.containerStatuses[0].restartCount}');
-const pronto = (app: string) => kubectl('get', 'pods', '-l', `app.kubernetes.io/name=${app}`, '-o', 'jsonpath={.items[*].status.containerStatuses[0].ready}');
-function esperarTodosProntos(): void {
-  for (const alvo of ['statefulset/postgres', 'deploy/mike-baguncinha', 'deploy/dona-cida', 'deploy/jaiminho', 'deploy/web', 'deploy/mailpit']) {
-    kubectl('rollout', 'status', alvo, '--timeout=240s');
+const prontos = () => compose('ps', '--format', '{{.Service}} {{.State}}').split('\n').join(' ; ');
+const reinicios = (app: string) => execFileSync('docker', ['inspect', '-f', '{{.RestartCount}}', `medicalfield-${app}-1`], { encoding: 'utf8' }).trim();
+// /health/ready na porta de gestao, consultado de dentro da rede pelo gateway (imagem alpine, tem wget)
+const pronto = (app: string) => {
+  try {
+    compose('exec', '-T', 'traefik', 'wget', '-q', '-O', '/dev/null', '-T', '3', `http://${app}:9090/health/ready`);
+    return 'true';
+  } catch {
+    return 'false';
   }
-}
+};
+const parado = (app: string) => compose('ps', '-q', app); // vazio = sem conteiner rodando
+const esperarTodosProntos = () => compose('up', '-d', '--wait', '--wait-timeout', '240');
 const statusDe = async (caminho: string, token?: string) => {
   const r = await fetch(`${BASE}${caminho}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} }).catch(() => null);
   return r ? `${r.status} ${(await r.text()).slice(0, 120).replace(/\s+/g, ' ')}` : 'sem resposta';
@@ -36,9 +42,7 @@ const statusDe = async (caminho: string, token?: string) => {
 
 test.beforeAll(() => anotar(EV, `\n=== execução ${new Date().toISOString()} (marca ${marca}) ===`));
 test.afterAll(() => {
-  // rede de segurança: nada fica com zero réplicas
-  kubectl('scale', 'statefulset/postgres', '--replicas=1');
-  for (const d of ['dona-cida', 'jaiminho', 'mike-baguncinha']) kubectl('scale', `deploy/${d}`, '--replicas=1');
+  // rede de segurança: nada fica parado
   esperarTodosProntos();
   anotar(EV, `fim: ${prontos()}`);
 });
@@ -80,7 +84,7 @@ test('T-20 — pod da DonaCida morre no MEIO da sincronização', async ({ page 
   const reiniciosAntes = reinicios('dona-cida');
   await simularOffline(page, false);
   await expect.poll(() => eventosConfirmados, { timeout: 60_000 }).toBeGreaterThanOrEqual(3);
-  kubectl('delete', 'pod', '-l', 'app.kubernetes.io/name=dona-cida', '--grace-period=0', '--force', '--wait=false');
+  compose('kill', 'dona-cida');
   const noCorte = eventosConfirmados;
   await dormir(4000);
   const pendentesNoMeio = await pendentesLocais(page);
@@ -91,7 +95,7 @@ test('T-20 — pod da DonaCida morre no MEIO da sincronização', async ({ page 
   await page.screenshot({ path: resolve(EVIDENCIAS, 'resiliencia-t20-no-meio.png'), fullPage: true });
   expect((await local<{ n: number }>(page, "SELECT count(*) AS n FROM outbox WHERE status = 'REJEITADA'"))[0]!.n).toBe(0);
 
-  kubectl('rollout', 'status', 'deploy/dona-cida', '--timeout=240s');
+  compose('up', '-d', '--wait', 'dona-cida');
   anotar(EV, `T-20 pod novo pronto: ${prontos()} (reinícios do contêiner antes: ${reiniciosAntes})`);
   await page.unroute('**/api/v1/atendimento-evento');
   // o app conclui sozinho (temporizador/backoff); o botão só encurta a espera do teste
@@ -114,7 +118,7 @@ test('T-14 — Postgres em 0 réplicas: readiness cai, sem laço de reinício, o
   const contagensAntes = sql(`SELECT (SELECT count(*) FROM clinico.pessoa)||'/'||(SELECT count(*) FROM clinico.atendimento)||'/'||(SELECT count(*) FROM clinico.atendimento_evento)||'/'||(SELECT count(*) FROM documentos.documento)`);
   const token = await tokenDe('COREN', '200002', 'RS');
 
-  kubectl('scale', 'statefulset/postgres', '--replicas=0');
+  compose('stop', 'postgres');
   try {
     await expect.poll(() => servicos.map(pronto).join('/'), { timeout: 120_000, intervals: [3000] }).toBe('false/false/false');
     anotar(EV, `T-14 Postgres em 0: ${prontos()}`);
@@ -138,7 +142,7 @@ test('T-14 — Postgres em 0 réplicas: readiness cai, sem laço de reinício, o
     anotar(EV, `T-14 após 75 s sem banco: reinícios mike/cida/jaiminho = ${reiniciosDurante} (antes: ${reiniciosAntes}); ${prontos()}`);
     expect(reiniciosDurante).toBe(reiniciosAntes);
 
-    kubectl('scale', 'statefulset/postgres', '--replicas=1');
+    compose('start', 'postgres');
     esperarTodosProntos();
     anotar(EV, `T-14 Postgres de volta: ${prontos()}`);
     await sincronizar(page);
@@ -149,7 +153,7 @@ test('T-14 — Postgres em 0 réplicas: readiness cai, sem laço de reinício, o
     const [p, a, e, d] = contagensAntes.split('/').map(Number);
     expect(sql(`SELECT (SELECT count(*) FROM clinico.pessoa)||'/'||(SELECT count(*) FROM clinico.atendimento)||'/'||(SELECT count(*) FROM clinico.atendimento_evento)||'/'||(SELECT count(*) FROM documentos.documento)`)).toBe(`${p! + 1}/${a! + 1}/${e! + 2}/${d}`);
   } finally {
-    kubectl('scale', 'statefulset/postgres', '--replicas=1');
+    compose('start', 'postgres');
   }
 });
 
@@ -158,10 +162,10 @@ test('T-23 / T-18 — Jaiminho fora: registrar e sincronizar seguem; PDF falha c
   const token = await tokenDe('COREN', '200002', 'RS');
   const documentosAntes = contar('SELECT count(*) FROM documentos.documento');
 
-  kubectl('scale', 'deploy/jaiminho', '--replicas=0');
+  compose('stop', 'jaiminho');
   let ids = { pessoaId: '', atendimentoId: '' };
   try {
-    await expect.poll(() => kubectl('get', 'pods', '-l', 'app.kubernetes.io/name=jaiminho', '-o', 'name'), { timeout: 60_000 }).toBe('');
+    await expect.poll(() => parado('jaiminho'), { timeout: 60_000 }).toBe('');
     anotar(EV, `T-23 Jaiminho em 0: ${prontos()}`);
     await simularOffline(page, false);
     ids = await novoPacienteComAtendimento(page, `QA Resiliencia Jaiminho ${marca}`);
@@ -200,14 +204,13 @@ test('T-23 / T-18 — Jaiminho fora: registrar e sincronizar seguem; PDF falha c
     expect(mensagem + blocoAoAbrir).toMatch(/indispon|não foi possível|tente|erro|falh/i);
     await ctx.close();
   } finally {
-    kubectl('scale', 'deploy/jaiminho', '--replicas=1');
-    kubectl('rollout', 'status', 'deploy/jaiminho', '--timeout=240s');
+    compose('up', '-d', '--wait', 'jaiminho');
   }
 
   // T-18: DonaCida fora, Jaiminho no ar
-  kubectl('scale', 'deploy/dona-cida', '--replicas=0');
+  compose('stop', 'dona-cida');
   try {
-    await expect.poll(() => kubectl('get', 'pods', '-l', 'app.kubernetes.io/name=dona-cida', '-o', 'name'), { timeout: 60_000 }).toBe('');
+    await expect.poll(() => parado('dona-cida'), { timeout: 60_000 }).toBe('');
     const r = await api(token, 'POST', '/api/v1/documento/ficha-atendimento', { atendimentoId: ids.atendimentoId });
     anotar(EV, `T-18 POST /documento/ficha-atendimento com a DonaCida fora -> ${r.status} ${JSON.stringify(r.corpo).slice(0, 200)}`);
     expect(r.status).toBe(503);
@@ -215,8 +218,7 @@ test('T-23 / T-18 — Jaiminho fora: registrar e sincronizar seguem; PDF falha c
     expect(contar('SELECT count(*) FROM documentos.documento')).toBe(documentosAntes);
     anotar(EV, `T-18 documentos na central: ${documentosAntes} antes, ${contar('SELECT count(*) FROM documentos.documento')} depois (nenhum órfão)`);
   } finally {
-    kubectl('scale', 'deploy/dona-cida', '--replicas=1');
-    kubectl('rollout', 'status', 'deploy/dona-cida', '--timeout=240s');
+    compose('up', '-d', '--wait', 'dona-cida');
   }
   // com tudo de volta a ficha é gerada
   await expect.poll(async () => (await api(token, 'POST', '/api/v1/documento/ficha-atendimento', { atendimentoId: ids.atendimentoId })).status, { timeout: 90_000, intervals: [8000] }).toBe(201);

@@ -42,7 +42,7 @@ corpo=$(node -e 'console.log(JSON.stringify({tipoRegistro:"SOCORRISTA",registro:
 ck=$(curl -s -D - -o "$TMP/login.json" -X POST "$BASE/api/v1/auth/login" "${J[@]}" -d "$corpo" | grep -i '^set-cookie' | tr -d '\r')
 echo "   $(echo "$ck" | sed -E 's/mf_refresh=[^;]+/mf_refresh=<oculto>/')"
 for f in HttpOnly "SameSite=Strict" "Path=/api/v1/auth"; do echo "$ck" | grep -qi "$f" && ok "QA-06 cookie com $f" || falhou "QA-06 cookie sem $f"; done
-amb=$(k exec deploy/mike-baguncinha -- /bin/true >/dev/null 2>&1; k get cm -o yaml | grep -m1 'AMBIENTE:' | tr -d ' ')
+amb=$(dc config | grep -m1 "AMBIENTE:" | tr -d " ")
 echo "$ck" | grep -qi '; *Secure' && ok "QA-06 cookie com Secure" || falhou "QA-06 cookie SEM Secure ($amb)"
 
 echo "== QA-07 refresh token reutilizado apos rotacao -> 401"
@@ -106,13 +106,13 @@ esp QA-09 "e-mail: CRLF no nome (injecao de cabecalho)" "422" "$(P /api/v1/docum
 esp QA-09 "e-mail: LF no endereco" "422" "$(P /api/v1/documento/$U/email -d '{"destinatarioNome":"A","destinatarioEmail":"a@b.test\nBcc:x@y.z","vinculo":"FAMILIAR"}')"
 esp QA-09 "e-mail: vinculo invalido" "422" "$(P /api/v1/documento/$U/email -d '{"destinatarioNome":"A","destinatarioEmail":"a@b.test","vinculo":"VIZINHO"}')"
 node -e 'process.stdout.write(JSON.stringify({id:crypto.randomUUID(),nome:"A",editadoEm:new Date().toISOString(),lixo:"B".repeat(20*1024*1024)}))' > "$TMP/gigante.json"
-reinicios() { k get pods -o jsonpath='{range .items[*]}{.metadata.name}={.status.containerStatuses[0].restartCount} {end}'; }
+reinicios() { docker inspect -f "{{.Name}}={{.RestartCount}}" $(dc ps -q) | tr '\n' ' '; }
 r0=$(reinicios)
 for alvo in /api/v1/pessoa /api/v1/log /api/v1/documento/ficha-atendimento /api/v1/auth/login; do
   esp QA-09 "corpo de 20 MB (com token) em $alvo" "413|422|400" "$(cod --max-time 90 -X POST "$BASE$alvo" "${A[@]}" "${J[@]}" --data-binary "@$TMP/gigante.json")"
 done
 echo "NOTA    QA-09 corpo de 20 MB SEM token: /pessoa -> $(cod --max-time 90 -X POST "$BASE/api/v1/pessoa" "${J[@]}" --data-binary "@$TMP/gigante.json"); /documento/ficha-atendimento -> $(cod --max-time 90 -X POST "$BASE/api/v1/documento/ficha-atendimento" "${J[@]}" --data-binary "@$TMP/gigante.json"); /log -> $(cod --max-time 90 -X POST "$BASE/api/v1/log" "${J[@]}" --data-binary "@$TMP/gigante.json")"
-sleep 3; confere QA-09 "reinicios dos pods apos os corpos gigantes" "$r0" "$(reinicios)"
+sleep 3; confere QA-09 "reinicios dos conteineres apos os corpos gigantes" "$r0" "$(reinicios)"
 
 echo "== QA-10 Idempotency-Key malformada / conflitante (T-05, T-06)"
 esp QA-10 "chave 'abc'" "422" "$(P /api/v1/pessoa -H 'Idempotency-Key: abc' -d "$(novo 'QA idem 1')")"

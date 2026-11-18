@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
-# Apoio dos scripts de QA: endereco do gateway, kubectl do cluster local, login e SQL.
+# Apoio dos scripts de QA: endereco do gateway, docker compose do sistema local, login e SQL.
 # Uso: source e2e/qa/lib.sh   (exige MF_SENHA_DEMO no ambiente; nunca gravada em arquivo)
 export MSYS_NO_PATHCONV=1
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-export KUBECONFIG="$(cygpath -m "$RAIZ/deploy/.local/kubeconfig" 2>/dev/null || echo "$RAIZ/deploy/.local/kubeconfig")"
-BASE="${MF_BASE:-http://localhost:8088}"
+BASE="${MF_BASE:-http://127.0.0.1:8088}"
 EVID="$RAIZ/docs/testes/evidencias/qa"
 : "${MF_SENHA_DEMO:?defina MF_SENHA_DEMO (apps/mike-baguncinha/README.md)}"
 
-k() { kubectl -n medicalfield "$@"; }
-sql() { k exec postgres-0 -c postgres -- psql -U postgres -d medicalfield -At -c "$1"; }
+dc() { (cd "$RAIZ/deploy" && docker compose "$@"); }
+sql() { dc exec -T postgres psql -U postgres -d medicalfield -At -c "$1"; }
 # json <expressao js sobre d>  — le JSON do stdin (nao ha jq na maquina)
 json() { node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{const d=JSON.parse(s);const r=eval(process.argv[1]);console.log(typeof r==="string"?r:JSON.stringify(r))})' "$1"; }
 uuid() { node -e 'console.log(crypto.randomUUID())'; }

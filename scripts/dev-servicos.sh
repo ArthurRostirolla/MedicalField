@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Sobe os tres servicos backend em conteineres para desenvolvimento local, contra o Postgres de dev.
-# NAO e o mecanismo de implantacao (isso e Kubernetes, em deploy/).
+# NAO e o mecanismo de implantacao (isso e o docker compose de deploy/).
 #
 #   scripts/dev-servicos.sh subir [--construir]   constroi (se pedido ou faltar imagem) e sobe os tres + Mailpit
 #   scripts/dev-servicos.sh parar

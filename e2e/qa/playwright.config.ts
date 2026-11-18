@@ -1,6 +1,6 @@
 import { defineConfig } from '@playwright/test';
 
-// Specs de QA contra o sistema IMPLANTADO no k3s local (gateway em :8088).
+// Specs de QA contra o sistema IMPLANTADO localmente com docker compose (gateway em :8088).
 //   cd e2e && MF_SENHA_DEMO=... npx playwright test -c qa/playwright.config.ts [arquivo]
 export default defineConfig({
   testDir: '.',

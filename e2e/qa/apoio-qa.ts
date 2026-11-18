@@ -1,4 +1,4 @@
-// Apoio das specs de QA: SQL e kubectl no cluster local, API pelo gateway, evidencias.
+// Apoio das specs de QA: SQL e docker compose no sistema local (deploy/compose.yaml), API pelo gateway, evidencias.
 import { execFileSync } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -7,13 +7,13 @@ import { fileURLToPath } from 'node:url';
 export const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 export const EVIDENCIAS = resolve(RAIZ, 'docs/testes/evidencias/qa');
 export const BASE = process.env.MF_BASE ?? 'http://localhost:8088';
-const KUBECONFIG = resolve(RAIZ, 'deploy/.local/kubeconfig');
 mkdirSync(EVIDENCIAS, { recursive: true });
 
-export function kubectl(...args: string[]): string {
-  return execFileSync('kubectl', ['--kubeconfig', KUBECONFIG, '-n', 'medicalfield', ...args], { encoding: 'utf8' }).trim();
+/** `docker compose` do sistema local, rodado em deploy/ (le deploy/.env). */
+export function compose(...args: string[]): string {
+  return execFileSync('docker', ['compose', ...args], { cwd: resolve(RAIZ, 'deploy'), encoding: 'utf8' }).trim();
 }
-export const sql = (consulta: string): string => kubectl('exec', 'postgres-0', '-c', 'postgres', '--', 'psql', '-U', 'postgres', '-d', 'medicalfield', '-At', '-c', consulta);
+export const sql = (consulta: string): string => compose('exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'medicalfield', '-At', '-c', consulta);
 export const contar = (consulta: string): number => Number(sql(consulta));
 
 /** Acrescenta uma linha ao arquivo de evidencia da spec (e ao console). */

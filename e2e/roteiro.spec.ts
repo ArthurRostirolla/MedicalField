@@ -1,7 +1,7 @@
 // Roteiro de testes do enunciado (17 passos), na ordem original, contra o sistema implantado.
 // Portal (BradPitt) e cliente (LuckyPatcher) rodam em dois contextos de navegador separados,
 // como dois usuarios em duas maquinas. Cada passo grava uma captura em docs/testes/evidencias/roteiro.
-import { execFileSync, spawn, type ChildProcess } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -23,19 +23,15 @@ import {
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const EVIDENCIAS = resolve(RAIZ, 'docs/testes/evidencias/roteiro');
-const ALVO = process.env.MF_ALVO ?? 'cluster';
-const KUBECONFIG = resolve(RAIZ, 'deploy/.local/kubeconfig');
-const PORTA_MAILPIT = ALVO === 'cluster' ? 18025 : 8025;
+const ALVO = process.env.MF_ALVO ?? 'compose';
+const PORTA_MAILPIT = ALVO === 'compose' ? 18025 : 8025;
 const MAILPIT = `http://localhost:${PORTA_MAILPIT}`;
 
 /** SQL direto no banco central, como o roteiro pede no passo 9 ("via Banco de Dados"). */
 function sql(consulta: string): string {
   const psql = ['psql', '-U', 'postgres', '-d', 'medicalfield', '-At', '-c', consulta];
-  const [comando, args] =
-    ALVO === 'cluster'
-      ? ['kubectl', ['--kubeconfig', KUBECONFIG, '-n', 'medicalfield', 'exec', 'postgres-0', '--', ...psql]]
-      : ['docker', ['exec', 'medicalfield-dev-pg', ...psql]];
-  return execFileSync(comando as string, args as string[], { encoding: 'utf8' }).trim();
+  const args = ALVO === 'compose' ? ['compose', 'exec', '-T', 'postgres', ...psql] : ['exec', 'medicalfield-dev-pg', ...psql];
+  return execFileSync('docker', args, { cwd: resolve(RAIZ, 'deploy'), encoding: 'utf8' }).trim();
 }
 const contar = (consulta: string) => Number(sql(consulta));
 
@@ -48,7 +44,6 @@ const senha = () => {
 const marca = Date.now().toString(36).toUpperCase();
 const resultados: { passo: number; titulo: string; observado: string }[] = [];
 
-let encaminhamento: ChildProcess | undefined;
 let contextoPortal: BrowserContext;
 let contextoCliente: BrowserContext;
 let portal: Page;
@@ -57,11 +52,8 @@ const requisicoesDoCliente: Request[] = [];
 
 test.beforeAll(async ({ browser }) => {
   mkdirSync(EVIDENCIAS, { recursive: true });
-  if (ALVO === 'cluster') {
-    // O Mailpit do cluster nao e exposto pelo gateway: encaminha a porta so durante o teste.
-    encaminhamento = spawn('kubectl', ['--kubeconfig', KUBECONFIG, '-n', 'medicalfield', 'port-forward', 'svc/mailpit', `${PORTA_MAILPIT}:8025`], {
-      stdio: 'ignore',
-    });
+  if (ALVO === 'compose') {
+    // Mailpit publicado so no host (127.0.0.1:18025)
     await expect.poll(async () => (await fetch(`${MAILPIT}/api/v1/info`).catch(() => null))?.ok ?? false, { timeout: 30_000 }).toBe(true);
   }
   contextoPortal = await browser.newContext({ viewport: { width: 1440, height: 900 }, acceptDownloads: true });
@@ -74,7 +66,6 @@ test.beforeAll(async ({ browser }) => {
 });
 
 test.afterAll(async () => {
-  encaminhamento?.kill();
   await contextoPortal?.close();
   await contextoCliente?.close();
   const linhas = resultados.map((r) => `| ${r.passo} | ${r.titulo} | ${r.observado} | passo-${String(r.passo).padStart(2, '0')}.png |`);

@@ -29,13 +29,13 @@ confere T-16 "401 sem token tambem e registrado, com profissional nulo" "401|" "
 echo "   ADMIN le pela API: $(curl -s "$BASE/api/v1/auditoria/acesso?limite=1" -H "Authorization: Bearer $(token_admin)" | json 'Object.keys(d.itens[0]).join(",")')"
 
 echo "== QA-15 tabelas somente-insercao para os papeis dos servicos"
-# como <papel> <sql>: roda dentro do pod do Postgres, autenticando com a senha do Secret do servico
+# como <papel> <sql>: roda dentro do conteiner do Postgres, autenticando com a senha do servico (deploy/.env)
 como() {
-  local segredo url
-  case "$1" in mf_mike) segredo=mike-baguncinha;; mf_cida) segredo=dona-cida;; mf_jaiminho) segredo=jaiminho;; esac
-  url=$(k get secret -o json | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>{for(const i of JSON.parse(s).items){const u=i.data&&i.data.DATABASE_URL&&Buffer.from(i.data.DATABASE_URL,"base64").toString();if(u&&u.includes(process.argv[1]+":")){console.log(u.replace(/@[^/]+\//,"@127.0.0.1:5432/"));return}}})' "$1")
-  [ -n "$url" ] || { echo "SEM-SECRET"; return; }
-  k exec postgres-0 -c postgres -- psql "$url" -At -v ON_ERROR_STOP=1 -c "$2" 2>&1 | tr '\n' ' '
+  local var senha
+  case "$1" in mf_mike) var=SENHA_MF_MIKE;; mf_cida) var=SENHA_MF_CIDA;; mf_jaiminho) var=SENHA_MF_JAIMINHO;; esac
+  senha=$(sed -n "s/^$var=//p" "$RAIZ/deploy/.env" | tr -d "")
+  [ -n "$senha" ] || { echo "SEM-SENHA"; return; }
+  dc exec -T postgres psql "postgres://$1:$senha@127.0.0.1:5432/medicalfield" -At -v ON_ERROR_STOP=1 -c "$2" 2>&1 | tr '\n' ' '
 }
 nega() { # nega <papel> <descricao> <sql>
   local saida; saida=$(como "$1" "$3")

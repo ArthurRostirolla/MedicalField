@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Banco de desenvolvimento do MedicalField (Postgres em contêiner, porta 5544).
-# NAO e o mecanismo de implantacao (isso e Kubernetes, em deploy/): serve so para rodar e testar local.
+# NAO e o mecanismo de implantacao (isso e o docker compose de deploy/).
 #
 #   scripts/dev-db.sh subir                 sobe o Postgres e prepara o banco "medicalfield"
 #   scripts/dev-db.sh criar-banco <nome>    cria um banco extra (ex.: testes de um servico) ja com schemas

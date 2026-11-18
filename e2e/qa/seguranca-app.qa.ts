@@ -1,4 +1,4 @@
-// QA — o que o app publicado (build de producao servido pelo cluster) expoe no navegador.
+// QA — o que o app publicado (build de producao servido pelo docker compose) expoe no navegador.
 import { expect, test } from '@playwright/test';
 import { entrar } from '../../apps/lucky-patcher/e2e/apoio.ts';
 import { anotar } from './apoio-qa.ts';

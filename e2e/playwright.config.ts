@@ -1,8 +1,8 @@
 import { defineConfig } from '@playwright/test';
 
-// Roteiro academico contra o sistema IMPLANTADO (padrao: gateway do k3s local em :8088).
+// Roteiro academico contra o sistema IMPLANTADO (padrao: gateway do docker compose local em :8088).
 //   MF_BASE        endereco do gateway           (padrao http://localhost:8088)
-//   MF_ALVO        "cluster" (kubectl exec) ou "dev" (docker exec) para o SQL e o Mailpit
+//   MF_ALVO        "compose" (docker compose exec, padrao) ou "dev" (scripts/dev-*.sh) para o SQL e o Mailpit
 //   MF_SENHA_DEMO  senha de demonstracao (apps/mike-baguncinha/README.md)
 export default defineConfig({
   testDir: '.',

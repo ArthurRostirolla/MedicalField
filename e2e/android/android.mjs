@@ -2,7 +2,7 @@
 // depuracao remota (CDP). Exercita o adaptador NATIVO de SQLite (SQLCipher), que o navegador nao usa.
 //
 // Pre-requisitos: emulador/aparelho visivel em `adb devices`, APK de depuracao instalado
-// (apps/lucky-patcher/docs/android.md), cluster local no ar (gateway em :8088) e MF_SENHA_DEMO.
+// (apps/lucky-patcher/docs/android.md), sistema local no ar (docker compose, gateway em :8088) e MF_SENHA_DEMO.
 //   node e2e/android/android.mjs
 // No emulador, o host da maquina e 10.0.2.2; em aparelho fisico, defina MF_SERVIDOR_ANDROID.
 import { execFileSync } from 'node:child_process';
@@ -17,14 +17,15 @@ const ADB = process.env.ADB ?? `${process.env.LOCALAPPDATA}/Android/Sdk/platform
 const PACOTE = 'br.medicalfield.cliente';
 const SERVIDOR = process.env.MF_SERVIDOR_ANDROID ?? 'http://10.0.2.2:8088';
 const PORTA = 9333;
-const KUBECONFIG = resolve(RAIZ, 'deploy/.local/kubeconfig');
+
 const senha = process.env.MF_SENHA_DEMO;
 if (!senha) throw new Error('Defina MF_SENHA_DEMO (apps/mike-baguncinha/README.md).');
 
 const adb = (...args) => execFileSync(ADB, args, { encoding: 'utf8' }).trim();
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));
 const sql = (consulta) =>
-  execFileSync('kubectl', ['--kubeconfig', KUBECONFIG, '-n', 'medicalfield', 'exec', 'postgres-0', '--', 'psql', '-U', 'postgres', '-d', 'medicalfield', '-At', '-c', consulta], {
+  execFileSync('docker', ['compose', 'exec', '-T', 'postgres', 'psql', '-U', 'postgres', '-d', 'medicalfield', '-At', '-c', consulta], {
+    cwd: resolve(RAIZ, 'deploy'),
     encoding: 'utf8',
   }).trim();
 const contar = (consulta) => Number(sql(consulta));
@@ -112,7 +113,7 @@ const alergia = `Alergia Android ${marca}`;
 
 let { navegador, pagina } = await abrirApp({ limparDados: true });
 try {
-  // 1. Primeiro acesso: endereco do servidor + login (pela rede do emulador ate o gateway do cluster).
+  // 1. Primeiro acesso: endereco do servidor + login (pela rede do emulador ate o gateway local).
   await pagina.getByLabel('Número do COREN').fill('200002');
   await pagina.getByLabel('Senha').fill(senha);
   await pagina.getByLabel('Endereço do servidor').fill(SERVIDOR);
