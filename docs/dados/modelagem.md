@@ -6,7 +6,7 @@ O enunciado pede **persistência dual**:
 
 | Banco | Tecnologia | Papel | Definido em |
 | --- | --- | --- | --- |
-| **Central** | PostgreSQL 17 | Consolida prontuários, atendimentos, documentos e auditorias | `services/*/migrations/*.sql` |
+| **Central** | PostgreSQL 17 | Consolida prontuários, atendimentos, documentos e auditorias | `apps/*/migrations/*.sql` |
 | **Local** | SQLite embarcado no app | Sustenta a operação offline: espelho dos cadastros, registros feitos no aparelho e a fila de envio | `apps/lucky-patcher/src/banco/migracoes/001_inicial.sql` |
 
 Os diagramas abaixo foram escritos a partir dessas migrações — elas são a fonte. As tabelas e os privilégios do banco central foram conferidos no banco em execução (`information_schema`).
@@ -23,10 +23,10 @@ Todos os dados são **fictícios e sem validade clínica**.
 
 | Schema | Serviço dono | Tabelas | Migração |
 | --- | --- | --- | --- |
-| `identidade` | MikeBaguncinha | `profissional`, `sessao` | `services/mike-baguncinha/migrations/20261117000100_identidade_e_auditoria.sql` |
+| `identidade` | MikeBaguncinha | `profissional`, `sessao` | `apps/mike-baguncinha/migrations/20261117000100_identidade_e_auditoria.sql` |
 | `auditoria` | MikeBaguncinha (os três gravam o log de acesso) | `log_acesso`, `log_cliente` | idem |
-| `clinico` | DonaCida | `medicamento`, `pessoa`, `prontuario`, `prontuario_item`, `atendimento`, `atendimento_evento`, `operacao_sync`, `auditoria_clinica` | `services/dona-cida/migrations/20261117000200_clinico.sql` |
-| `documentos` | Jaiminho | `documento`, `envio_email` | `services/jaiminho/migrations/20261117000300_documentos.sql` |
+| `clinico` | DonaCida | `medicamento`, `pessoa`, `prontuario`, `prontuario_item`, `atendimento`, `atendimento_evento`, `operacao_sync`, `auditoria_clinica` | `apps/dona-cida/migrations/20261117000200_clinico.sql` |
+| `documentos` | Jaiminho | `documento`, `envio_email` | `apps/jaiminho/migrations/20261117000300_documentos.sql` |
 
 São **14 tabelas**. Cada schema tem ainda uma `schema_migrations`, do `dbmate`.
 
@@ -323,7 +323,7 @@ Uso de schema (`deploy/db/schemas.sql`): `identidade` → `mf_mike`; `auditoria`
 
 Problema: o app precisa perguntar "o que mudou desde a última vez?" e receber também o que foi inserido **à mão** no banco.
 
-Solução, em `services/dona-cida/migrations/20261117000200_clinico.sql`:
+Solução, em `apps/dona-cida/migrations/20261117000200_clinico.sql`:
 
 ```sql
 CREATE SEQUENCE clinico.seq_alteracao;
@@ -347,7 +347,7 @@ Como funciona:
 
 1. **Uma sequência global** para as quatro tabelas que descem ao app: `medicamento`, `pessoa`, `prontuario`, `prontuario_item`.
 2. **Todo `INSERT` ou `UPDATE`** recebe o próximo número em `seq` — venha da API ou de um `INSERT` digitado no `psql`. Quem insere não precisa (nem consegue) informar o valor.
-3. O app guarda o maior `seq` que já recebeu (o **cursor**) e pede `GET /api/v1/sync/alteracoes?desde=<cursor>`. O servidor devolve as linhas com `seq` maior, em ordem, e o novo cursor (`alteracoesDesde`, em `services/dona-cida/src/infra/repositorio-clinico.ts`).
+3. O app guarda o maior `seq` que já recebeu (o **cursor**) e pede `GET /api/v1/sync/alteracoes?desde=<cursor>`. O servidor devolve as linhas com `seq` maior, em ordem, e o novo cursor (`alteracoesDesde`, em `apps/dona-cida/src/infra/repositorio-clinico.ts`).
 4. **A trava** (`pg_advisory_xact_lock`) serializa as escritas sincronizadas para que a ordem do `seq` seja a ordem de *commit*. Sem ela, uma transação lenta poderia confirmar com um `seq` menor que o cursor já entregue, e a linha nunca desceria. É uma simplificação consciente para o porte do trabalho; o comentário na migração indica a alternativa (`xid8` + `pg_snapshot_xmin`) se a vazão de escrita crescer.
 5. As quatro tabelas são lidas em **uma única consulta** (`UNION ALL`), ou seja, num mesmo *snapshot*.
 

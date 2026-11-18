@@ -28,10 +28,10 @@ Referências: [plano arquitetural](arquitetura/plano-arquitetural.md) · [contra
 | --- | --- | --- | --- | --- | --- | --- |
 | T0.1 | Repositório, estrutura, `.gitignore`, workspaces | Principal | raiz | — | `git status` limpo após commit inicial | Concluído |
 | T0.2 | Contrato único de API, erros, auth, env | Principal | `docs/contratos.md` | — | Cobre os 9 endpoints do enunciado + PDF/e-mail | Concluído |
-| T0.3 | Migrações dos 4 schemas + banco de dev | Principal | `services/*/migrations`, `scripts/dev-db.sh`, `deploy/db` | — | `dev-db.sh subir && migrar` aplica tudo; `INSERT` manual em medicamento recebe `seq` | Concluído |
-| T1.1 | MikeBaguncinha: login, refresh, JWKS, `/log`, auditoria, middleware | Agente Go | `services/mike-baguncinha` | T0 | Testes verdes; login → token EdDSA; linha em `log_acesso`; imagem constrói | Concluído |
-| T1.2 | DonaCida + `packages/contratos` + `packages/dominio` | Agente TS | `services/dona-cida`, `packages/contratos`, `packages/dominio` | T0 | Todas as rotas da seção 6; idempotência e 4 estratégias testadas; imagem constrói | Concluído |
-| T1.3 | Jaiminho: PDF, fila de e-mail, retentativa | Agente Python | `services/jaiminho` | T0 | PDF válido com QR; SMTP falho → retentativa → `ENVIADO`/`FALHA_DEFINITIVA`; imagem constrói | Concluído |
+| T0.3 | Migrações dos 4 schemas + banco de dev | Principal | `apps/*/migrations`, `scripts/dev-db.sh`, `deploy/db` | — | `dev-db.sh subir && migrar` aplica tudo; `INSERT` manual em medicamento recebe `seq` | Concluído |
+| T1.1 | MikeBaguncinha: login, refresh, JWKS, `/log`, auditoria, middleware | Agente Go | `apps/mike-baguncinha` | T0 | Testes verdes; login → token EdDSA; linha em `log_acesso`; imagem constrói | Concluído |
+| T1.2 | DonaCida + `packages/contratos` + `packages/dominio` | Agente TS | `apps/dona-cida`, `packages/contratos`, `packages/dominio` | T0 | Todas as rotas da seção 6; idempotência e 4 estratégias testadas; imagem constrói | Concluído |
+| T1.3 | Jaiminho: PDF, fila de e-mail, retentativa | Agente Python | `apps/jaiminho` | T0 | PDF válido com QR; SMTP falho → retentativa → `ENVIADO`/`FALHA_DEFINITIVA`; imagem constrói | Concluído |
 | T1.4 | Kustomize, Argo CD, CI, backup, imagem `web` | Agente K8s | `deploy/`, `.github/`, `docs/operacao` | T0 | `kubectl kustomize` dos overlays sem erro; script de cluster local | Concluído |
 | T1.5 | Design system com Impeccable | Agente Design | `packages/ui`, `PRODUCT.md`, `DESIGN.md` | T0 | Tokens, tipografia, componentes base; contraste AA; paleta fora do azul/roxo padrão | Concluído |
 | T2.1 | Portal BradPitt | Agente Portal | `apps/brad-pitt` | T1.2, T1.5 | Passos 1–4, 8, 10, 13, 15–17 pela interface | Concluído |
@@ -50,6 +50,7 @@ Referências: [plano arquitetural](arquitetura/plano-arquitetural.md) · [contra
 | 1 | Atendimento referencia `pessoaId`; o servidor resolve/cria o prontuário | Dois dispositivos podem criar prontuário para a mesma pessoa offline; com `prontuarioId` do cliente o atendimento seria rejeitado por chave estrangeira — viola "nunca rejeitar dado clínico". |
 | 2 | Migrações rodam como administrador; o serviço usa papel restrito | Se o papel do serviço fosse dono das tabelas, o "somente inserção" da linha do tempo não valeria. |
 | 3 | `profissional_nome` copiado no atendimento e no evento | A DonaCida não lê o schema `identidade`; o nome vem do token. |
+| 4 | Os três serviços ficam em `apps/`, junto dos front-ends (o plano previa uma pasta `services/`) | Preferência do usuário (18/11): uma pasta só para tudo que é implantável. |
 
 ## Ambiente de desenvolvimento (verificado)
 

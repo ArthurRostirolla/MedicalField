@@ -809,18 +809,17 @@ O endereço do servidor é configurável no app — trocar a porta de entrada n�
 
 ```
 medicalfield/
-├── apps/
+├── apps/                   # tudo que é implantável: front-ends e serviços
 │   ├── lucky-patcher/      # app do profissional: React + Vite + PWA + Capacitor (android/)
-│   └── brad-pitt/          # portal administrativo: React + Vite SPA
+│   ├── brad-pitt/          # portal administrativo: React + Vite SPA
+│   ├── mike-baguncinha/    # Go — identidade e auditoria
+│   ├── dona-cida/          # TypeScript / NestJS — núcleo clínico e sync
+│   └── jaiminho/           # Python / FastAPI — PDF e e-mail
+│       └── (cada serviço) src/{http,aplicacao,dominio,infra}  migrations/  tests/  openapi.yaml  Dockerfile
 ├── packages/
 │   ├── contratos/          # esquemas zod + tipos (cliente, portal, dona-cida)
 │   ├── dominio/            # funções puras (Glasgow, passagem de caso)
 │   └── ui/                 # componentes compartilhados
-├── services/
-│   ├── mike-baguncinha/    # Go — identidade e auditoria
-│   ├── dona-cida/          # TypeScript / NestJS — núcleo clínico e sync
-│   └── jaiminho/           # Python / FastAPI — PDF e e-mail
-│       └── (cada um) src/{http,aplicacao,dominio,infra}  migrations/  tests/  openapi.yaml  Dockerfile
 ├── deploy/
 │   ├── base/               # manifestos Kustomize por workload
 │   ├── overlays/{local,univates}/

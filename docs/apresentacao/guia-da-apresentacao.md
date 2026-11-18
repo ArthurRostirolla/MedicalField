@@ -15,7 +15,7 @@ Faça com 30 minutos de antecedência. Os comandos estão no roteiro de testes, 
 - [ ] Função `mfsql` colada num terminal, com o comando do passo 9 já digitado (sem dar Enter).
 - [ ] **Janela A:** portal em <http://localhost:8088/portal/>, na tela de entrada.
 - [ ] **Janela B:** app em <http://localhost:8088/app/>, estreita, com o DevTools na aba **Network** (filtro `api`).
-- [ ] Senha de demonstração à mão (`services/mike-baguncinha/README.md`) — **não** a projete.
+- [ ] Senha de demonstração à mão (`apps/mike-baguncinha/README.md`) — **não** a projete.
 - [ ] Escolha o sufixo da rodada (`AULA1`) e, se já apresentou antes nesta máquina, use outro.
 - [ ] Abas prontas no editor ou navegador: `docs/arquitetura/arquitetura.md` (diagramas), `docs/dados/modelagem.md`, `docs/api/README.md`.
 - [ ] **Rode o roteiro automatizado uma vez** (`npm run roteiro -w @medicalfield/e2e`) para ter certeza de que está tudo no ar — e para ter evidência fresca caso a demonstração ao vivo falhe.
@@ -216,7 +216,7 @@ Porque seria perigoso. Se uma cópia antiga pudesse sobrescrever, uma alergia po
 Horário mais de cinco minutos à frente do servidor é limitado ao horário do servidor, e isso fica anotado na auditoria. Horário no passado é mantido — um atendimento offline pode subir horas depois. É um limite conhecido de qualquer estratégia baseada em relógio do cliente.
 
 **Onde está o Strategy? E o Observer?**
-Strategy: `services/dona-cida/src/dominio/conflito/` — uma interface, quatro classes e um registro que escolhe pelo tipo de dado. Observer: `apps/lucky-patcher/src/sync/conectividade.ts` — o monitor publica o estado, e o motor de sincronização e a tela assinam.
+Strategy: `apps/dona-cida/src/dominio/conflito/` — uma interface, quatro classes e um registro que escolhe pelo tipo de dado. Observer: `apps/lucky-patcher/src/sync/conectividade.ts` — o monitor publica o estado, e o motor de sincronização e a tela assinam.
 
 **O banco local é mesmo um banco, ou é `localStorage`?**
 É SQLite, compilado para WebAssembly, gravando em arquivo no OPFS do navegador. O plano original usava outra biblioteca; num teste em que eu gravava e matava o processo do navegador, ela perdeu os dados em cinco de cinco vezes. Troquei pelo SQLite oficial, que manteve em cinco de cinco. Só o adaptador mudou — é o padrão Adapter. No Android o adaptador é outro, nativo e cifrado, e passou pelo mesmo ciclo num emulador.

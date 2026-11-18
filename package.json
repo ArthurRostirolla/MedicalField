@@ -6,7 +6,6 @@
   "workspaces": [
     "packages/*",
     "apps/*",
-    "services/dona-cida",
     "e2e"
   ],
   "engines": {

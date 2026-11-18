@@ -2,15 +2,15 @@
 
 **Fonte única de verdade para todas as interfaces entre peças.** Ninguém inventa rota, campo, código de erro ou variável de ambiente fora daqui. Precisa mudar algo? Avise o agente principal; a mudança entra **neste arquivo** antes do código.
 
-Arquitetura completa: [`arquitetura/plano-arquitetural.md`](arquitetura/plano-arquitetural.md). O banco está definido nas migrações (`services/*/migrations/*.sql`) — elas **são** o contrato de dados; não as altere, crie uma nova se precisar.
+Arquitetura completa: [`arquitetura/plano-arquitetural.md`](arquitetura/plano-arquitetural.md). O banco está definido nas migrações (`apps/*/migrations/*.sql`) — elas **são** o contrato de dados; não as altere, crie uma nova se precisar.
 
 ## 1. Peças e portas
 
 | Peça | Pasta | Linguagem | Porta dev (API / gestão) | No cluster |
 | --- | --- | --- | --- | --- |
-| MikeBaguncinha (identidade + auditoria) | `services/mike-baguncinha` | Go | 8081 / 9091 | `mike-baguncinha:8080` / `9090` |
-| DonaCida (núcleo clínico + sync) | `services/dona-cida` | TypeScript (NestJS) | 8082 / 9092 | `dona-cida:8080` / `9090` |
-| Jaiminho (PDF + e-mail) | `services/jaiminho` | Python (FastAPI) | 8083 / 9093 | `jaiminho:8080` / `9090` |
+| MikeBaguncinha (identidade + auditoria) | `apps/mike-baguncinha` | Go | 8081 / 9091 | `mike-baguncinha:8080` / `9090` |
+| DonaCida (núcleo clínico + sync) | `apps/dona-cida` | TypeScript (NestJS) | 8082 / 9092 | `dona-cida:8080` / `9090` |
+| Jaiminho (PDF + e-mail) | `apps/jaiminho` | Python (FastAPI) | 8083 / 9093 | `jaiminho:8080` / `9090` |
 | BradPitt (portal) | `apps/brad-pitt` | React + Vite | 5181, base `/portal/` | pod `web` |
 | LuckyPatcher (app) | `apps/lucky-patcher` | React + Vite + Capacitor | 5182, base `/app/` | pod `web` + APK |
 | freeway (gateway) | `deploy/` | Traefik | — | Ingress |
@@ -60,7 +60,7 @@ Regra para o outbox do app: **4xx = rejeição definitiva (não reenviar); rede/
 - Chave pública: `GET http://mike-baguncinha:9090/jwks.json` (porta de **gestão**, nunca pelo gateway) → `{ "keys": [{ "kty": "OKP", "crv": "Ed25519", "kid": "...", "x": "...", "use": "sig", "alg": "EdDSA" }] }`. Os outros serviços guardam em cache por 5 min e buscam de novo ao ver um `kid` desconhecido.
 - **Cada serviço valida o token sozinho** (assinatura, `iss`, `exp`). O gateway não autentica.
 - Toda rota sob `/api/v1` exige token, **exceto** `POST /api/v1/auth/login`. `POST /auth/refresh` exige refresh token válido. Papéis: rotas `/auditoria/*` são só `ADMIN`; todas as demais aceitam os dois papéis.
-- Profissionais de demonstração (fictícios; senha de todos em `services/mike-baguncinha/README.md`):
+- Profissionais de demonstração (fictícios; senha de todos em `apps/mike-baguncinha/README.md`):
 
 | Papel | Nome | tipoRegistro | registro | uf |
 | --- | --- | --- | --- | --- |
@@ -276,7 +276,7 @@ type Envio = { id: string; documentoId: string; destinatarioNome: string; destin
 
 ## 8. Front-ends
 
-- Monorepo npm *workspaces* (`apps/*`, `packages/*`, `services/dona-cida`). `packages/contratos` (zod + tipos deste arquivo), `packages/dominio` (funções puras), `packages/ui` (tokens e componentes do design system).
+- Monorepo npm *workspaces* (`apps/*`, `packages/*`, `apps/dona-cida`). `packages/contratos` (zod + tipos deste arquivo), `packages/dominio` (funções puras), `packages/ui` (tokens e componentes do design system).
 - Os apps chamam **sempre caminhos relativos** `/api/v1/...` no navegador; o app Android usa o "endereço do servidor" configurável.
 - Portal: access token em memória; refresh pelo cookie. App: sessão persistida localmente (precisa abrir sem rede).
 - Tela e PDF exibem "DADOS DEMONSTRATIVOS — SEM VALIDADE CLÍNICA". Nenhum alerta, sugestão de dose ou interpretação clínica.

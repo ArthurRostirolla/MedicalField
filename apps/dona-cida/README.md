@@ -10,7 +10,7 @@ Backend Core do MedicalField: NestJS + Kysely/`pg` + `jose`. Contrato: [`docs/co
 # na raiz do repositório
 bash scripts/dev-db.sh subir && bash scripts/dev-db.sh migrar      # Postgres em localhost:5544
 npm install
-cp services/dona-cida/.env.example services/dona-cida/.env        # portas 8082 / 9092
+cp apps/dona-cida/.env.example apps/dona-cida/.env        # portas 8082 / 9092
 npm run dev -w @medicalfield/dona-cida
 curl http://localhost:9092/health/ready
 ```
@@ -43,7 +43,7 @@ Outro banco: `TESTE_DATABASE_URL` (papel `mf_cida`) e `TESTE_DATABASE_URL_ADMIN`
 O contexto de build é a **raiz** do repositório:
 
 ```bash
-docker build -f services/dona-cida/Dockerfile -t medicalfield/dona-cida .
+docker build -f apps/dona-cida/Dockerfile -t medicalfield/dona-cida .
 ```
 
 A imagem final tem o Node e um arquivo; roda como `node` (uid 1000), não escreve em disco (`--read-only`) e encerra em `SIGTERM` terminando as requisições, descarregando o log de acesso e fechando o banco.

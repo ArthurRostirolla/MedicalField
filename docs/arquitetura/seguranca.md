@@ -8,7 +8,7 @@ Relacionados: [`arquitetura.md`](arquitetura.md) · [`sincronizacao.md`](sincron
 
 ### Login
 
-`POST /api/v1/auth/login` é a **única rota sem token** (`services/mike-baguncinha/internal/http/servidor.go`). O profissional se identifica pelo registro profissional, como o enunciado pede:
+`POST /api/v1/auth/login` é a **única rota sem token** (`apps/mike-baguncinha/internal/http/servidor.go`). O profissional se identifica pelo registro profissional, como o enunciado pede:
 
 | Campo | Valores |
 | --- | --- |
@@ -64,8 +64,8 @@ sequenceDiagram
 | Serviço | Validação | Cache da chave |
 | --- | --- | --- |
 | MikeBaguncinha | Com a própria chave pública (`token.go`, `Validar`) | — |
-| DonaCida | `jose` — `services/dona-cida/src/infra/verificador-token.ts`; aplicada como *guard* global (`src/http/cadeia.ts`, `AutenticacaoGuard`) | 5 min; `kid` desconhecido dispara nova busca |
-| Jaiminho | PyJWT — `services/jaiminho/src/jaiminho/infra/jwks.py`; aplicada como middleware (`http/middlewares.py`, `AutenticacaoMiddleware`) | 5 min |
+| DonaCida | `jose` — `apps/dona-cida/src/infra/verificador-token.ts`; aplicada como *guard* global (`src/http/cadeia.ts`, `AutenticacaoGuard`) | 5 min; `kid` desconhecido dispara nova busca |
+| Jaiminho | PyJWT — `apps/jaiminho/src/jaiminho/infra/jwks.py`; aplicada como middleware (`http/middlewares.py`, `AutenticacaoMiddleware`) | 5 min |
 
 Os três conferem algoritmo (`EdDSA` apenas), emissor e expiração. O **gateway não autentica**: é defesa em profundidade, e é o que o enunciado exige ("todos os serviços").
 
@@ -97,7 +97,7 @@ Dois papéis, no claim `papel`:
 - No portal, as telas de auditoria ficam atrás de `RequerAdmin` (`apps/brad-pitt/src/sessao/sessao.tsx`) — mas a regra que vale é a do servidor.
 - Rota inexistente sob `/api/v1` também exige token: 401 antes do 404.
 
-Não existe credencial de serviço. A única chamada entre serviços (Jaiminho → DonaCida) **repassa o JWT do usuário** (`services/jaiminho/src/jaiminho/infra/clinico.py`): não há segredo a vazar e o log de acesso da DonaCida registra o profissional real.
+Não existe credencial de serviço. A única chamada entre serviços (Jaiminho → DonaCida) **repassa o JWT do usuário** (`apps/jaiminho/src/jaiminho/infra/clinico.py`): não há segredo a vazar e o log de acesso da DonaCida registra o profissional real.
 
 ## 3. Os quatro tipos de registro
 
@@ -164,7 +164,7 @@ As migrações rodam como **administrador**; cada serviço usa um papel restrito
 | `clinico.atendimento_evento`, `clinico.operacao_sync`, `clinico.auditoria_clinica` | `mf_cida` | `SELECT, INSERT` |
 | `documentos.documento` | `mf_jaiminho` | `SELECT, INSERT` |
 
-Um `UPDATE` ou `DELETE` nessas tabelas falha no Postgres mesmo que o código do serviço tente (teste: "a linha do tempo é imutável", em `services/dona-cida/tests/integracao.test.ts`). Tabela completa em [`../dados/modelagem.md`](../dados/modelagem.md).
+Um `UPDATE` ou `DELETE` nessas tabelas falha no Postgres mesmo que o código do serviço tente (teste: "a linha do tempo é imutável", em `apps/dona-cida/tests/integracao.test.ts`). Tabela completa em [`../dados/modelagem.md`](../dados/modelagem.md).
 
 Corrigir um evento clínico é **acrescentar** um evento `RETIFICACAO` apontando para o original — o original continua lá.
 
@@ -273,7 +273,7 @@ O MedicalField **registra** o que o profissional informa. Ele não interpreta, n
 | **Limites de digitação** | Faixas de sinais vitais (ex.: pressão sistólica 0–300) | Apenas plausibilidade de digitação — **não** são faixas de normalidade (`packages/contratos/src/cida.ts`). |
 | **Não implementado, de propósito** | Alerta de alergia, regra de dose, interação medicamentosa, sugestão de conduta | Exigiria validação por profissionais de saúde e referência autorizada. |
 
-O catálogo de medicamentos traz só nome genérico e forma de apresentação — sem dose, indicação ou contraindicação (`services/dona-cida/migrations/20261117000250_dados_demo.sql`).
+O catálogo de medicamentos traz só nome genérico e forma de apresentação — sem dose, indicação ou contraindicação (`apps/dona-cida/migrations/20261117000250_dados_demo.sql`).
 
 ## 8. Onde cada requisito de segurança do enunciado é atendido
 

@@ -16,7 +16,7 @@ export const unico = (prefixo: string) => `${prefixo} ${Date.now().toString(36).
 
 export function senhaDemo(): string {
   const senha = process.env.MF_SENHA_DEMO;
-  if (!senha) throw new Error('Defina MF_SENHA_DEMO com a senha de demonstração (services/mike-baguncinha/README.md).');
+  if (!senha) throw new Error('Defina MF_SENHA_DEMO com a senha de demonstração (apps/mike-baguncinha/README.md).');
   return senha;
 }
 

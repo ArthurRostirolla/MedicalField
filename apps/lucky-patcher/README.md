@@ -58,7 +58,7 @@ Limite: no Android o plugin de SQLite não tem modo somente leitura por consulta
 ## Testes de ponta a ponta
 
 ```bash
-# na raiz; a senha de demonstração está em services/mike-baguncinha/README.md
+# na raiz; a senha de demonstração está em apps/mike-baguncinha/README.md
 MF_SENHA_DEMO='…' npm run e2e -w @medicalfield/lucky-patcher
 ```
 

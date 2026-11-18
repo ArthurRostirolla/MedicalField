@@ -15,7 +15,7 @@ Todos os dados são **fictícios e sem validade clínica**.
 | **Banco central** | `kubectl exec` no pod `postgres-0` | administrador `postgres` |
 | **Caixa de e-mail** (Mailpit) | <http://localhost:18025> (depois do encaminhamento de porta) | — |
 
-A **senha de demonstração** é a mesma para todos e está em [`services/mike-baguncinha/README.md`](../../services/mike-baguncinha/README.md). Ela não é repetida aqui.
+A **senha de demonstração** é a mesma para todos e está em [`apps/mike-baguncinha/README.md`](../../apps/mike-baguncinha/README.md). Ela não é repetida aqui.
 
 Os endereços acima são os do **cluster local**. Na VM da Univates troque `http://localhost:8088` pelo endereço público — a implantação na VM **não foi executada** (ver [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md)).
 
@@ -317,7 +317,7 @@ No banco: `mfsql "SELECT destinatario_email, vinculo, status, tentativas, enviad
 
 ```bash
 # com o cluster local no ar (seção 2.1)
-export MF_SENHA_DEMO='<senha de demonstração>'       # services/mike-baguncinha/README.md
+export MF_SENHA_DEMO='<senha de demonstração>'       # apps/mike-baguncinha/README.md
 npm install                                          # uma vez
 npm run roteiro -w @medicalfield/e2e
 ```

@@ -10,13 +10,13 @@ O profissional de saúde em campo registra o atendimento pré-hospitalar (sinais
 
 | Peça | Codinome | O que faz | Tecnologia | Pasta |
 | --- | --- | --- | --- | --- |
-| Serviço de identidade e auditoria | **MikeBaguncinha** | Login (CRM, COREN, socorrista), tokens, log de acesso | **Go** | [`services/mike-baguncinha`](services/mike-baguncinha) |
-| Núcleo clínico e sincronização | **DonaCida** | Pessoas, prontuários, atendimentos, idempotência, conflitos | **TypeScript** (NestJS) | [`services/dona-cida`](services/dona-cida) |
-| Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | **Python** (FastAPI) | [`services/jaiminho`](services/jaiminho) |
+| Serviço de identidade e auditoria | **MikeBaguncinha** | Login (CRM, COREN, socorrista), tokens, log de acesso | **Go** | [`apps/mike-baguncinha`](apps/mike-baguncinha) |
+| Núcleo clínico e sincronização | **DonaCida** | Pessoas, prontuários, atendimentos, idempotência, conflitos | **TypeScript** (NestJS) | [`apps/dona-cida`](apps/dona-cida) |
+| Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | **Python** (FastAPI) | [`apps/jaiminho`](apps/jaiminho) |
 | Gateway | **freeway** | Roteamento, limite de taxa no login | Traefik | [`deploy/base/gateway`](deploy/base/gateway) |
 | Portal administrativo | **BradPitt** | Consulta, PDF, e-mail, auditoria | React + Vite | [`apps/brad-pitt`](apps/brad-pitt) |
 | App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, simulador de rede | React + Vite (PWA) + Capacitor | [`apps/lucky-patcher`](apps/lucky-patcher) |
-| Banco central | — | Quatro schemas, um papel por serviço | PostgreSQL 17 | `services/*/migrations` |
+| Banco central | — | Quatro schemas, um papel por serviço | PostgreSQL 17 | `apps/*/migrations` |
 | Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS | `apps/lucky-patcher/src/banco` |
 | Pacotes compartilhados | — | Contratos (zod), funções de domínio, design system | TypeScript | [`packages/`](packages) |
 | Implantação | — | Kubernetes (k3s), Kustomize | — | [`deploy/`](deploy) |
@@ -44,7 +44,7 @@ Três serviços em três linguagens, uma interface administrativa e uma aplicaç
 
 **Go e Python não precisam estar instalados**: o serviço Go compila e testa em contêiner, e o Python depende de bibliotecas (Pango) que não rodam nativamente no Windows.
 
-A **senha de demonstração** dos três profissionais fictícios está em [`services/mike-baguncinha/README.md`](services/mike-baguncinha/README.md). Nos comandos abaixo ela entra pela variável `MF_SENHA_DEMO`; não a grave em arquivo.
+A **senha de demonstração** dos três profissionais fictícios está em [`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md). Nos comandos abaixo ela entra pela variável `MF_SENHA_DEMO`; não a grave em arquivo.
 
 | Papel | Nome | Registro |
 | --- | --- | --- |
@@ -155,8 +155,8 @@ Dirige o WebView do app por depuração remota, confere o banco central por `kub
 | DonaCida | `bash scripts/dev-db.sh criar-banco mf_teste_cida && bash scripts/dev-db.sh migrar mf_teste_cida`, depois `npm test -w @medicalfield/dona-cida` | Postgres de desenvolvimento |
 | Portal | `npm test -w @medicalfield/brad-pitt` (unidade) · `npm run e2e -w @medicalfield/brad-pitt` (Playwright) | o E2E precisa do modo desenvolvimento no ar e de `MF_SENHA_DEMO` |
 | App | `npm test -w @medicalfield/lucky-patcher` (motor de sincronização) · `npm run e2e -w @medicalfield/lucky-patcher` (Playwright) | idem |
-| MikeBaguncinha | `go vet` e `go test` em contêiner `golang:1.27` — comando em [`services/mike-baguncinha/README.md`](services/mike-baguncinha/README.md) | Postgres de desenvolvimento |
-| Jaiminho | `ruff` e `pytest` na imagem de desenvolvimento — comando em [`services/jaiminho/README.md`](services/jaiminho/README.md) | Postgres de desenvolvimento |
+| MikeBaguncinha | `go vet` e `go test` em contêiner `golang:1.27` — comando em [`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md) | Postgres de desenvolvimento |
+| Jaiminho | `ruff` e `pytest` na imagem de desenvolvimento — comando em [`apps/jaiminho/README.md`](apps/jaiminho/README.md) | Postgres de desenvolvimento |
 
 Checagem de tipos: `npm run typecheck -w <workspace>` em qualquer pacote TypeScript. A integração contínua (`.github/workflows/ci.yml`) roda os testes dos três serviços e dos pacotes npm.
 

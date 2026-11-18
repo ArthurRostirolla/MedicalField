@@ -10,7 +10,7 @@
 | [`openapi/jaiminho.yaml`](openapi/jaiminho.yaml) | OpenAPI 3.1 do serviço de documentos (FastAPI) |
 | [`medicalfield.postman_collection.json`](medicalfield.postman_collection.json) | Coleção Postman v2.1 com todas as rotas |
 
-Os três `openapi/*.yaml` são **cópias** dos arquivos que vivem com cada serviço (`services/<servico>/openapi.yaml`), reunidas aqui para a entrega. A fonte continua sendo o serviço: o da DonaCida é gerado por `npm run openapi -w @medicalfield/dona-cida`; o do Jaiminho, por `services/jaiminho/scripts/exportar_openapi.py`. O contrato em prosa, com os tipos de cada corpo, é [`../contratos.md`](../contratos.md).
+Os três `openapi/*.yaml` são **cópias** dos arquivos que vivem com cada serviço (`apps/<servico>/openapi.yaml`), reunidas aqui para a entrega. A fonte continua sendo o serviço: o da DonaCida é gerado por `npm run openapi -w @medicalfield/dona-cida`; o do Jaiminho, por `apps/jaiminho/scripts/exportar_openapi.py`. O contrato em prosa, com os tipos de cada corpo, é [`../contratos.md`](../contratos.md).
 
 ## 1. Endereço e roteamento
 
@@ -157,7 +157,7 @@ Detalhes em [`../arquitetura/sincronizacao.md`](../arquitetura/sincronizacao.md)
 
 ## 4. Exemplo com `curl`
 
-A senha de demonstração está em [`services/mike-baguncinha/README.md`](../../services/mike-baguncinha/README.md).
+A senha de demonstração está em [`apps/mike-baguncinha/README.md`](../../apps/mike-baguncinha/README.md).
 
 ```bash
 BASE=http://localhost:8088/api/v1
@@ -190,7 +190,7 @@ Profissionais de demonstração (fictícios):
 ### Usar no Postman (ou Insomnia, que importa o mesmo formato)
 
 1. **Import** → escolha o arquivo.
-2. Na aba **Variables** da coleção, preencha `senha` (vem **vazia**; a senha está em `services/mike-baguncinha/README.md`). `baseUrl` já aponta para `http://localhost:8088/api/v1`.
+2. Na aba **Variables** da coleção, preencha `senha` (vem **vazia**; a senha está em `apps/mike-baguncinha/README.md`). `baseUrl` já aponta para `http://localhost:8088/api/v1`.
 3. Rode **Login**. O script da requisição guarda o `accessToken` na variável `token`; a coleção inteira usa `Authorization: Bearer {{token}}`.
 4. Rode as pastas **na ordem** — cada requisição guarda os ids que as seguintes usam (`pessoaId`, `atendimentoId`, `documentoId`, `envioId`).
 

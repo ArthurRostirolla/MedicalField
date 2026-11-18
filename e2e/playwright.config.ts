@@ -3,7 +3,7 @@ import { defineConfig } from '@playwright/test';
 // Roteiro academico contra o sistema IMPLANTADO (padrao: gateway do k3s local em :8088).
 //   MF_BASE        endereco do gateway           (padrao http://localhost:8088)
 //   MF_ALVO        "cluster" (kubectl exec) ou "dev" (docker exec) para o SQL e o Mailpit
-//   MF_SENHA_DEMO  senha de demonstracao (services/mike-baguncinha/README.md)
+//   MF_SENHA_DEMO  senha de demonstracao (apps/mike-baguncinha/README.md)
 export default defineConfig({
   testDir: '.',
   // So o roteiro: outras specs (e2e/qa) tem configuracao propria e derrubam pods.

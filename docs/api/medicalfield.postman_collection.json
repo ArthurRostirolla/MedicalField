@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "MedicalField",
-    "description": "Todas as rotas do MedicalField pelo gateway (freeway).\n\n1. Preencha a variável `senha` (senha de demonstração: `services/mike-baguncinha/README.md`).\n2. Rode **Login** — o `accessToken` vai para a variável `token`.\n3. Rode as pastas na ordem: cada requisição guarda os ids que a próxima usa.\n\nTodos os dados são FICTÍCIOS — sem validade clínica.\n\nLinha de comando: `npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF_SENHA_DEMO`",
+    "description": "Todas as rotas do MedicalField pelo gateway (freeway).\n\n1. Preencha a variável `senha` (senha de demonstração: `apps/mike-baguncinha/README.md`).\n2. Rode **Login** — o `accessToken` vai para a variável `token`.\n3. Rode as pastas na ordem: cada requisição guarda os ids que a próxima usa.\n\nTodos os dados são FICTÍCIOS — sem validade clínica.\n\nLinha de comando: `npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF_SENHA_DEMO`",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -124,7 +124,7 @@
                 "login"
               ]
             },
-            "description": "**Enunciado: POST /auth/login.** Autentica por CRM, COREN ou ID de socorrista. O script de teste guarda `accessToken` na variável `token`, usada por todas as demais requisições. Preencha a variável `senha` (ver services/mike-baguncinha/README.md)."
+            "description": "**Enunciado: POST /auth/login.** Autentica por CRM, COREN ou ID de socorrista. O script de teste guarda `accessToken` na variável `token`, usada por todas as demais requisições. Preencha a variável `senha` (ver apps/mike-baguncinha/README.md)."
           },
           "response": []
         },

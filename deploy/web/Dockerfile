@@ -3,14 +3,15 @@
 #   docker build -t medicalfield-web:dev -f deploy/web/Dockerfile .
 FROM node:22-alpine AS build
 WORKDIR /repo
-# services/dona-cida e e2e sao workspaces da raiz: so o package.json deles entra (se existir),
+# apps/dona-cida e e2e sao workspaces da raiz: so o package.json deles entra (se existir),
 # para o npm ci bater com o package-lock.json. Copia por bind mount porque COPY falha em
 # caminho ausente.
 RUN --mount=type=bind,target=/src cd /src \
- && for f in package.json package-lock.json tsconfig.base.json services/dona-cida/package.json e2e/package.json; do \
+ && for f in package.json package-lock.json tsconfig.base.json apps/dona-cida/package.json e2e/package.json; do \
       if [ -f "$f" ]; then mkdir -p "/repo/$(dirname "$f")" && cp "$f" "/repo/$f"; fi; \
     done \
- && cp -r packages apps /repo/
+ && cp -r packages /repo/ \
+ && mkdir -p /repo/apps && cp -r apps/brad-pitt apps/lucky-patcher /repo/apps/
 RUN if [ -f package-lock.json ]; then npm ci; else npm install; fi
 # VITE_DIAGNOSTICO=1 expoe no app a consulta SOMENTE LEITURA ao banco local usada pelos testes
 # automatizados. Padrao: desligado (imagem de producao). O cluster local de demonstracao liga.

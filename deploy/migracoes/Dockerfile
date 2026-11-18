@@ -3,7 +3,7 @@
 # MESMA tag da imagem do servico: a migracao chega junto com a versao que precisa dela.
 #   docker build -t medicalfield-migracoes:dev -f deploy/migracoes/Dockerfile .
 FROM ghcr.io/amacneil/dbmate:2
-COPY services/mike-baguncinha/migrations /migracoes/mike-baguncinha
-COPY services/dona-cida/migrations       /migracoes/dona-cida
-COPY services/jaiminho/migrations        /migracoes/jaiminho
+COPY apps/mike-baguncinha/migrations /migracoes/mike-baguncinha
+COPY apps/dona-cida/migrations       /migracoes/dona-cida
+COPY apps/jaiminho/migrations        /migracoes/jaiminho
 USER 10001:10001

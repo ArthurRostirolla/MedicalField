@@ -18,9 +18,9 @@ BANCO="host.docker.internal:5544/medicalfield"
 JWKS="http://host.docker.internal:9091/jwks.json"
 
 construir() {
-  docker build -q -t medicalfield/mike-baguncinha:dev services/mike-baguncinha
-  docker build -q -f services/dona-cida/Dockerfile -t medicalfield/dona-cida:dev .
-  docker build -q -t medicalfield/jaiminho:dev services/jaiminho
+  docker build -q -t medicalfield/mike-baguncinha:dev apps/mike-baguncinha
+  docker build -q -f apps/dona-cida/Dockerfile -t medicalfield/dona-cida:dev .
+  docker build -q -t medicalfield/jaiminho:dev apps/jaiminho
 }
 
 tem_imagem() { docker image inspect "$1" >/dev/null 2>&1; }

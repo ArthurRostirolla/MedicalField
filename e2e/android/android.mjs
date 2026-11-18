@@ -19,7 +19,7 @@ const SERVIDOR = process.env.MF_SERVIDOR_ANDROID ?? 'http://10.0.2.2:8088';
 const PORTA = 9333;
 const KUBECONFIG = resolve(RAIZ, 'deploy/.local/kubeconfig');
 const senha = process.env.MF_SENHA_DEMO;
-if (!senha) throw new Error('Defina MF_SENHA_DEMO (services/mike-baguncinha/README.md).');
+if (!senha) throw new Error('Defina MF_SENHA_DEMO (apps/mike-baguncinha/README.md).');
 
 const adb = (...args) => execFileSync(ADB, args, { encoding: 'utf8' }).trim();
 const dormir = (ms) => new Promise((r) => setTimeout(r, ms));

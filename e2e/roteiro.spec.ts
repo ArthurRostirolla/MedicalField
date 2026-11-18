@@ -41,7 +41,7 @@ const contar = (consulta: string) => Number(sql(consulta));
 
 const senha = () => {
   const valor = process.env.MF_SENHA_DEMO;
-  if (!valor) throw new Error('Defina MF_SENHA_DEMO (services/mike-baguncinha/README.md).');
+  if (!valor) throw new Error('Defina MF_SENHA_DEMO (apps/mike-baguncinha/README.md).');
   return valor;
 };
 

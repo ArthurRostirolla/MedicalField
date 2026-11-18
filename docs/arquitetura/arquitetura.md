@@ -12,13 +12,13 @@ O MedicalField é um prontuário de emergência pré-hospitalar **Offline-First*
 
 | Peça | Codinome | Papel | Linguagem / base | Pasta |
 | --- | --- | --- | --- | --- |
-| Serviço de identidade e auditoria | **MikeBaguncinha** | Login, tokens, chave pública, log de acesso, logs do app | Go (`net/http` + `pgx`) | `services/mike-baguncinha` |
-| Núcleo clínico e sincronização | **DonaCida** | Pessoas, prontuários, atendimentos, idempotência, conflitos, cursor | TypeScript (NestJS) | `services/dona-cida` |
-| Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | Python (FastAPI) | `services/jaiminho` |
+| Serviço de identidade e auditoria | **MikeBaguncinha** | Login, tokens, chave pública, log de acesso, logs do app | Go (`net/http` + `pgx`) | `apps/mike-baguncinha` |
+| Núcleo clínico e sincronização | **DonaCida** | Pessoas, prontuários, atendimentos, idempotência, conflitos, cursor | TypeScript (NestJS) | `apps/dona-cida` |
+| Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | Python (FastAPI) | `apps/jaiminho` |
 | Gateway | **freeway** | Roteamento por prefixo, limite de taxa no login, cabeçalhos | Traefik (Ingress do k3s) | `deploy/base/gateway` |
 | Portal administrativo | **BradPitt** | Consulta, PDF, e-mail, auditoria (somente leitura clínica) | React + Vite (SPA) | `apps/brad-pitt` |
 | App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, outbox, simulador de rede | React + Vite (PWA) + Capacitor | `apps/lucky-patcher` |
-| Banco central | — | Um PostgreSQL, quatro schemas, um papel por serviço | PostgreSQL 17 | `services/*/migrations` |
+| Banco central | — | Um PostgreSQL, quatro schemas, um papel por serviço | PostgreSQL 17 | `apps/*/migrations` |
 | Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS (navegador) | `apps/lucky-patcher/src/banco` |
 
 São **três serviços em três linguagens diferentes** (Go, TypeScript, Python), uma interface administrativa e uma aplicação cliente com interface gráfica, como o enunciado exige.
@@ -160,7 +160,7 @@ Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, do
 | Kysely | 0.29.9 (+ `pg` 8.23.1) | DonaCida | SQL tipado sem ORM: o `ON CONFLICT` e o cursor ficam à vista. |
 | `jose` | 6.2.17 | DonaCida | Validação do JWT pela chave pública (JWKS com cache). |
 | zod | 4.6.7 | `packages/contratos`, DonaCida, portal, app | O mesmo esquema valida o formulário, o outbox e a API. |
-| esbuild | 0.28.2 | DonaCida (`services/dona-cida/scripts/build.mjs`) | Empacota o serviço em um arquivo (`dist/main.mjs`). |
+| esbuild | 0.28.2 | DonaCida (`apps/dona-cida/scripts/build.mjs`) | Empacota o serviço em um arquivo (`dist/main.mjs`). |
 | Python | 3.13 (3.13.18 em execução) | Jaiminho (`python:3.13-slim`) | Ecossistema de PDF sem navegador. |
 | FastAPI | 0.163.2 (mínimo declarado 0.115) | Jaiminho | Rotas tipadas e OpenAPI gerado. |
 | Uvicorn | 0.54.0 | Jaiminho | Servidor ASGI. |
@@ -244,8 +244,8 @@ Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, do
 | Portal e app → gateway → serviço | HTTP síncrono, JSON | `deploy/base/gateway/ingress.yaml` |
 | Subida da sincronização | HTTP síncrono, **um comando por requisição**, a partir da fila persistente no dispositivo | `apps/lucky-patcher/src/sync/motor.ts` (`subir`) |
 | Descida da sincronização | HTTP síncrono, *pull* por cursor | `motor.ts` (`descer`) → `GET /sync/alteracoes` |
-| Jaiminho → DonaCida | HTTP síncrono, com o JWT do usuário | `services/jaiminho/src/jaiminho/infra/clinico.py` |
-| Validação de token | Chave pública em cache (5 min), sem chamada por requisição | `services/dona-cida/src/infra/verificador-token.ts`, `services/jaiminho/src/jaiminho/infra/jwks.py` |
+| Jaiminho → DonaCida | HTTP síncrono, com o JWT do usuário | `apps/jaiminho/src/jaiminho/infra/clinico.py` |
+| Validação de token | Chave pública em cache (5 min), sem chamada por requisição | `apps/dona-cida/src/infra/verificador-token.ts`, `apps/jaiminho/src/jaiminho/infra/jwks.py` |
 | Log de acesso | Inserção assíncrona em lote (1 s ou 100 linhas) | `infra/gravador_acesso.go`, `infra/log-acesso.ts`, `infra/log.py` |
 | Envio de e-mail | **Assíncrono**, fila em tabela | `documentos.envio_email` + `aplicacao/envios.py` (`WorkerEnvios`) |
 | Geração de PDF | Síncrono (cerca de 1 s) | `aplicacao/documentos.py` |
@@ -269,12 +269,12 @@ Os três sugeridos pelo enunciado e três de livre escolha, com o arquivo onde c
 
 | # | Padrão | Problema que resolve | Onde está |
 | --- | --- | --- | --- |
-| 1 | **Repository** (enunciado) | A tela não pode saber se o dado vem do SQLite ou da API | **App, dado local:** `apps/lucky-patcher/src/dados/pessoas.ts` (`RepositorioPessoas`, `RepositorioProntuarios`, `RepositorioMedicamentos`), `dados/atendimentos.ts` (`RepositorioAtendimentos`), `dados/pendencias.ts`. **App, dado remoto:** `sync/http.ts` (`ClienteHttp`, o único que chama `fetch`), usado só por `sync/sessao.ts` e `sync/motor.ts` — nenhuma tela fala com a API. **Serviços:** interface em `services/dona-cida/src/dominio/repositorios.ts` e SQL em `infra/repositorio-clinico.ts`; `internal/dominio/identidade.go` e `internal/infra/postgres.go` no Go; `dominio/portas.py` e `infra/banco.py` no Python. |
-| 2 | **Strategy** (enunciado) | Cada tipo de dado pede uma regra de conflito diferente | `services/dona-cida/src/dominio/conflito/`: interface em `estrategia.ts`; `uniao-imutavel.ts`, `campo-mais-recente.ts`, `servidor-vence.ts`, `revisao-manual.ts`; `registro.ts` escolhe a estratégia pelo tipo de dado. |
+| 1 | **Repository** (enunciado) | A tela não pode saber se o dado vem do SQLite ou da API | **App, dado local:** `apps/lucky-patcher/src/dados/pessoas.ts` (`RepositorioPessoas`, `RepositorioProntuarios`, `RepositorioMedicamentos`), `dados/atendimentos.ts` (`RepositorioAtendimentos`), `dados/pendencias.ts`. **App, dado remoto:** `sync/http.ts` (`ClienteHttp`, o único que chama `fetch`), usado só por `sync/sessao.ts` e `sync/motor.ts` — nenhuma tela fala com a API. **Serviços:** interface em `apps/dona-cida/src/dominio/repositorios.ts` e SQL em `infra/repositorio-clinico.ts`; `internal/dominio/identidade.go` e `internal/infra/postgres.go` no Go; `dominio/portas.py` e `infra/banco.py` no Python. |
+| 2 | **Strategy** (enunciado) | Cada tipo de dado pede uma regra de conflito diferente | `apps/dona-cida/src/dominio/conflito/`: interface em `estrategia.ts`; `uniao-imutavel.ts`, `campo-mais-recente.ts`, `servidor-vence.ts`, `revisao-manual.ts`; `registro.ts` escolhe a estratégia pelo tipo de dado. |
 | 3 | **Observer** (enunciado) | Sincronizar quando a rede volta, sem a tela consultar a rede | `apps/lucky-patcher/src/sync/conectividade.ts` (`MonitorConectividade`: `assinar` / `publicar`). Assinantes: `sync/motor.ts` (`iniciar` dispara `sincronizar('conexao')` quando o estado passa a online) e a interface (`ui/contexto.tsx`, `useConectividade`). |
-| 4 | **Command** (livre) | Uma ação precisa ser guardada, reenviada e repetida com segurança | **App:** `dados/outbox.ts` — cada operação vira uma linha serializável (método, rota, corpo, `op_id`) na tabela `outbox`. **Servidor:** `services/dona-cida/src/aplicacao/comando.ts` (`ExecutorComandos`, o receptor idempotente). |
-| 5 | **Adapter** (livre) | A mesma lógica sobre mecanismos diferentes | **Banco local:** porta `apps/lucky-patcher/src/banco/executor.ts` (`ExecutorSql`) com `executorWeb.ts` (SQLite WASM/OPFS), `executorCapacitor.ts` (Android) e `executorOo1.ts` (memória, nos testes). **E-mail:** `EnviadorEmail` em `services/jaiminho/src/jaiminho/dominio/portas.py`, com `EnviadorEmailSmtp` e `EnviadorEmailFalso` em `infra/email.py`. |
-| 6 | **Chain of Responsibility** (livre) | Preocupações transversais sem poluir o handler — é o "middleware/interceptor" do enunciado | `request-id → log de acesso → autenticação → handler`, nos três: `services/mike-baguncinha/internal/http/servidor.go` (`Handler`); `services/dona-cida/src/http/cadeia.ts` + `app.module.ts` (`configure`); `services/jaiminho/src/jaiminho/http/middlewares.py` + `http/app.py`. |
+| 4 | **Command** (livre) | Uma ação precisa ser guardada, reenviada e repetida com segurança | **App:** `dados/outbox.ts` — cada operação vira uma linha serializável (método, rota, corpo, `op_id`) na tabela `outbox`. **Servidor:** `apps/dona-cida/src/aplicacao/comando.ts` (`ExecutorComandos`, o receptor idempotente). |
+| 5 | **Adapter** (livre) | A mesma lógica sobre mecanismos diferentes | **Banco local:** porta `apps/lucky-patcher/src/banco/executor.ts` (`ExecutorSql`) com `executorWeb.ts` (SQLite WASM/OPFS), `executorCapacitor.ts` (Android) e `executorOo1.ts` (memória, nos testes). **E-mail:** `EnviadorEmail` em `apps/jaiminho/src/jaiminho/dominio/portas.py`, com `EnviadorEmailSmtp` e `EnviadorEmailFalso` em `infra/email.py`. |
+| 6 | **Chain of Responsibility** (livre) | Preocupações transversais sem poluir o handler — é o "middleware/interceptor" do enunciado | `request-id → log de acesso → autenticação → handler`, nos três: `apps/mike-baguncinha/internal/http/servidor.go` (`Handler`); `apps/dona-cida/src/http/cadeia.ts` + `app.module.ts` (`configure`); `apps/jaiminho/src/jaiminho/http/middlewares.py` + `http/app.py`. |
 
 Além desses, três padrões **arquiteturais**: *Transactional Outbox* (app e fila de e-mail), *Idempotent Receiver* (DonaCida) e *API Gateway* (freeway).
 

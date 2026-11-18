@@ -20,7 +20,7 @@ npm run build     -w @medicalfield/brad-pitt
 MF_SENHA_DEMO='<senha de demonstração>' npm run e2e -w @medicalfield/brad-pitt   # Playwright, backend REAL
 ```
 
-O E2E sobe o Vite sozinho (e reaproveita um que já esteja no ar), usa o Chrome instalado (`CANAL=msedge` para o Edge), cria três atendimentos fictícios de ids fixos (idempotente) e confere o e-mail pela API do Mailpit. A senha está em `services/mike-baguncinha/README.md` e só entra por variável de ambiente. `e2e/capturas.spec.ts` regrava `capturas/` e falha com violação de acessibilidade (axe), erro no console ou rolagem horizontal.
+O E2E sobe o Vite sozinho (e reaproveita um que já esteja no ar), usa o Chrome instalado (`CANAL=msedge` para o Edge), cria três atendimentos fictícios de ids fixos (idempotente) e confere o e-mail pela API do Mailpit. A senha está em `apps/mike-baguncinha/README.md` e só entra por variável de ambiente. `e2e/capturas.spec.ts` regrava `capturas/` e falha com violação de acessibilidade (axe), erro no console ou rolagem horizontal.
 
 ## Organização
 

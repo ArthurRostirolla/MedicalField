@@ -12,7 +12,7 @@ O CI nunca recebe credencial do cluster — o cluster é que busca.
 
 ### Migrações: por que uma imagem `migracoes`
 
-`deploy/migracoes/Dockerfile` empacota o `dbmate` com `services/*/migrations` em `/migracoes/<servico>`. Ela leva **a mesma tag** das imagens dos serviços, então a migração chega junto com a versão que precisa dela, sem *hooks* do Argo CD e sem montar o repositório no cluster. Cada serviço usa a sua tabela de controle (`identidade.`, `clinico.`, `documentos.schema_migrations`), igual ao `scripts/dev-db.sh`. O serviço em si conecta com o papel restrito (`mf_mike`, `mf_cida`, `mf_jaiminho`).
+`deploy/migracoes/Dockerfile` empacota o `dbmate` com `apps/*/migrations` em `/migracoes/<servico>`. Ela leva **a mesma tag** das imagens dos serviços, então a migração chega junto com a versão que precisa dela, sem *hooks* do Argo CD e sem montar o repositório no cluster. Cada serviço usa a sua tabela de controle (`identidade.`, `clinico.`, `documentos.schema_migrations`), igual ao `scripts/dev-db.sh`. O serviço em si conecta com o papel restrito (`mf_mike`, `mf_cida`, `mf_jaiminho`).
 
 ## Acompanhar
 

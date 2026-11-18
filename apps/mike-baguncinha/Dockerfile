@@ -1,4 +1,4 @@
-# Contexto de build: services/mike-baguncinha
+# Contexto de build: apps/mike-baguncinha
 FROM golang:1.27 AS build
 WORKDIR /src
 COPY go.mod go.sum ./

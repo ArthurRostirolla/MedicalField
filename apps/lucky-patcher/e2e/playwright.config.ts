@@ -2,7 +2,7 @@ import { defineConfig } from '@playwright/test';
 
 // Ponta a ponta contra o backend REAL (Mike 8081, Cida 8082, Jaiminho 8083, Postgres 5544).
 // Usa o Chrome instalado (CANAL=msedge para o Edge): nada e baixado.
-// A senha de demonstracao vem de MF_SENHA_DEMO (ver services/mike-baguncinha/README.md).
+// A senha de demonstracao vem de MF_SENHA_DEMO (ver apps/mike-baguncinha/README.md).
 export default defineConfig({
   testDir: '.',
   outputDir: './resultados',

@@ -34,7 +34,7 @@ Nenhum defeito **Crítico**: em nenhum teste houve perda ou duplicação de dado
 
 ## D-QA-01 — Logins simultâneos derrubam o MikeBaguncinha (Alta)
 
-- **Componente:** `services/mike-baguncinha/internal/infra/senha.go:15` (Argon2id com 19 MiB por verificação), `internal/aplicacao/autenticacao.go:64` (sem limite de concorrência), `deploy/base/mike-baguncinha/deployment.yaml:110` (`memory: 96Mi`).
+- **Componente:** `apps/mike-baguncinha/internal/infra/senha.go:15` (Argon2id com 19 MiB por verificação), `internal/aplicacao/autenticacao.go:64` (sem limite de concorrência), `deploy/base/mike-baguncinha/deployment.yaml:110` (`memory: 96Mi`).
 - **Reproduzir** (não precisa de credencial; derruba a autenticação do cluster por cerca de 30 s):
 
 ```bash
@@ -70,7 +70,7 @@ await __mf.consultar("CREATE TABLE x(a); INSERT INTO x VALUES (42)", [])        
 
 ## D-QA-03 — Conta ADMIN de demonstração em produção (Alta)
 
-- **Componente:** `services/mike-baguncinha/migrations/20261117000150_profissionais_demo.sql:7-14`; senha em texto no `services/mike-baguncinha/README.md:11`; a migração roda no initContainer de todo ambiente (`deploy/base/mike-baguncinha/deployment.yaml:35-44`), inclusive o overlay `univates`.
+- **Componente:** `apps/mike-baguncinha/migrations/20261117000150_profissionais_demo.sql:7-14`; senha em texto no `apps/mike-baguncinha/README.md:11`; a migração roda no initContainer de todo ambiente (`deploy/base/mike-baguncinha/deployment.yaml:35-44`), inclusive o overlay `univates`.
 - **Reproduzir:** no cluster (`"producao":true` no log de partida do Mike), `POST /api/v1/auth/login` com CRM 100001/RS e a senha do README → 200, papel `ADMIN`, acesso a `/auditoria/*` e a todos os prontuários.
 - **Esperado:** em `producao`, nenhuma credencial conhecida publicamente.
 - **Observado:** todos os testes deste relatório usaram essa conta contra o cluster em modo `producao`.
@@ -98,7 +98,7 @@ await __mf.consultar("CREATE TABLE x(a); INSERT INTO x VALUES (42)", [])        
 
 ## D-QA-06 — Cursor de paginação forjado causa 500 (Média)
 
-- **Componente:** `services/dona-cida/src/infra/repositorio-clinico.ts:142-152` e `:174` (`decodificarCursor` só confere "base64 de `[string, string]`"); `services/dona-cida/src/http/filtro-erros.ts:64-67` (loga a mensagem do Postgres).
+- **Componente:** `apps/dona-cida/src/infra/repositorio-clinico.ts:142-152` e `:174` (`decodificarCursor` só confere "base64 de `[string, string]`"); `apps/dona-cida/src/http/filtro-erros.ts:64-67` (loga a mensagem do Postgres).
 - **Reproduzir:** `curl -H "Authorization: Bearer $T" "http://localhost:8088/api/v1/pessoa?cursor=WyJ4IiwieSJd"` (`["x","y"]` em base64). Igual em `/atendimento`, `/prontuario` e `/medicamento`.
 - **Esperado:** 422 `VALIDACAO`.
 - **Observado** (`evidencias/qa/seguranca-2-entradas.txt`): **500** nas quatro rotas; no log do pod: `ERRO_INTERNO: error: invalid input syntax for type uuid: "y"` e `…timestamp with time zone: "x"` — o texto enviado pelo cliente vai para o log. (`cursor=abc` devolve 422 corretamente; o Mike valida o cursor e devolve 422.)
@@ -106,7 +106,7 @@ await __mf.consultar("CREATE TABLE x(a); INSERT INTO x VALUES (42)", [])        
 
 ## D-QA-07 — Caractere nulo em texto causa 500 (Média)
 
-- **Componente:** `packages/contratos/src/comum.ts:16` (`texto()` não recusa `\u0000`); `services/dona-cida/src/http/filtro-erros.ts:46`.
+- **Componente:** `packages/contratos/src/comum.ts:16` (`texto()` não recusa `\u0000`); `apps/dona-cida/src/http/filtro-erros.ts:46`.
 - **Reproduzir:** `POST /api/v1/pessoa` com `{"id":"<uuid>","nome":"QA\u0000nul","editadoEm":"<agora>"}`.
 - **Esperado:** 422. **Observado:** **500**; log: `invalid byte sequence for encoding "UTF8": 0x00`. (O Mike devolve 422 para o mesmo caso em `/log`.)
 - **Por que Média e não Baixa:** o app valida com o mesmo esquema, então o texto passaria para o outbox; como 5xx é "transitório", a operação seria **reenviada para sempre** e seguraria os dependentes, em vez de ir para "Pendências" como rejeitada.
@@ -114,7 +114,7 @@ await __mf.consultar("CREATE TABLE x(a); INSERT INTO x VALUES (42)", [])        
 
 ## D-QA-08 — Jaiminho lê corpos de qualquer tamanho (Média)
 
-- **Componente:** `services/jaiminho/src/jaiminho/http/rotas.py:141-143, 184-189`; `__main__.py:35-45`; o gateway não tem `buffering.maxRequestBodyBytes`.
+- **Componente:** `apps/jaiminho/src/jaiminho/http/rotas.py:141-143, 184-189`; `__main__.py:35-45`; o gateway não tem `buffering.maxRequestBodyBytes`.
 - **Reproduzir:** `POST /api/v1/documento/ficha-atendimento` com um JSON de 20 MB e token válido.
 - **Esperado:** 413 (ou 422) sem ler o corpo inteiro, como fazem o Mike (64 KiB / 4 MiB) e a DonaCida (1 MB).
 - **Observado:** os 20 MB foram enviados por inteiro e a resposta foi 422; a memória do pod subiu de 96 Mi para 116 Mi e não voltou. Sem token, 5 MB também foram enviados por inteiro antes do 401; com 20 MB sem token a conexão caiu sem resposta uma vez.
@@ -122,7 +122,7 @@ await __mf.consultar("CREATE TABLE x(a); INSERT INTO x VALUES (42)", [])        
 
 ## D-QA-09 — Reuso de refresh token não é tratado como roubo (Média)
 
-- **Componente:** `services/mike-baguncinha/internal/infra/postgres.go:60-77`.
+- **Componente:** `apps/mike-baguncinha/internal/infra/postgres.go:60-77`.
 - **Reproduzir:** login → `R1`; `POST /auth/refresh` com `R1` → `R2`; de novo com `R1` → 401 (correto); com `R2` → ?
 - **Esperado (boa prática de rotação):** ao ver um refresh já usado, revogar toda a família; `R2` → 401.
 - **Observado** (`seguranca-2-entradas.txt`, QA-07): `R2` → **200**. Quem roubou `R1` e o usou primeiro continua com sessão válida por 30 dias; a vítima só recebe um 401.
@@ -136,11 +136,11 @@ Não executados; conferidos no código.
 - **D-QA-10 — sem TLS nos manifestos.** `deploy/base/gateway/ingress.yaml:12-35, 47-52` não tem bloco `tls` nem redirecionamento; o HSTS (`middlewares.yaml:24`) só sai em HTTPS (confirmado: ausente nas respostas do cluster local) e o cookie `Secure` só funciona em HTTP porque o navegador trata `localhost` como seguro. Em qualquer outro nome de host sem TLS, o portal não manteria a sessão e tokens trafegariam em claro. Correção: `tls` + redirect no overlay `univates`.
 - **D-QA-11 — Android.** `apps/lucky-patcher/android/app/src/main/AndroidManifest.xml:5` (`allowBackup="true"`) e `:10` (`usesCleartextTraffic="true"`); `capacitor.config.ts:8`. O banco com tokens e pacientes pode ir para o backup do aparelho. Correção: `allowBackup="false"`; tráfego em claro só no build de demonstração.
 - **D-QA-12 — limitador de login.** `internal/aplicacao/limitador.go:35-40` + `autenticacao.go:50`: a chave `IP|tipo|registro` aceita registro de até 64 KiB (`handlers.go:111-122` não aplica o máximo de 40 do contrato) e não há contador por conta: força bruta distribuída por vários IPs contra um registro não tem teto. Correção: validar comprimentos no login e um segundo contador por `tipo|registro`.
-- **D-QA-13 — dependências do Jaiminho.** `services/jaiminho/pyproject.toml:6-17` usa `>=` sem lock; o `Dockerfile:26` instala o que existir no dia. Correção: lock com hashes.
+- **D-QA-13 — dependências do Jaiminho.** `apps/jaiminho/pyproject.toml:6-17` usa `>=` sem lock; o `Dockerfile:26` instala o que existir no dia. Correção: lock com hashes.
 
 ## D-QA-14 — Login com corpo grande e `Expect: 100-continue` fica sem resposta (Baixa)
 
-- **Componente:** `services/mike-baguncinha/internal/http/handlers.go:21, 91` (`MaxBytesReader` de 64 KiB).
+- **Componente:** `apps/mike-baguncinha/internal/http/handlers.go:21, 91` (`MaxBytesReader` de 64 KiB).
 - **Reproduzir:** `curl --max-time 40 -X POST http://localhost:8088/api/v1/auth/login -H 'Content-Type: application/json' --data-binary @arquivo-de-5MB.json` (o curl manda `Expect: 100-continue` sozinho).
 - **Esperado:** 413 ou 422 imediato. **Observado:** `http=100 … Operation timed out after 40011 milliseconds with 0 bytes received` (também com 20 MB e 90 s). Com `-H 'Expect:'` a resposta é 422 em 4 ms. `/log` com 5 MB responde 422 normalmente.
 - **Correção sugerida:** responder 413 e fechar a conexão (`Connection: close`) quando o limite estoura.
@@ -161,7 +161,7 @@ Não executados; conferidos no código.
 
 ## D-QA-17 — Chave de idempotência compartilhada entre profissionais (Baixa)
 
-- **Componente:** `services/dona-cida/src/aplicacao/comando.ts:48-57`.
+- **Componente:** `apps/dona-cida/src/aplicacao/comando.ts:48-57`.
 - **Reproduzir:** profissional A faz `POST /pessoa` com `Idempotency-Key: K`; o ADMIN repete o mesmo corpo com a mesma `K`.
 - **Observado:** **200** com a resposta de A, sem nova linha de auditoria para o segundo autor. **Esperado:** a chave valer por profissional (ou 422).
 - **Correção sugerida:** incluir `profissional_id` e `rota` na busca da operação.
@@ -189,21 +189,21 @@ Conferidos por leitura; arquivo e linha para quem for corrigir.
 
 | Item | Onde |
 | --- | --- |
-| Login não aplica os comprimentos máximos do contrato; JSON aceita campos desconhecidos | `services/mike-baguncinha/internal/http/handlers.go:91, 111-122` |
+| Login não aplica os comprimentos máximos do contrato; JSON aceita campos desconhecidos | `apps/mike-baguncinha/internal/http/handlers.go:91, 111-122` |
 | `POST /log` sem limite por campo (`acao`, `entidade`, `detalhe`) | `handlers.go:240-259` |
 | `dadosCorrigidos` da retificação é objeto livre (vai ao banco e ao PDF) | `packages/contratos/src/cida.ts:228` |
-| E-mail aceita caracteres de controle que não são espaço (CR/LF são barrados) | `services/jaiminho/src/jaiminho/http/rotas.py:19, 65-71` |
-| Jaiminho lê só o primeiro `X-Forwarded-For` quando chegam vários | `services/jaiminho/src/jaiminho/http/middlewares.py:140` |
+| E-mail aceita caracteres de controle que não são espaço (CR/LF são barrados) | `apps/jaiminho/src/jaiminho/http/rotas.py:19, 65-71` |
+| Jaiminho lê só o primeiro `X-Forwarded-For` quando chegam vários | `apps/jaiminho/src/jaiminho/http/middlewares.py:140` |
 | Confiança no CIDR inteiro de pods como proxy (mitigado pelas NetworkPolicies, conferidas no T-24) | `deploy/base/kustomization.yaml:27` |
 | Estado do limitador de login em memória: zera ao reiniciar (ver D-QA-01) | `internal/aplicacao/limitador.go:8-10` |
 | Refresh token devolvido também no corpo para o portal, que usa cookie | `handlers.go:190-192` |
 | Access token não é revogável: segue valendo após o logout até expirar (observado: `/auth/me` → 200) | `internal/infra/token.go:78-88` |
-| Jaiminho sem cache de JWKS e com o Mike fora: uma busca por requisição | `services/jaiminho/src/jaiminho/infra/jwks.py:68-71, 89` |
-| `hash <senha>` recebe a senha por argumento de linha de comando | `services/mike-baguncinha/cmd/mike-baguncinha/main.go:27-28` |
+| Jaiminho sem cache de JWKS e com o Mike fora: uma busca por requisição | `apps/jaiminho/src/jaiminho/infra/jwks.py:68-71, 89` |
+| `hash <senha>` recebe a senha por argumento de linha de comando | `apps/mike-baguncinha/cmd/mike-baguncinha/main.go:27-28` |
 | Sem expurgo de sessões expiradas | migração `20261117000100_identidade_e_auditoria.sql:18-26` |
 | Imagens por tag, sem digest; contêineres sem `limits.cpu`; namespace sem Pod Security Admission | `deploy/base/**`, Dockerfiles |
 | Mailpit é o SMTP padrão também no overlay `univates`; tela sem autenticação | `deploy/base/mailpit/deployment.yaml:46-49` |
-| `SMTP_SEGURANCA` padrão `nenhuma` mesmo com usuário e senha | `services/jaiminho/src/jaiminho/infra/config.py:95` |
+| `SMTP_SEGURANCA` padrão `nenhuma` mesmo com usuário e senha | `apps/jaiminho/src/jaiminho/infra/config.py:95` |
 | `pg_dump "$DATABASE_URL"`: senha do admin visível nos argumentos do processo | `deploy/base/backup/cronjob.yaml:43` |
 | `style-src 'unsafe-inline'` na CSP | `deploy/web/nginx.conf:30` |
 | Actions do CI fixadas por tag, não por commit | `.github/workflows/ci.yml` |

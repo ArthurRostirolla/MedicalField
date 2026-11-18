@@ -76,8 +76,8 @@ subir() {
 construir_uma() {
   local peca="$1" tag="medicalfield-$1:dev"
   case "$peca" in
-    mike-baguncinha|jaiminho) docker build -t "$tag" "$(caminho_nativo "$RAIZ/services/$peca")" ;;
-    dona-cida) docker build -t "$tag" -f "$(caminho_nativo "$RAIZ/services/dona-cida/Dockerfile")" "$(caminho_nativo "$RAIZ")" ;;
+    mike-baguncinha|jaiminho) docker build -t "$tag" "$(caminho_nativo "$RAIZ/apps/$peca")" ;;
+    dona-cida) docker build -t "$tag" -f "$(caminho_nativo "$RAIZ/apps/dona-cida/Dockerfile")" "$(caminho_nativo "$RAIZ")" ;;
     web) docker build -t "$tag" --build-arg VITE_DIAGNOSTICO=1 -f "$(caminho_nativo "$RAIZ/deploy/web/Dockerfile")" "$(caminho_nativo "$RAIZ")" ;;
     migracoes) docker build -t "$tag" -f "$(caminho_nativo "$RAIZ/deploy/$peca/Dockerfile")" "$(caminho_nativo "$RAIZ")" ;;
     *) echo "Peca desconhecida: $peca (use: ${PECAS[*]})" >&2; return 2 ;;

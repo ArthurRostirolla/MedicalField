@@ -25,7 +25,7 @@ assíncrono no próprio processo — sem broker. `EnviadorEmail` é um **Adapter
 ## Rodar em desenvolvimento
 
 O WeasyPrint precisa do Pango, que não roda nativamente no Windows: tudo roda em contêiner. No Git Bash, a partir
-de `services/jaiminho` (com `scripts/dev-db.sh subir && scripts/dev-db.sh migrar` já feitos na raiz):
+de `apps/jaiminho` (com `scripts/dev-db.sh subir && scripts/dev-db.sh migrar` já feitos na raiz):
 
 ```bash
 docker run -d --name medicalfield-dev-mailpit -p 1025:1025 -p 8025:8025 axllent/mailpit   # uma vez

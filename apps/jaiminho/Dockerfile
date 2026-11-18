@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Contexto de build: services/jaiminho
+# Contexto de build: apps/jaiminho
 #   docker build -t medicalfield/jaiminho .                    imagem final
 #   docker build --target dev -t medicalfield/jaiminho-dev .   imagem com pytest e ruff
 FROM python:3.13-slim AS base

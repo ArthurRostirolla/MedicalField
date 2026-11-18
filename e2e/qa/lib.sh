@@ -6,7 +6,7 @@ RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 export KUBECONFIG="$(cygpath -m "$RAIZ/deploy/.local/kubeconfig" 2>/dev/null || echo "$RAIZ/deploy/.local/kubeconfig")"
 BASE="${MF_BASE:-http://localhost:8088}"
 EVID="$RAIZ/docs/testes/evidencias/qa"
-: "${MF_SENHA_DEMO:?defina MF_SENHA_DEMO (services/mike-baguncinha/README.md)}"
+: "${MF_SENHA_DEMO:?defina MF_SENHA_DEMO (apps/mike-baguncinha/README.md)}"
 
 k() { kubectl -n medicalfield "$@"; }
 sql() { k exec postgres-0 -c postgres -- psql -U postgres -d medicalfield -At -c "$1"; }

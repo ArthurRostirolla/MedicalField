@@ -5,10 +5,10 @@ export const MIKE = process.env.MF_MIKE_URL ?? 'http://localhost:8081';
 export const CIDA = process.env.MF_CIDA_URL ?? 'http://localhost:8082';
 export const MAILPIT = process.env.MF_MAILPIT_URL ?? 'http://localhost:8025';
 
-/** A senha de demonstração está em services/mike-baguncinha/README.md; aqui ela só entra por variável. */
+/** A senha de demonstração está em apps/mike-baguncinha/README.md; aqui ela só entra por variável. */
 export function senhaDemo(): string {
   const senha = process.env.MF_SENHA_DEMO;
-  if (!senha) throw new Error('Defina MF_SENHA_DEMO com a senha de demonstração (services/mike-baguncinha/README.md).');
+  if (!senha) throw new Error('Defina MF_SENHA_DEMO com a senha de demonstração (apps/mike-baguncinha/README.md).');
   return senha;
 }
 

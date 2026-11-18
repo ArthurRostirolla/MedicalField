@@ -42,7 +42,7 @@ Go não precisa estar instalado: tudo roda em contêiner. No Git Bash, a partir 
 
 ```bash
 bash scripts/dev-db.sh subir && bash scripts/dev-db.sh migrar        # banco (porta 5544)
-docker build -t medicalfield/mike-baguncinha:dev services/mike-baguncinha
+docker build -t medicalfield/mike-baguncinha:dev apps/mike-baguncinha
 docker run --rm --name mike-baguncinha --read-only -p 8081:8080 -p 9091:9090 \
   -e DATABASE_URL='postgres://mf_mike:dev_mike@host.docker.internal:5544/medicalfield?sslmode=disable' \
   medicalfield/mike-baguncinha:dev
@@ -91,7 +91,7 @@ Refresh token: reapresentar um refresh **já revogado** (rotacionado ou encerrad
 ```bash
 bash scripts/dev-db.sh criar-banco mf_teste_mike && bash scripts/dev-db.sh migrar mf_teste_mike
 MSYS_NO_PATHCONV=1 docker run --rm \
-  -v "$(cygpath -w "$PWD/services/mike-baguncinha"):/src" -w /src -v mf-go-cache:/go \
+  -v "$(cygpath -w "$PWD/apps/mike-baguncinha"):/src" -w /src -v mf-go-cache:/go \
   --network container:medicalfield-dev-pg \
   -e DATABASE_URL_TESTE='postgres://mf_mike:dev_mike@localhost:5432/mf_teste_mike?sslmode=disable' \
   golang:1.27 sh -c 'go vet ./... && go test ./...'

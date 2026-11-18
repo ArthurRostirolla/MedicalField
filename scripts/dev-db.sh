@@ -44,7 +44,7 @@ criar_banco() {
 migrar_servico() {
   local servico="$1" schema="$2" banco="$3"
   docker run --rm --network "container:$CONTAINER" \
-    -v "$(caminho_docker "$RAIZ/services/$servico/migrations"):/db/migrations" \
+    -v "$(caminho_docker "$RAIZ/apps/$servico/migrations"):/db/migrations" \
     -e DATABASE_URL="postgres://postgres:$SENHA_ADMIN@localhost:5432/$banco?sslmode=disable" \
     ghcr.io/amacneil/dbmate:2 --migrations-table "$schema.schema_migrations" --no-dump-schema up
 }

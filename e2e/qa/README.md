@@ -9,7 +9,7 @@ Tudo aqui roda contra o **sistema implantado no k3s local** (gateway em `http://
 - A senha de demonstração **só no ambiente**, nunca em arquivo:
 
 ```bash
-export MF_SENHA_DEMO='<senha de services/mike-baguncinha/README.md>'
+export MF_SENHA_DEMO='<senha de apps/mike-baguncinha/README.md>'
 ```
 
 ## Scripts de API e cluster (bash)

@@ -1,6 +1,6 @@
 # Sincronização Offline-First
 
-Como o MedicalField registra sem rede e sincroniza depois — **como está implementado**. Cada afirmação aponta o arquivo que a implementa. Caminhos sem prefixo são relativos a `apps/lucky-patcher/src/`; os do servidor, a `services/dona-cida/src/`.
+Como o MedicalField registra sem rede e sincroniza depois — **como está implementado**. Cada afirmação aponta o arquivo que a implementa. Caminhos sem prefixo são relativos a `apps/lucky-patcher/src/`; os do servidor, a `apps/dona-cida/src/`.
 
 Visão geral do sistema: [`arquitetura.md`](arquitetura.md). Tabelas: [`../dados/modelagem.md`](../dados/modelagem.md).
 
@@ -188,7 +188,7 @@ Validado: E-002 (mesmo `POST` duas vezes → 1 linha), E-006 cenário 6 (respost
 
 O app baixa os **cadastros** — medicamentos, pessoas, prontuários e itens — por cursor. Atendimentos **não descem**: cada aparelho só tem os que ele mesmo registrou (minimização de dados).
 
-**O cursor `seq`.** Toda linha dessas quatro tabelas tem a coluna `seq`. Um gatilho `BEFORE INSERT OR UPDATE` (`clinico.marcar_alteracao`, em `services/dona-cida/migrations/20261117000200_clinico.sql`) atribui a cada escrita o próximo valor de **uma sequência global** — inclusive em `INSERT` manual pelo `psql`. É por isso que o medicamento inserido no passo 9 do roteiro chega ao app. Detalhes em [`../dados/modelagem.md`](../dados/modelagem.md).
+**O cursor `seq`.** Toda linha dessas quatro tabelas tem a coluna `seq`. Um gatilho `BEFORE INSERT OR UPDATE` (`clinico.marcar_alteracao`, em `apps/dona-cida/migrations/20261117000200_clinico.sql`) atribui a cada escrita o próximo valor de **uma sequência global** — inclusive em `INSERT` manual pelo `psql`. É por isso que o medicamento inserido no passo 9 do roteiro chega ao app. Detalhes em [`../dados/modelagem.md`](../dados/modelagem.md).
 
 ```mermaid
 sequenceDiagram
@@ -258,7 +258,7 @@ sequenceDiagram
   A->>A: substitui a copia local pela resposta
 ```
 
-**Limite honesto:** as quatro estratégias são cobertas por testes de integração da DonaCida contra Postgres real (`services/dona-cida/tests/integracao.test.ts`), mas o cenário acima **não foi executado com dois aparelhos reais** (itens OF-12 a OF-14 da matriz de validação).
+**Limite honesto:** as quatro estratégias são cobertas por testes de integração da DonaCida contra Postgres real (`apps/dona-cida/tests/integracao.test.ts`), mas o cenário acima **não foi executado com dois aparelhos reais** (itens OF-12 a OF-14 da matriz de validação).
 
 ## 9. Cenários de falha
 

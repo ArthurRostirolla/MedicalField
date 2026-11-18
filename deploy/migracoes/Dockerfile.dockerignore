@@ -1,3 +1,3 @@
 # So as migracoes entram no contexto
 *
-!services/*/migrations
+!apps/*/migrations

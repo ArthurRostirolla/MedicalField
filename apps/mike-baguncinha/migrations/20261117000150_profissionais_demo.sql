@@ -1,7 +1,7 @@
 -- migrate:up
 
 -- Profissionais de demonstracao (FICTICIOS; registros de conselho inventados).
--- A senha unica e PUBLICA (services/mike-baguncinha/README.md), entao a carga so e feita quando o
+-- A senha unica e PUBLICA (apps/mike-baguncinha/README.md), entao a carga so e feita quando o
 -- banco declara que e de demonstracao:
 --     ALTER DATABASE <banco> SET medicalfield.dados_demo = 'on';
 -- Sem esse parametro (qualquer ambiente real), esta migracao nao insere nada.
