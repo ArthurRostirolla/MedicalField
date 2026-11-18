@@ -1,0 +1,15 @@
+{
+  "name": "medicalfield",
+  "private": true,
+  "version": "0.1.0",
+  "description": "MedicalField - prontuario medico de emergencia Offline-First",
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "services/dona-cida",
+    "e2e"
+  ],
+  "engines": {
+    "node": ">=22"
+  }
+}
