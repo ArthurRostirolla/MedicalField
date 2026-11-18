@@ -11,7 +11,7 @@
 <body>
 
 {# Elementos repetidos em toda página (posicionados nas margens pelo CSS). #}
-<div class="faixa">{{ faixa }}</div>
+<div class="faixa"><span>{{ faixa }}</span></div>
 <div class="rodape">
   <table><tr>
     <td class="rodape-qr"><img src="{{ qr }}" alt="QR de verificação"></td>
@@ -35,6 +35,25 @@
     <ul>{% for item in itens %}<li>{{ item }}</li>{% endfor %}</ul>
   {% else %}
     <p class="sem-registro">Sem registro</p>
+  {% endif %}
+{% endmacro %}
+
+{# Triagem: bloco chapado com forma + palavra (DESIGN.md). A forma leva a cor do texto do bloco. #}
+{% macro etiqueta_triagem(triagem, grande=false) %}
+  {% if triagem.classe %}
+    {% set tinta = "#1a1320" if triagem.classe in ("laranja", "amarelo") else "#ffffff" %}
+    {% set lado = "4.2mm" if grande else "2.9mm" %}
+    <span class="tri tri-{{ triagem.classe }}{{ " tri-g" if grande }}"><svg class="forma" viewBox="0 0 16 16" width="{{ lado }}" height="{{ lado }}">
+      {% if triagem.classe == "vermelho" %}<polygon points="8,0.5 15.5,8 8,15.5 0.5,8" fill="{{ tinta }}"/>
+      {% elif triagem.classe == "laranja" %}<polygon points="8,1 15.5,14.5 0.5,14.5" fill="{{ tinta }}"/>
+      {% elif triagem.classe == "amarelo" %}<rect x="1.5" y="1.5" width="13" height="13" fill="{{ tinta }}"/>
+      {% elif triagem.classe == "verde" %}<circle cx="8" cy="8" r="7" fill="{{ tinta }}"/>
+      {% elif triagem.classe == "azul" %}<polygon points="4.2,1.4 11.8,1.4 15.6,8 11.8,14.6 4.2,14.6 0.4,8" fill="{{ tinta }}"/>
+      {% elif triagem.classe == "preto" %}<path d="M2.5 2.5 L13.5 13.5 M13.5 2.5 L2.5 13.5" stroke="{{ tinta }}" stroke-width="3.2" fill="none"/>
+      {% endif %}
+    </svg><span class="tri-palavra">{{ triagem.classificacao }}</span></span>
+  {% else %}
+    <span class="marca-texto">{{ triagem.classificacao }}</span>
   {% endif %}
 {% endmacro %}
 
@@ -120,8 +139,8 @@
       <td class="quadro">
         <div class="quadro-titulo">Glasgow mais recente{% if resumo.glasgow %} <span class="quando">{{ resumo.glasgow.quando }}</span>{% endif %}</div>
         {% if resumo.glasgow %}
-          <div class="destaque-numero">{{ resumo.glasgow.total }}</div>
-          <div class="detalhe">{{ pares(resumo.glasgow.pares) }}</div>
+          {# Como no portal: total em numeral e os componentes abreviados (O = ocular, V = verbal, M = motora). #}
+          <div><span class="destaque-numero">{{ resumo.glasgow.total }}</span><span class="destaque-detalhe">{% for rotulo, valor in resumo.glasgow.pares %}{{ rotulo[0] }}{{ valor }} {% endfor %}</span></div>
         {% else %}
           <p class="sem-registro">Sem registro</p>
         {% endif %}
@@ -129,8 +148,8 @@
       <td class="quadro">
         <div class="quadro-titulo">Triagem{% if resumo.triagem %} <span class="quando">{{ resumo.triagem.quando }}</span>{% endif %}</div>
         {% if resumo.triagem %}
-          <div class="destaque-texto"><span class="cor cor-{{ resumo.triagem.classe }}"></span>{{ resumo.triagem.classificacao }}</div>
-          <div class="detalhe"><span class="par-rotulo">Protocolo</span> {{ resumo.triagem.protocolo }}</div>
+          <div class="tri-linha">{{ etiqueta_triagem(resumo.triagem, grande=true) }}</div>
+          <div class="detalhe">{{ resumo.triagem.protocolo }}</div>
         {% else %}
           <p class="sem-registro">Sem registro</p>
         {% endif %}
@@ -200,24 +219,26 @@
   {% if linha_do_tempo %}
   <table class="tempo">
     <thead>
-      <tr><th class="col-hora">Hora</th><th class="col-tipo">Tipo</th><th>Registro</th><th class="col-prof">Profissional</th></tr>
+      <tr><th class="col-hora">Hora · nº</th><th class="col-tipo">Tipo</th><th>Registro</th><th class="col-prof">Profissional</th></tr>
     </thead>
     <tbody>
     {% for evento in linha_do_tempo %}
-      <tr class="{{ 'retificado' if evento.retificado_por }}">
-        <td class="col-hora">{{ evento.hora }}{% if evento.novo_dia %}<div class="dia">{{ evento.dia }}</div>{% endif %}</td>
+      <tr class="{{ 'retificado' if evento.retificado_por }}{{ ' encerramento' if evento.tipo == 'Encerramento' }}">
+        <td class="col-hora">{{ evento.hora }}<div class="numero">nº {{ evento.numero }}</div>{% if evento.novo_dia %}<div class="dia">{{ evento.dia }}</div>{% endif %}</td>
         <td class="col-tipo">{{ evento.tipo }}</td>
         <td>
           {% if evento.retifica %}
-            <div>Retifica o registro de <strong>{{ evento.retifica.tipo }}</strong> de {{ evento.retifica.quando }}</div>
+            <div><span class="marca-texto cheia">Retifica nº {{ evento.retifica.numero }}</span> {{ evento.retifica.tipo }} de {{ evento.retifica.quando }}</div>
             <div>{{ pares(evento.pares) }}</div>
             {% if evento.pares_corrigidos %}<div><span class="par-rotulo">Dados corrigidos:</span> {{ pares(evento.pares_corrigidos) }}</div>{% endif %}
+          {% elif evento.triagem %}
+            <div class="conteudo">{{ etiqueta_triagem(evento.triagem) }} <span class="tri-protocolo">{{ evento.triagem.protocolo }}</span></div>
           {% else %}
             <div class="conteudo">{{ pares(evento.pares) }}</div>
           {% endif %}
           {% for retificacao in evento.retificado_por %}
             <div class="retificacao">
-              <span class="marca-texto">Retificado</span>
+              <span class="marca-texto">Retificado pela nº {{ retificacao.numero }}</span>
               em {{ retificacao.quando }} por {{ retificacao.profissional }} —
               <span class="par-rotulo">Motivo</span> {{ retificacao.motivo }}
               {% if retificacao.pares %}<br><span class="par-rotulo">Dados corrigidos:</span> {{ pares(retificacao.pares) }}{% endif %}
@@ -232,7 +253,7 @@
   {% else %}
     <p class="sem-registro">Nenhum evento registrado</p>
   {% endif %}
-  <p class="fim">Fim da ficha · {{ linha_do_tempo|length }} registro{{ "s" if linha_do_tempo|length != 1 }} na linha do tempo · atendimento {{ atendimento.id }}</p>
+  <p class="fim">Fim da ficha · {{ linha_do_tempo|length }} entrada{{ "s" if linha_do_tempo|length != 1 }} na linha do tempo · nada é apagado, só retificado · atendimento {{ atendimento.id }}</p>
 </section>
 
 </body>

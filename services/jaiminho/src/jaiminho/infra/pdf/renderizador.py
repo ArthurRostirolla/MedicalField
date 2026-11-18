@@ -148,6 +148,21 @@ def pares_do_evento(tipo: str, dados: Any) -> list[Par]:
     return pares
 
 
+_CORES_TRIAGEM = ("VERMELHO", "LARANJA", "AMARELO", "VERDE", "AZUL", "PRETO")
+
+
+def _triagem(dados: Any) -> dict[str, str]:
+    """Etiqueta de triagem: a cor registrada vira bloco com forma e palavra. Nada é deduzido."""
+    dados = dados if isinstance(dados, dict) else {}
+    classificacao = dados.get("classificacao")
+    return {
+        "protocolo": _PROTOCOLOS.get(dados.get("protocolo"), _valor(dados.get("protocolo"))),
+        "classificacao": _valor(classificacao),
+        # Valor fora da lista conhecida sai como etiqueta de contorno, sem cor nem forma.
+        "classe": str(classificacao).lower() if classificacao in _CORES_TRIAGEM else "",
+    }
+
+
 def _idade(nascimento: str | None, referencia: datetime | None) -> str | None:
     if not nascimento or not referencia:
         return None
@@ -170,6 +185,8 @@ def _cpf(cpf: str | None) -> str:
 def _linha_do_tempo(eventos: list[dict[str, Any]]) -> list[dict[str, Any]]:
     ordenados = sorted(eventos, key=lambda evento: str(evento.get("ocorridoEm", "")))
     por_id = {evento.get("id"): evento for evento in ordenados}
+    # Número da entrada: a posição na ordem cronológica, como no portal ("nº 01").
+    numeros = {evento.get("id"): f"{posicao:02d}" for posicao, evento in enumerate(ordenados, start=1)}
     retificacoes: dict[Any, list[dict[str, Any]]] = {}
     for evento in ordenados:
         if evento.get("tipo") == "RETIFICACAO" and evento.get("retificaEventoId"):
@@ -188,12 +205,14 @@ def _linha_do_tempo(eventos: list[dict[str, Any]]) -> list[dict[str, Any]]:
         tipo = str(evento.get("tipo", ""))
         dados = evento.get("dados") or {}
         linha: dict[str, Any] = {
+            "numero": numeros.get(evento.get("id"), VAZIO),
             "hora": _hora(evento.get("ocorridoEm")),
             "dia": _dia(evento.get("ocorridoEm")),
             "tipo": _TIPOS.get(tipo, tipo),
             "profissional": _valor(evento.get("profissionalNome")),
             "retificado_por": [
                 {
+                    "numero": numeros.get(retificacao.get("id"), VAZIO),
                     "quando": _data_hora(retificacao.get("ocorridoEm")),
                     "profissional": _valor(retificacao.get("profissionalNome")),
                     "motivo": _valor((retificacao.get("dados") or {}).get("motivo")),
@@ -202,6 +221,7 @@ def _linha_do_tempo(eventos: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 for retificacao in retificacoes.get(evento.get("id"), [])
             ],
             "retifica": None,
+            "triagem": _triagem(dados) if tipo == "TRIAGEM" else None,
         }
         linha["novo_dia"] = linha["dia"] != dia_anterior
         dia_anterior = linha["dia"]
@@ -209,6 +229,7 @@ def _linha_do_tempo(eventos: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if tipo == "RETIFICACAO":
             original = por_id.get(evento.get("retificaEventoId")) or {}
             linha["retifica"] = {
+                "numero": numeros.get(evento.get("retificaEventoId"), VAZIO),
                 "tipo": _TIPOS.get(str(original.get("tipo", "")), "evento"),
                 "quando": _data_hora(original.get("ocorridoEm")) if original else VAZIO,
             }
@@ -264,15 +285,9 @@ def montar_contexto(
 
     triagem = None
     if resumo.get("triagem"):
-        dados = resumo["triagem"].get("dados") or {}
         triagem = {
             "quando": _data_hora(resumo["triagem"].get("ocorridoEm")),
-            "protocolo": _PROTOCOLOS.get(dados.get("protocolo"), _valor(dados.get("protocolo"))),
-            "classificacao": _valor(dados.get("classificacao")),
-            # Só para a cor do marcador; valor fora da lista conhecida fica sem cor.
-            "classe": str(dados.get("classificacao", "")).lower()
-            if dados.get("classificacao") in ("VERMELHO", "LARANJA", "AMARELO", "VERDE", "AZUL", "PRETO")
-            else "",
+            **_triagem(resumo["triagem"].get("dados")),
         }
 
     encerramento = None

@@ -76,8 +76,12 @@ JWKS falsos servidos por HTTP de verdade e o SMTP falso. Outros comandos, na ima
 Template em `src/jaiminho/infra/pdf/` (`ficha.html` + `ficha.css`), A4, com faixa "DADOS DEMONSTRATIVOS — SEM
 VALIDADE CLÍNICA" e rodapé (código, QR, data de geração, paginação) em todas as páginas. Horários em
 America/Sao_Paulo. O serviço **só exibe** o que foi registrado: nenhuma interpretação clínica.
-Tipografia: **IBM Plex Sans** (texto) e **IBM Plex Mono** (horas e código de verificação), SIL OFL 1.1,
-embutidas na imagem no build (versão e sha256 fixos no `Dockerfile`); nada é baixado em tempo de execução.
+Segue o design system do projeto (`DESIGN.md`, tema claro): tinta sobre papel branco, a passagem de caso na
+"via rosa", violeta de marca só no nome, triagem como bloco chapado com forma + palavra, entradas da linha do tempo
+numeradas (a retificação cita o nº que corrige). Tipografia: **Archivo** (texto) e **Martian Mono** (hora, nº da
+entrada, código de verificação), SIL OFL 1.1, fontes variáveis embutidas na imagem no build (commit e sha256 fixos
+no `Dockerfile`); nada é baixado em tempo de execução. No WeasyPrint os eixos `wght`/`wdth` são escolhidos com
+`font-variation-settings` (ver o cabeçalho de `ficha.css`).
 
 ## Decisões e limites
 

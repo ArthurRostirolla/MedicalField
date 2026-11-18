@@ -177,7 +177,13 @@ def test_template_renderiza_a_ficha(renderizador: RenderizadorFichaWeasyPrint) -
     assert "17/11/2026 18:00" in texto
     assert "14:44" in texto and "17:44" not in texto
     # Evento retificado aparece marcado, com a retificação.
-    assert "RETIFICADO" in texto.upper()
+    # As entradas são numeradas e a retificação cita o número que corrige (13 = a medicação, 14 = a retificação).
+    plano = " ".join(texto.upper().split())
+    assert "RETIFICA Nº 13" in plano
+    assert "RETIFICADO PELA Nº 14" in plano
+    assert "Nº 01" in plano and "Nº 20" in plano
+    # Triagem sai como palavra (dentro do bloco com forma), não só como cor.
+    assert "LARANJA" in plano
     assert "Dose digitada incorretamente" in texto
 
 

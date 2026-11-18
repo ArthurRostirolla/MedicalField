@@ -1,15 +1,21 @@
 /* Ficha de atendimento — A4, para ser lida impressa (inclusive em preto e branco).
+   Segue o design system "ficha em vias carbonadas" (DESIGN.md, packages/ui/src/tokens.css), tema claro:
 
-   Famílias (embutidas na imagem, ver Dockerfile): IBM Plex Sans para texto e
-   IBM Plex Mono para o que é lido caractere a caractere ou em coluna (horas, código).
+     tinta #1a1320 · tinta-2 #453c50 · tinta-3 #665d72 · fio #d2ccdb · fio-forte #7b7289
+     marca (violeta) #5a2a8c, com parcimônia · via rosa #f7dde5 / fio #c98aa0 / tinta #7a2146 (só a passagem de caso)
+     bloco chapado saturado só na triagem, sempre com forma + palavra
 
-   Escala tipográfica — cada degrau ≥ 1,25× o anterior, e muda de peso junto:
-     nota     6.8pt  regular            rodapé, "quando", fim da ficha
-     rótulo   6.8pt  semibold, caixa alta espaçada (distingue-se da nota pela forma)
-     corpo    9pt    regular
-     seção   11.5pt  semibold           títulos de seção
-     destaque 14.5pt semibold           nome da pessoa, medidas da passagem de caso
-     título  21pt    bold               título do documento, total do Glasgow
+   Famílias (variáveis, embutidas na imagem — ver Dockerfile): Archivo para texto, Martian Mono só para o que
+   a máquina carimba (hora, nº da entrada, código de verificação). No WeasyPrint os eixos são escolhidos com
+   font-variation-settings (font-weight/font-stretch não alcançam as instâncias intermediárias).
+
+   Escala tipográfica — cada degrau ≥ 1,25× o anterior, e muda de peso/largura junto:
+     nota     6.8pt  400                rodapé, "quando", nº da entrada
+     rótulo   6.8pt  650, caixa alta condensada (distingue-se da nota pela forma)
+     corpo    9pt    400
+     seção   11.5pt  750, caixa alta    títulos de seção
+     destaque 14.5pt 700                nome da pessoa, código no cabeçalho
+     título  21pt    750                título do documento, numeral do Glasgow
 */
 
 @page {
@@ -31,10 +37,12 @@
 }
 
 html {
-  font-family: "IBM Plex Sans", "DejaVu Sans", sans-serif;
+  font-family: "Archivo", "DejaVu Sans", sans-serif;
+  font-variation-settings: "wght" 400, "wdth" 100;
   font-size: 9pt;
   line-height: 1.4;
-  color: #161b21;
+  color: #1a1320;
+  background: #ffffff;
 }
 body { margin: 0; }
 table { border-collapse: collapse; width: 100%; }
@@ -42,32 +50,48 @@ td, th { vertical-align: top; text-align: left; padding: 0; font-weight: 400; }
 p { margin: 0; }
 ul { margin: 0; padding-left: 3.6mm; }
 li { margin: 0 0 0.3mm; }
+strong { font-weight: 400; font-variation-settings: "wght" 700, "wdth" 100; }
 
-.codigo, .col-hora, .destaque-numero {
-  font-family: "IBM Plex Mono", "DejaVu Sans Mono", monospace;
+/* Mono restrita: hora, nº da entrada, código. */
+.codigo, .col-hora, .numero, .dia, .quando {
+  font-family: "Martian Mono", "DejaVu Sans Mono", monospace;
+  font-variation-settings: "wght" 400, "wdth" 80;
+  letter-spacing: -0.01em;
+}
+
+th.col-hora {
+  font-family: "Archivo", "DejaVu Sans", sans-serif;
+  font-variation-settings: "wght" 650, "wdth" 78;
+  letter-spacing: 0.07em;
 }
 
 /* ---------- Repetidos em toda página ---------- */
 
 .faixa {
   position: running(faixa);
-  border: 0.6pt solid #8a6a00;
-  background: #fff6d6;
-  color: #4d3b00;
-  font-size: 6.8pt;
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  border-top: 0.6pt solid #1a1320;
+  border-bottom: 0.6pt solid #1a1320;
+  background: repeating-linear-gradient(-45deg, #ffffff 0, #ffffff 1.1mm, #d9d5de 1.1mm, #d9d5de 1.5mm);
   text-align: center;
-  padding: 1.3mm 0 1.2mm;
+  padding: 0.9mm 0;
+  line-height: 1.2;
+}
+.faixa span {
+  background: #ffffff;
+  padding: 0.3mm 2.5mm;
+  font-size: 6.8pt;
+  font-variation-settings: "wght" 750, "wdth" 82;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .rodape {
   position: running(rodape);
-  border-top: 0.6pt solid #161b21;
+  border-top: 1.5pt solid #1a1320;
   padding-top: 2mm;
   font-size: 6.8pt;
   line-height: 1.5;
-  color: #47515b;
+  color: #453c50;
 }
 .rodape td { vertical-align: middle; }
 .rodape-qr { width: 18mm; }
@@ -80,48 +104,89 @@ li { margin: 0 0 0.3mm; }
 
 /* ---------- Tipos de texto ---------- */
 
-.rotulo {
+.rotulo, .quadro-titulo, .lista th, .tempo th {
   font-size: 6.8pt;
-  font-weight: 600;
-  letter-spacing: 0.09em;
+  font-variation-settings: "wght" 650, "wdth" 78;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  color: #5a6570;
+  color: #453c50;
 }
-.valor { font-size: 9pt; }
-.complemento { color: #3b444d; }
-.codigo { font-weight: 600; letter-spacing: 0.04em; color: #161b21; }
-.par-rotulo { font-size: 6.8pt; font-weight: 600; letter-spacing: 0.04em; color: #5a6570; }
+.valor { font-size: 9pt; font-variation-settings: "wght" 500, "wdth" 100; }
+.complemento { color: #453c50; }
+.codigo { font-variation-settings: "wght" 600, "wdth" 80; color: #1a1320; }
+.par-rotulo {
+  font-size: 6.8pt;
+  font-variation-settings: "wght" 650, "wdth" 78;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #453c50;
+}
 .junto { white-space: nowrap; }
-.sep { color: #98a2ab; }
-.sem-registro { color: #6b7580; font-style: italic; }
+.sep { color: #7b7289; }
+.sem-registro { color: #453c50; font-style: italic; }
 .quadro + .quadro .quando { display: block; }
-.quando { font-size: 6.8pt; font-weight: 400; letter-spacing: 0; text-transform: none; color: #5a6570; }
+.quando { font-size: 6.8pt; text-transform: none; color: #453c50; }
+
+/* Etiqueta: contorno; "cheia" é o bloco invertido de tinta. Nunca em matiz de triagem. */
 .marca-texto {
   font-size: 6.8pt;
-  font-weight: 700;
-  letter-spacing: 0.09em;
+  font-variation-settings: "wght" 700, "wdth" 80;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
-  border: 0.6pt solid #161b21;
-  border-radius: 0.8mm;
-  padding: 0.1mm 1.2mm;
+  text-decoration: none;
+  color: #1a1320;
+  border: 0.6pt solid #1a1320;
+  border-radius: 0.5mm;
+  padding: 0.15mm 1.2mm 0.05mm;
   white-space: nowrap;
 }
+.marca-texto.cheia { background: #1a1320; color: #ffffff; }
+
+/* Triagem: único bloco chapado saturado do documento, sempre com forma + palavra. */
+.tri {
+  display: inline-block;
+  border-radius: 0.5mm;
+  padding: 0.5mm 1.6mm 0.4mm 1.3mm;
+  white-space: nowrap;
+  font-size: 6.8pt;
+  font-variation-settings: "wght" 750, "wdth" 82;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  line-height: 1.3;
+}
+.tri .forma { vertical-align: -0.55mm; margin-right: 1.2mm; }
+.tri-g { font-size: 11.5pt; padding: 1.5mm 3.2mm 1.3mm 2.6mm; }
+.tri-g .forma { vertical-align: -0.6mm; margin-right: 2mm; }
+.tri-vermelho { background: #c4161c; color: #ffffff; }
+.tri-laranja { background: #f07d12; color: #1a1320; }
+.tri-amarelo { background: #f6d21a; color: #1a1320; }
+.tri-verde { background: #1b7a3a; color: #ffffff; }
+.tri-azul { background: #1d5bb5; color: #ffffff; }
+.tri-preto { background: #101010; color: #ffffff; }
+.tri-linha { padding: 0.6mm 0 0.9mm; }
+.tri-protocolo { margin-left: 1.5mm; }
 
 /* ---------- Cabeçalho ---------- */
 
-.cabecalho { border-bottom: 1.8pt solid #12344d; padding-bottom: 2.4mm; margin-bottom: 3.6mm; }
+.cabecalho { border-bottom: 1.5pt solid #1a1320; padding-bottom: 2.4mm; margin-bottom: 3.6mm; }
 .cabecalho td { vertical-align: bottom; }
-.marca { font-size: 6.8pt; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: #12344d; }
+.marca {
+  font-size: 9pt;
+  font-variation-settings: "wght" 800, "wdth" 72;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #5a2a8c;
+}
 h1 {
   white-space: nowrap;
   font-size: 21pt;
-  font-weight: 700;
+  font-weight: 400;
+  font-variation-settings: "wght" 750, "wdth" 88;
   line-height: 1.1;
-  letter-spacing: -0.012em;
-  margin: 0.8mm 0 0;
-  color: #12344d;
+  margin: 0.6mm 0 0;
+  color: #1a1320;
 }
-.cabecalho-codigo { width: 42mm; text-align: right; }
+.cabecalho-codigo { width: 46mm; text-align: right; }
 .cabecalho-codigo .codigo { font-size: 14.5pt; }
 
 /* ---------- Seções ---------- */
@@ -129,100 +194,87 @@ h1 {
 section { margin-bottom: 3.8mm; }
 h2 {
   font-size: 11.5pt;
-  font-weight: 600;
+  font-weight: 400;
+  font-variation-settings: "wght" 750, "wdth" 82;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   line-height: 1.2;
-  color: #12344d;
-  margin: 0 0 1.3mm;
+  color: #1a1320;
+  margin: 0;
+  padding-bottom: 1mm;
+  border-bottom: 1.5pt solid #1a1320;
   break-after: avoid;
 }
 
-.campos { table-layout: fixed; border-top: 0.5pt solid #c3ccd4; }
-.campos td { padding: 1.1mm 3mm 1.1mm 0; border-bottom: 0.5pt solid #c3ccd4; }
-.nome { font-size: 14.5pt; font-weight: 600; line-height: 1.2; }
+.campos { table-layout: fixed; }
+.campos td { padding: 1.1mm 3mm 1.1mm 0; border-bottom: 0.5pt solid #d2ccdb; }
+.nome { font-size: 14.5pt; font-variation-settings: "wght" 700, "wdth" 90; line-height: 1.2; }
 .nome .marca-texto { vertical-align: 0.8mm; margin-left: 1.5mm; }
 
-/* ---------- Passagem de caso ---------- */
+/* ---------- Passagem de caso: a via rosa ---------- */
 
-.passagem { border: 1.2pt solid #12344d; border-radius: 1.2mm; }
-.passagem h2 { background: #12344d; color: #ffffff; margin: 0; padding: 1.4mm 3mm 1.5mm; }
-.passagem-corpo { padding: 2.4mm 3mm 0.4mm; }
+.passagem { background: #f7dde5; border: 0.6pt solid #c98aa0; border-top: 0.9pt dashed #c98aa0; }
+.passagem h2 {
+  font-variation-settings: "wght" 800, "wdth" 82;
+  padding: 1.8mm 3mm 1.5mm;
+  border-bottom: 0.6pt dashed #c98aa0;
+}
+.passagem-corpo { padding: 2.2mm 3mm 0.4mm; }
+.passagem .rotulo, .passagem .quadro-titulo, .passagem .lista th, .passagem .par-rotulo { color: #7a2146; }
 
 .quadros { table-layout: fixed; margin-bottom: 2mm; }
 .quadro { padding: 0 3mm 0 0; }
-.quadro + .quadro { padding-left: 3mm; border-left: 0.5pt solid #c3ccd4; }
+.quadro + .quadro { padding-left: 3mm; border-left: 0.5pt solid #c98aa0; }
 .quadro:last-child { padding-right: 0; }
-.quadro-largo { width: 46%; }
-.quadro-titulo {
-  font-size: 6.8pt;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: #12344d;
-  margin-bottom: 0.8mm;
-  break-after: avoid;
-}
+.quadro-largo { width: 50%; }
+.quadro-titulo { margin-bottom: 0.8mm; break-after: avoid; }
 
-.medida-item { display: inline-block; margin: 0 4.5mm 0.9mm 0; }
-.medida-item .rotulo { text-transform: none; letter-spacing: 0.03em; }
+.medida-item { display: inline-block; margin: 0 3.6mm 0.9mm 0; }
+.medida-item .rotulo { text-transform: none; }
 .medida {
   font-size: 11.5pt;
-  font-weight: 600;
+  font-variation-settings: "wght" 700, "wdth" 84;
+  font-variant-numeric: tabular-nums;
   line-height: 1.2;
   white-space: nowrap;
+}
+.destaque-numero {
+  font-size: 21pt;
+  font-variation-settings: "wght" 720, "wdth" 76;
   font-variant-numeric: tabular-nums;
+  line-height: 1.05;
 }
-.destaque-numero { font-size: 21pt; font-weight: 700; line-height: 1.05; }
-.destaque-texto { font-size: 14.5pt; font-weight: 700; line-height: 1.2; padding: 0.8mm 0 0.6mm; }
 .detalhe { margin-top: 0.5mm; }
-.cor {
-  display: inline-block;
-  width: 3.6mm;
-  height: 3.6mm;
-  margin-right: 1.6mm;
-  border: 0.6pt solid #161b21;
-  border-radius: 50%;
-  vertical-align: -0.3mm;
-  background: #ffffff;
-}
-.cor-vermelho { background: #c62828; }
-.cor-laranja { background: #ef6c00; }
-.cor-amarelo { background: #f9c825; }
-.cor-verde { background: #2e7d32; }
-.cor-azul { background: #1565c0; }
-.cor-preto { background: #111111; }
+.destaque-detalhe { font-variation-settings: "wght" 500, "wdth" 100; margin-left: 1mm; white-space: nowrap; }
 
-.bloco { border-top: 0.5pt solid #c3ccd4; padding: 1.5mm 0 1.5mm; break-inside: avoid; }
-.lista th {
-  font-size: 6.8pt;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: #5a6570;
-  padding: 0 3mm 0.4mm 0;
-}
+.bloco { border-top: 0.5pt solid #c98aa0; padding: 1.5mm 0 1.5mm; break-inside: avoid; }
+.lista th { padding: 0 3mm 0.4mm 0; }
 .lista td { padding: 0.45mm 3mm 0.45mm 0; }
-.lista tbody tr + tr td { border-top: 0.4pt solid #e1e6ea; }
-.col-hora { width: 13mm; white-space: nowrap; font-weight: 600; }
-.desfecho strong { font-weight: 600; }
+.lista tbody tr + tr td { border-top: 0.4pt solid #e6bccb; }
+.col-hora { width: 13mm; white-space: nowrap; font-variation-settings: "wght" 600, "wdth" 80; }
 
-/* ---------- Linha do tempo ---------- */
+/* ---------- Linha do tempo: pauta numerada ---------- */
 
 .tempo thead { display: table-header-group; }
-.tempo th {
-  font-size: 6.8pt;
-  font-weight: 600;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: #5a6570;
-  padding: 0 3mm 0.9mm 0;
-  border-bottom: 0.8pt solid #161b21;
-}
-.tempo td { padding: 1.2mm 3mm 1.2mm 0; border-bottom: 0.4pt solid #c3ccd4; }
+.tempo th { padding: 1.2mm 3mm 0.9mm 0; border-bottom: 0.5pt solid #7b7289; }
+.tempo td { padding: 0.85mm 3mm 0.85mm 0; border-bottom: 0.5pt solid #d2ccdb; }
 .tempo tr { break-inside: avoid; }
-.tempo .col-tipo { width: 25mm; font-weight: 600; }
-.tempo .col-prof { width: 34mm; padding-right: 0; color: #3b444d; }
 .tempo .col-hora { width: 17mm; }
-.dia { font-size: 6.8pt; font-weight: 400; color: #5a6570; }
-.retificado .conteudo { text-decoration: line-through; text-decoration-color: #6b7580; color: #5a6570; }
-.retificacao { margin-top: 0.9mm; padding: 0.7mm 0 0.2mm 2mm; border-left: 1.6pt solid #161b21; }
-.fim { margin-top: 2.2mm; font-size: 6.8pt; color: #5a6570; text-align: center; }
+.tempo td.col-tipo {
+  width: 25mm;
+  font-size: 6.8pt;
+  font-variation-settings: "wght" 650, "wdth" 78;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: #453c50;
+  padding-top: 1.35mm;
+}
+.tempo .col-prof { width: 34mm; padding-right: 0; color: #453c50; }
+.numero { line-height: 1.25; font-size: 6.8pt; font-variation-settings: "wght" 400, "wdth" 80; color: #665d72; }
+.dia { font-size: 6.8pt; font-variation-settings: "wght" 400, "wdth" 80; color: #665d72; }
+/* Fio duplo fechando o evento de encerramento. */
+.tempo tr.encerramento td { border-bottom: 2.2pt double #1a1320; }
+/* Nada se apaga: o retificado continua na pauta, riscado com um traço. */
+.retificado .conteudo { text-decoration: line-through; color: #453c50; }
+.retificacao { margin-top: 0.9mm; }
+.fim { margin-top: 2.2mm; font-size: 6.8pt; color: #453c50; text-align: center; }
