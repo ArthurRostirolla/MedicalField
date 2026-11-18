@@ -4,29 +4,29 @@
  */
 
 /*
- * Bloco invertido: dentro dele valem os tokens do tema oposto, então qualquer
- * componente funciona sem variante própria. Usado no item atual da navegação,
- * na linha selecionada da tabela, na tira offline e nos toasts.
+ * Bloco de destaque (classe histórica .mf-invertido): dentro dele valem tokens tingidos de
+ * vermelho, então qualquer componente funciona sem variante própria. Usado no item atual da
+ * navegação, na linha selecionada da tabela, na tira offline e nos toasts.
  */
 .mf-invertido,
 [data-tema='claro'] .mf-invertido,
 [data-tema='escuro'] [data-tema='claro'] .mf-invertido {
-  color-scheme: dark;
-  --mf-papel: #1a1320;
-  --mf-papel-2: #2a2133;
-  --mf-tinta: #fbfafc;
-  --mf-tinta-2: #d3cbdd;
-  --mf-tinta-3: #aba1b9;
-  --mf-fio: #4a3f58;
-  --mf-fio-forte: #8f84a0;
-  --mf-marca: #c9a9f3;
-  --mf-marca-forte: #dcc6f8;
-  --mf-marca-suave: #35264a;
-  --mf-sobre-marca: #1a1320;
-  --mf-foco: #c9a9f3;
-  --mf-carmim: #ff93b6;
-  --mf-carmim-suave: #3a1526;
-  --mf-triagem-contorno: rgb(251 250 252 / 0.55);
+  color-scheme: light;
+  --mf-papel: #fdeef0;
+  --mf-papel-2: #fbe1e5;
+  --mf-tinta: #161b22;
+  --mf-tinta-2: #3d4653;
+  --mf-tinta-3: #545d6b;
+  --mf-fio: #f2c9cf;
+  --mf-fio-forte: #8e5560;
+  --mf-marca: #b00e2a;
+  --mf-marca-forte: #8a0a20;
+  --mf-marca-suave: #f9d5db;
+  --mf-sobre-marca: #ffffff;
+  --mf-foco: #b00e2a;
+  --mf-carmim: #9b1c14;
+  --mf-carmim-suave: #fbe3e0;
+  --mf-triagem-contorno: transparent;
   background-color: var(--mf-papel);
   color: var(--mf-tinta);
 }
@@ -34,22 +34,22 @@
 /* Cobre um nível de tema aninhado (ex.: um quadro claro dentro de uma página escura). */
 [data-tema='escuro'] .mf-invertido,
 [data-tema='claro'] [data-tema='escuro'] .mf-invertido {
-  color-scheme: light;
-  --mf-papel: #ede8f3;
-  --mf-papel-2: #dcd5e5;
-  --mf-tinta: #18121f;
-  --mf-tinta-2: #3f3649;
-  --mf-tinta-3: #5a5066;
-  --mf-fio: #b9b0c6;
-  --mf-fio-forte: #6f657d;
-  --mf-marca: #5a2a8c;
-  --mf-marca-forte: #46206f;
-  --mf-marca-suave: #d9cdea;
-  --mf-sobre-marca: #ffffff;
-  --mf-foco: #5a2a8c;
-  --mf-carmim: #a3114a;
-  --mf-carmim-suave: #f3d3df;
-  --mf-triagem-contorno: transparent;
+  color-scheme: dark;
+  --mf-papel: #2a1419;
+  --mf-papel-2: #33181e;
+  --mf-tinta: #eef1f5;
+  --mf-tinta-2: #d5dae1;
+  --mf-tinta-3: #a9b1bc;
+  --mf-fio: #4d2a32;
+  --mf-fio-forte: #9a7880;
+  --mf-marca: #ff8a99;
+  --mf-marca-forte: #ffb3bd;
+  --mf-marca-suave: #4a1d27;
+  --mf-sobre-marca: #1a0a0e;
+  --mf-foco: #ff8a99;
+  --mf-carmim: #ff9d8f;
+  --mf-carmim-suave: #47201b;
+  --mf-triagem-contorno: rgb(238 241 245 / 0.55);
 }
 
 @layer base {

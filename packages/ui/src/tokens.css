@@ -1,6 +1,7 @@
 /*
- * Tokens do MedicalField — "ficha em vias carbonadas".
- * Tema claro = a 1ª via (papel). Tema escuro = o papel-carbono.
+ * Tokens do MedicalField — "branco clínico".
+ * Tema claro = sala branca: papel branco, tinta grafite, vermelho só nos detalhes.
+ * Tema escuro = a mesma sala à noite: grafite frio, vermelho clareado.
  * Os pares texto/fundo são conferidos em src/contraste.test.ts.
  */
 
@@ -9,79 +10,79 @@
   color-scheme: light;
 
   /* Superfícies */
-  --mf-mesa: #eceaf0; /* fundo atrás das folhas */
-  --mf-papel: #fbfafc; /* a folha: superfície principal */
-  --mf-papel-2: #f2f0f5; /* linha alternada, campo desabilitado */
-  --mf-inverso: #1a1320; /* bloco invertido (offline, item atual) */
-  --mf-sobre-inverso: #fbfafc;
+  --mf-mesa: #f6f7f9; /* fundo atrás das folhas */
+  --mf-papel: #ffffff; /* a folha: superfície principal */
+  --mf-papel-2: #f7f8fa; /* linha alternada, campo desabilitado */
+  --mf-inverso: #1b2129;
+  --mf-sobre-inverso: #ffffff;
 
-  /* Tinta: hierarquia de texto */
-  --mf-tinta: #1a1320;
-  --mf-tinta-2: #453c50;
-  --mf-tinta-3: #665d72;
+  /* Tinta: hierarquia de texto (grafite frio, não preto) */
+  --mf-tinta: #161b22;
+  --mf-tinta-2: #3d4653;
+  --mf-tinta-3: #5e6775;
 
   /* Fios */
-  --mf-fio: #d2ccdb; /* pauta, divisória */
-  --mf-fio-forte: #7b7289; /* contorno de controle (>= 3:1) */
+  --mf-fio: #e4e7ec; /* pauta, divisória */
+  --mf-fio-forte: #868f9c; /* contorno de controle (>= 3:1) */
 
-  /* Marca: tinta copiativa */
-  --mf-marca: #5a2a8c;
-  --mf-marca-forte: #46206f;
-  --mf-marca-suave: #ebe3f4;
+  /* Marca: vermelho clínico — detalhe, nunca bloco */
+  --mf-marca: #c8102e;
+  --mf-marca-forte: #a00c25;
+  --mf-marca-suave: #fdeef0;
   --mf-sobre-marca: #ffffff;
-  --mf-foco: #5a2a8c;
+  --mf-foco: #c8102e;
 
-  /* Via rosa: passagem de caso */
-  --mf-rosa: #f7dde5;
-  --mf-rosa-fio: #c98aa0;
-  --mf-rosa-tinta: #7a2146;
+  /* Passagem de caso: folha branca com fio vermelho */
+  --mf-rosa: #fff7f8;
+  --mf-rosa-fio: #eab3bc;
+  --mf-rosa-tinta: #a30d2a;
 
-  /* Carmim: rejeição e erro */
-  --mf-carmim: #a3114a;
-  --mf-carmim-suave: #fbe6ee;
+  /* Carmim: rejeição e erro (sempre com ícone e palavra) */
+  --mf-carmim: #b42318;
+  --mf-carmim-suave: #fdf0ee;
 
   /* Triagem: contorno só é visível quando o bloco se confunde com o fundo */
   --mf-triagem-contorno: transparent;
 
-  --mf-sombra: 0 1px 0 var(--mf-fio), 0 16px 40px -12px rgb(26 19 32 / 0.35);
-  --mf-hachura: rgb(26 19 32 / 0.1);
-  --mf-veu: rgb(15 11 20 / 0.6);
+  --mf-sombra: 0 1px 2px rgb(22 27 34 / 0.06), 0 12px 32px -12px rgb(22 27 34 / 0.18);
+  --mf-hachura: rgb(22 27 34 / 0.06);
+  --mf-veu: rgb(22 27 34 / 0.45);
 }
 
 [data-tema='escuro'] {
   color-scheme: dark;
 
-  --mf-mesa: #0f0b14;
-  --mf-papel: #18121f;
-  --mf-papel-2: #211929;
-  --mf-inverso: #ede8f3;
-  --mf-sobre-inverso: #18121f;
+  --mf-mesa: #0d1014;
+  --mf-papel: #151a20;
+  --mf-papel-2: #1c222a;
+  --mf-inverso: #e8ecf1;
+  --mf-sobre-inverso: #151a20;
 
-  --mf-tinta: #ede8f3;
-  --mf-tinta-2: #c0b7cc;
-  --mf-tinta-3: #988ea7;
+  --mf-tinta: #eef1f5;
+  --mf-tinta-2: #c3cad4;
+  --mf-tinta-3: #97a1ae;
 
-  --mf-fio: #3a3046;
-  --mf-fio-forte: #807492;
+  --mf-fio: #2b323c;
+  --mf-fio-forte: #6e7887;
 
-  --mf-marca: #c9a9f3;
-  --mf-marca-forte: #dcc6f8;
-  --mf-marca-suave: #2f2241;
-  --mf-sobre-marca: #1a1320;
-  --mf-foco: #c9a9f3;
+  --mf-marca: #ff6b7f;
+  --mf-marca-forte: #ff9aa8;
+  --mf-marca-suave: #3b1820;
+  --mf-sobre-marca: #1a0a0e;
+  --mf-foco: #ff6b7f;
 
-  --mf-rosa: #2b1623;
-  --mf-rosa-fio: #74395a;
-  --mf-rosa-tinta: #f2aec7;
+  --mf-rosa: #22161a;
+  --mf-rosa-fio: #5e2f39;
+  --mf-rosa-tinta: #ffb0bb;
 
-  --mf-carmim: #ff93b6;
-  --mf-carmim-suave: #3a1526;
+  --mf-carmim: #ff8a7a;
+  --mf-carmim-suave: #3a1714;
 
-  --mf-triagem-contorno: rgb(237 232 243 / 0.55);
+  --mf-triagem-contorno: rgb(238 241 245 / 0.55);
 
-  --mf-sombra: 0 0 0 1px var(--mf-fio-forte), 0 20px 48px -12px rgb(0 0 0 / 0.7);
-  --mf-hachura: rgb(237 232 243 / 0.12);
-  --mf-veu: rgb(0 0 0 / 0.7);
+  --mf-sombra: 0 0 0 1px var(--mf-fio), 0 20px 48px -12px rgb(0 0 0 / 0.7);
+  --mf-hachura: rgb(238 241 245 / 0.08);
+  --mf-veu: rgb(0 0 0 / 0.65);
 }
 
 /*
@@ -181,8 +182,8 @@
 
   --radius-*: initial;
   --radius-0: 0;
-  --radius-1: 2px; /* controles e etiquetas */
-  --radius-2: 3px; /* sobreposições */
+  --radius-1: 4px; /* controles e etiquetas */
+  --radius-2: 8px; /* sobreposições */
   --radius-marca: 999px; /* só marcas circulares de estado */
 
   --shadow-*: initial;

@@ -10,10 +10,8 @@ export function Marca({ className }: { className?: string }) {
   return (
     <span className={cx('mf-marca-nome', className)}>
       <svg viewBox="0 0 24 24" aria-hidden>
-        <rect x="7.5" y="2.5" width="14" height="17" fill="var(--mf-rosa)" stroke="var(--mf-rosa-fio)" />
-        <rect x="2.5" y="5.5" width="14" height="17" fill="var(--mf-papel)" stroke="currentColor" strokeWidth="1.5" />
-        <path d="M5.5 10.5h8M5.5 14h8" stroke="currentColor" strokeWidth="1.5" />
-        <circle cx="7" cy="18.5" r="1.75" fill="var(--mf-marca)" />
+        <rect x="1.5" y="1.5" width="21" height="21" rx="5" fill="var(--mf-marca)" />
+        <path d="M9.75 5.5h4.5v4.25h4.25v4.5h-4.25v4.25h-4.5v-4.25H5.5v-4.5h4.25z" fill="var(--mf-sobre-marca)" />
       </svg>
       MedicalField
     </span>

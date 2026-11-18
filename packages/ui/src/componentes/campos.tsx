@@ -317,6 +317,61 @@ export function SeletorSegmentado<T extends string>({
   );
 }
 
+/* ───────── Seletor em cartões (escolha única com ícone) ───────── */
+
+export interface OpcaoCartao<T extends string> {
+  valor: T;
+  /** Nome do rádio: o que o leitor de tela anuncia. */
+  titulo: string;
+  detalhe?: string;
+  icone: ReactNode;
+}
+
+export interface SeletorCartoesProps<T extends string> {
+  rotulo: string;
+  opcoes: ReadonlyArray<OpcaoCartao<T>>;
+  valor: T;
+  aoMudar: (valor: T) => void;
+  className?: string;
+}
+
+/** Poucas opções grandes (até 3 por linha), cada uma com ícone, título e detalhe. */
+export function SeletorCartoes<T extends string>({ rotulo, opcoes, valor, aoMudar, className }: SeletorCartoesProps<T>) {
+  const nome = useId();
+  return (
+    <fieldset className={cx('mf-cartoes', className)}>
+      <legend className="mf-cartoes__legenda">{rotulo}</legend>
+      <div className="mf-cartoes__grade">
+        {opcoes.map((opcao) => (
+          <label key={opcao.valor} className="mf-cartao">
+            <input
+              type="radio"
+              name={nome}
+              value={opcao.valor}
+              checked={valor === opcao.valor}
+              onChange={() => aoMudar(opcao.valor)}
+              aria-labelledby={`${nome}-${opcao.valor}`}
+              aria-describedby={opcao.detalhe ? `${nome}-${opcao.valor}-detalhe` : undefined}
+            />
+            <Check aria-hidden className="mf-cartao__marca" />
+            <span className="mf-cartao__icone" aria-hidden>
+              {opcao.icone}
+            </span>
+            <span id={`${nome}-${opcao.valor}`} className="mf-cartao__titulo">
+              {opcao.titulo}
+            </span>
+            {opcao.detalhe ? (
+              <span id={`${nome}-${opcao.valor}-detalhe`} className="mf-cartao__detalhe">
+                {opcao.detalhe}
+              </span>
+            ) : null}
+          </label>
+        ))}
+      </div>
+    </fieldset>
+  );
+}
+
 /* ───────── Checkbox e chave ───────── */
 
 export interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
