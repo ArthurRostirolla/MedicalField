@@ -17,7 +17,7 @@ export function Pacientes() {
   const termo = busca.trim();
 
   return (
-    <Casca titulo="Pacientes" atual="pacientes">
+    <Casca titulo="Pacientes">
       <CampoTexto
         rotulo="Buscar por nome ou CPF"
         inputMode="search"

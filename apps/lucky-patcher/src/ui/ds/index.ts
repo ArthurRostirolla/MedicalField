@@ -8,3 +8,4 @@ export * from './LinhaDoTempo.tsx';
 export * from './PainelPassagemDeCaso.tsx';
 export * from './tema.tsx';
 export * from './tokens.ts';
+export * from './movimento.tsx';

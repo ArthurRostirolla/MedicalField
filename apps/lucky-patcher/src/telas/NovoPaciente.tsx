@@ -1,12 +1,12 @@
 import type { TipoItem } from '@medicalfield/contratos';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ChevronDown, ChevronUp } from 'lucide-react-native';
+import { ChevronDown } from 'lucide-react-native';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { Animated, Pressable, View } from 'react-native';
 import { FORMULARIO_PESSOA_VAZIO, type FormularioPessoa } from '../dados/pessoas.ts';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useAvisar, useConsulta, useGravar } from '../ui/contexto.tsx';
-import { Botao, CampoArea, CampoTexto, EstadoErro, Esqueleto, Icone, MEDIDA, Mensagens, Rotulo, Select, SeletorSegmentado, Texto, useTema } from '../ui/ds/index.ts';
+import { Botao, CampoArea, CampoTexto, EstadoErro, Esqueleto, Icone, MEDIDA, Mensagens, Rotulo, Select, SeletorSegmentado, Entra, MOVIMENTO, NATIVO, Texto, useTema } from '../ui/ds/index.ts';
 
 const TIPOS_SANGUINEOS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'].map((tipo) => ({ valor: tipo, rotulo: tipo }));
 
@@ -23,6 +23,11 @@ export function Recolhivel({ titulo, aberto, children }: { titulo: string; abert
   const { cores } = useTema();
   const [mostrar, setMostrar] = useState(false);
   const visivel = mostrar || !!aberto;
+  const [giro] = useState(() => new Animated.Value(visivel ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(giro, { toValue: visivel ? 1 : 0, duration: 200, easing: MOVIMENTO, useNativeDriver: NATIVO }).start();
+  }, [visivel, giro]);
+  const rotate = giro.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] });
   return (
     <View>
       <Pressable
@@ -32,9 +37,11 @@ export function Recolhivel({ titulo, aberto, children }: { titulo: string; abert
         style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: MEDIDA.alvo, borderBottomWidth: 1, borderBottomColor: cores.fio }}
       >
         <Texto forte>{titulo}</Texto>
-        <Icone icone={visivel ? ChevronUp : ChevronDown} cor={cores.tinta2} />
+        <Animated.View style={{ transform: [{ rotate }] }}>
+          <Icone icone={ChevronDown} cor={cores.tinta2} />
+        </Animated.View>
       </Pressable>
-      {visivel ? <View style={{ gap: 16, paddingTop: 12 }}>{children}</View> : null}
+      {visivel ? <Entra style={{ gap: 16, paddingTop: 12 }}>{children}</Entra> : null}
     </View>
   );
 }
@@ -145,7 +152,7 @@ export function NovoPaciente() {
 
   const temErro = Object.keys(campos).length > 0;
   return (
-    <Casca titulo="Novo paciente" atual="pacientes" voltar={{ para: '/pacientes', rotulo: 'Pacientes' }}>
+    <Casca titulo="Novo paciente" voltar={{ para: '/pacientes', rotulo: 'Pacientes' }}>
       <View role="form" style={{ gap: 16 }}>
         <CamposCadastro
           formulario={formulario}
@@ -213,7 +220,7 @@ export function CorrigirPaciente() {
   }
 
   return (
-    <Casca titulo="Corrigir cadastro" subtitulo="Rejeitado pelo servidor" atual="pendencias" voltar={{ para: '/pendencias', rotulo: 'Pendências' }}>
+    <Casca titulo="Corrigir cadastro" subtitulo="Rejeitado pelo servidor" voltar={{ para: '/pendencias', rotulo: 'Pendências' }}>
       {pendencia.erro ? (
         <EstadoErro titulo="Não foi possível ler o banco local" descricao={pendencia.erro.message} aoTentarDeNovo={pendencia.recarregar} />
       ) : pendencia.dados === undefined ? (

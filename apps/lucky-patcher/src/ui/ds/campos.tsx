@@ -3,6 +3,7 @@ import { Check, Minus, Plus } from 'lucide-react-native';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Pressable, TextInput, View, type StyleProp, type TextInputProps, type ViewStyle } from 'react-native';
 import { Botao, Icone, Rotulo, Texto, estiloNumeral, type LucideIcon } from './base.tsx';
+import { Toque } from './movimento.tsx';
 import { Mensagens } from './mensagens.tsx';
 import { useEstilos, useTema } from './tema.tsx';
 import { MEDIDA } from './tokens.ts';
@@ -335,18 +336,18 @@ export function SeletorRapido({ rotulo, opcoes, valor, aoMudar, erro }: SeletorR
   }));
   const { cores } = useTema();
   const ficha = (chave: string, texto: string, marcada: boolean, aoTocar: () => void) => (
-    <Pressable
+    <Toque
       key={chave}
       role="radio"
       aria-checked={marcada}
       aria-label={texto}
       onPress={aoTocar}
-      style={({ pressed }) => [s.ficha, marcada && s.marcada, pressed && { transform: [{ scale: 0.97 }] }]}
+      style={[s.ficha, marcada && s.marcada]}
     >
       <Texto forte={marcada} style={{ color: marcada ? cores.marcaForte : cores.tinta }}>
         {texto}
       </Texto>
-    </Pressable>
+    </Toque>
   );
   return (
     <View style={{ gap: 6 }}>
@@ -420,13 +421,14 @@ export function SeletorCartoes<T extends string>({ rotulo, opcoes, valor, aoMuda
             </Texto>
           ) : null;
           return (
-            <Pressable
+            <Toque
               key={opcao.valor}
+              escala={0.98}
               role="radio"
               aria-checked={marcado}
               aria-label={opcao.titulo}
               onPress={() => aoMudar(opcao.valor)}
-              style={({ pressed }) => [s.cartao, empilhado ? s.linha : s.grade, marcado && s.marcado, pressed && { transform: [{ scale: 0.98 }] }]}
+              style={[s.cartao, empilhado ? s.linha : s.grade, marcado && s.marcado]}
             >
               {empilhado ? (
                 <>
@@ -447,7 +449,7 @@ export function SeletorCartoes<T extends string>({ rotulo, opcoes, valor, aoMuda
                   {detalhe}
                 </>
               )}
-            </Pressable>
+            </Toque>
           );
         })}
       </View>

@@ -1,11 +1,11 @@
 import { useRouter, type Href } from 'expo-router';
 import { ChevronRight, ClipboardPlus, RefreshCw } from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
-import { Pressable, View } from 'react-native';
+import { View } from 'react-native';
 import type { AtendimentoLocal } from '../dados/atendimentos.ts';
 import { Casca } from '../ui/Casca.tsx';
 import { useApp, useConectividade, useConsulta, useContagens, useMotor, useSessao } from '../ui/contexto.tsx';
-import { Botao, EstadoErro, EstadoVazio, Esqueleto, Icone, MEDIDA, Rotulo, SeloSync, Texto, Titulo, useTema, type EstadoSync } from '../ui/ds/index.ts';
+import { Botao, EstadoErro, EstadoVazio, Esqueleto, Icone, MEDIDA, Rotulo, SeloSync, Texto, Titulo, Toque, useTema, type EstadoSync } from '../ui/ds/index.ts';
 import { formatarMomento } from '../ui/formato.ts';
 
 /** Cabecalho de bloco: titulo + contagem a direita. */
@@ -24,8 +24,9 @@ export function LinhaLista({ para, titulo, apoio, envio }: { para: Href; titulo:
   const { cores } = useTema();
   return (
     <View role="listitem">
-      <Pressable
+      <Toque
         role="link"
+        escala={0.985}
         onPress={() => roteador.navigate(para)}
         style={({ pressed }) => ({
           flexDirection: 'row',
@@ -49,7 +50,7 @@ export function LinhaLista({ para, titulo, apoio, envio }: { para: Href; titulo:
         </View>
         {envio !== 'confirmado' ? <SeloSync estado={envio} /> : null}
         <Icone icone={ChevronRight} cor={cores.tinta3} />
-      </Pressable>
+      </Toque>
     </View>
   );
 }
@@ -114,7 +115,6 @@ export function Inicio() {
     <Casca
       titulo="Início"
       subtitulo={sessao ? `${sessao.profissional.nome} · ${sessao.profissional.tipoRegistro} ${sessao.profissional.registro}` : undefined}
-      atual="inicio"
     >
       <Botao variante="primario" largo icone={ClipboardPlus} onPress={() => roteador.navigate('/pacientes')}>
         Novo atendimento

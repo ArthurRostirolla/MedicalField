@@ -24,21 +24,21 @@ export function Passagem() {
   const voltar = { para: `/atendimentos/${atendimentoId}` as const, rotulo: 'Atendimento' };
   if (dados.erro) {
     return (
-      <Casca titulo="Passagem de caso" atual="inicio" voltar={voltar}>
+      <Casca titulo="Passagem de caso" voltar={voltar}>
         <EstadoErro titulo="Não foi possível ler o banco local" descricao={dados.erro.message} aoTentarDeNovo={dados.recarregar} />
       </Casca>
     );
   }
   if (dados.dados === undefined) {
     return (
-      <Casca titulo="Passagem de caso" atual="inicio" voltar={voltar}>
+      <Casca titulo="Passagem de caso" voltar={voltar}>
         <Esqueleto linhas={6} altura={40} />
       </Casca>
     );
   }
   if (dados.dados === null) {
     return (
-      <Casca titulo="Passagem de caso" atual="inicio" voltar={{ para: '/', rotulo: 'Início' }}>
+      <Casca titulo="Passagem de caso" voltar={{ para: '/', rotulo: 'Início' }}>
         <EstadoErro titulo="Atendimento não encontrado neste aparelho" />
       </Casca>
     );
@@ -54,7 +54,6 @@ export function Passagem() {
           início {formatarMomento(atendimento.iniciadoEm)}
         </Texto>
       }
-      atual="inicio"
       voltar={voltar}
     >
       <PainelPassagemDeCaso

@@ -1,15 +1,11 @@
 // Abertura do login: o simbolo aparece no centro, o nome sai de tras dele e a marca sobe para o lugar no topo.
-import { useEffect, useRef, useState, type ComponentRef, type ReactNode } from 'react';
-import { AccessibilityInfo, Animated, Easing, Platform, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { MarcaNome, MarcaSimbolo } from './ds/index.ts';
+import { useEffect, useRef, useState, type ComponentRef } from 'react';
+import { Animated, Pressable, StyleSheet, View } from 'react-native';
+import { MarcaNome, MarcaSimbolo, MOVIMENTO, movimentoReduzido, NATIVO, SAIDA } from './ds/index.ts';
 
-const NATIVO = Platform.OS !== 'web';
-const SAIDA = Easing.bezier(0.23, 1, 0.32, 1); // entradas
-const MOVIMENTO = Easing.bezier(0.77, 0, 0.175, 1); // algo que ja esta na tela muda de lugar
+export { Entra } from './ds/index.ts';
 const ESCALA = 2; // a marca no centro tem o dobro do tamanho da marca do topo
 const VAO = 8; // o gap da Marca
-
-const movimentoReduzido = () => AccessibilityInfo.isReduceMotionEnabled().catch(() => false);
 
 export interface AberturaProps {
   /** Onde a Marca de verdade esta, relativo ao mesmo pai da abertura. */
@@ -101,27 +97,6 @@ export function Abertura({ medirAlvo, aoTerminar }: AberturaProps) {
       </Animated.View>
     </Pressable>
   );
-}
-
-/** Entrada curta (220 ms, sobe 8 px), com atraso opcional para escalonar; nada com movimento reduzido. */
-export function Entra({ atraso = 0, children, style }: { atraso?: number; children: ReactNode; style?: StyleProp<ViewStyle> }) {
-  const [progresso] = useState(() => new Animated.Value(0));
-  useEffect(() => {
-    let vivo = true;
-    let animacao: Animated.CompositeAnimation | null = null;
-    void movimentoReduzido().then((reduzido) => {
-      if (!vivo) return;
-      if (reduzido) return progresso.setValue(1);
-      animacao = Animated.timing(progresso, { toValue: 1, duration: 220, delay: atraso, easing: SAIDA, useNativeDriver: NATIVO });
-      animacao.start();
-    });
-    return () => {
-      vivo = false;
-      animacao?.stop();
-    };
-  }, [progresso, atraso]);
-  const translateY = progresso.interpolate({ inputRange: [0, 1], outputRange: [8, 0] });
-  return <Animated.View style={[{ opacity: progresso, transform: [{ translateY }] }, style]}>{children}</Animated.View>;
 }
 
 /** Posicao de `alvo` relativa a `raiz`, em pixels de tela. */

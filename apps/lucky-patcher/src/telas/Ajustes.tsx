@@ -69,7 +69,7 @@ export function Ajustes() {
   const profissional = sessao?.profissional;
 
   return (
-    <Casca titulo="Ajustes" atual="ajustes">
+    <Casca titulo="Ajustes">
       <SeletorSegmentado
         rotulo="Tema"
         valor={preferencia}

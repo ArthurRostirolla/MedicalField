@@ -3,6 +3,7 @@
 import type { LucideIcon } from 'lucide-react-native';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, Text, View, type PressableProps, type StyleProp, type TextProps, type TextStyle, type ViewStyle } from 'react-native';
+import { Toque } from './movimento.tsx';
 import { useEstilos, useTema } from './tema.tsx';
 import { FONTE, MEDIDA } from './tokens.ts';
 
@@ -130,7 +131,7 @@ export function Botao({
       children
     );
   return (
-    <Pressable
+    <Toque
       {...resto}
       role="button"
       disabled={disabled}
@@ -149,7 +150,7 @@ export function Botao({
     >
       {carregando ? <ActivityIndicator color={corTexto} /> : icone ? <Icone icone={icone} cor={corTexto} /> : null}
       {conteudo}
-    </Pressable>
+    </Toque>
   );
 }
 

@@ -92,7 +92,7 @@ export function Pendencias() {
   }
 
   return (
-    <Casca titulo="Pendências" atual="pendencias">
+    <Casca titulo="Pendências">
       <View style={{ gap: 8 }}>
         <Botao
           variante="primario"

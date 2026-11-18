@@ -132,14 +132,14 @@ export function Prontuario() {
   const voltar = { para: '/pacientes' as const, rotulo: 'Pacientes' };
   if (dados.erro) {
     return (
-      <Casca titulo="Prontuário" atual="pacientes" voltar={voltar}>
+      <Casca titulo="Prontuário" voltar={voltar}>
         <EstadoErro titulo="Não foi possível ler o banco local" descricao={dados.erro.message} aoTentarDeNovo={dados.recarregar} />
       </Casca>
     );
   }
   if (!dados.dados) {
     return (
-      <Casca titulo="Prontuário" atual="pacientes" voltar={voltar}>
+      <Casca titulo="Prontuário" voltar={voltar}>
         <Esqueleto linhas={6} altura={40} />
       </Casca>
     );
@@ -147,7 +147,7 @@ export function Prontuario() {
   const { pessoa, prontuario, atendimentos } = dados.dados;
   if (!pessoa) {
     return (
-      <Casca titulo="Prontuário" atual="pacientes" voltar={voltar}>
+      <Casca titulo="Prontuário" voltar={voltar}>
         <EstadoErro titulo="Paciente não encontrado neste aparelho" descricao="O cadastro pode ter sido descartado. Volte e busque de novo." />
       </Casca>
     );
@@ -177,7 +177,6 @@ export function Prontuario() {
       titulo={pessoa.nome}
       subtitulo={`Prontuário${identificacaoCurta(pessoa) ? ` · ${identificacaoCurta(pessoa)}` : ''}`}
       acaoTopo={pessoa.envio !== 'confirmado' ? <SeloSync estado={pessoa.envio} /> : undefined}
-      atual="pacientes"
       voltar={voltar}
     >
       {abertos.length > 0 ? (

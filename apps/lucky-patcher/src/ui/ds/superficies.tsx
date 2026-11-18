@@ -5,6 +5,7 @@ import { Modal, Pressable, ScrollView, View, type DimensionValue, type StyleProp
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { Botao, Icone, Rotulo, Texto, Titulo, type LucideIcon } from './base.tsx';
+import { Entra } from './movimento.tsx';
 import { useEstilos, useTema } from './tema.tsx';
 import { MEDIDA } from './tokens.ts';
 
@@ -194,9 +195,10 @@ export function PilhaToasts({ toasts, aoDispensar }: { toasts: ToastNaPilha[]; a
       style={{ position: 'absolute', left: 0, right: 0, bottom: margens.bottom + 88, paddingHorizontal: MEDIDA.recuo, gap: 8, alignItems: 'center' }}
     >
       {toasts.map(({ id, ...toast }) => (
-        <View key={id} style={{ width: '100%', maxWidth: 560 }}>
+        // Sobe de onde fica (embaixo). ponytail: some sem animacao; saida entra junto com dispensar por arrasto.
+        <Entra key={id} style={{ width: '100%', maxWidth: 560 }}>
           <Toast {...toast} aoFechar={() => aoDispensar(id)} />
-        </View>
+        </Entra>
       ))}
     </View>
   );

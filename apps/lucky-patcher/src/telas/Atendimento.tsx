@@ -85,21 +85,21 @@ export function Atendimento() {
   const voltar = { para: '/' as const, rotulo: 'Início' };
   if (dados.erro) {
     return (
-      <Casca titulo="Atendimento" atual="inicio" voltar={voltar}>
+      <Casca titulo="Atendimento" voltar={voltar}>
         <EstadoErro titulo="Não foi possível ler o banco local" descricao={dados.erro.message} aoTentarDeNovo={dados.recarregar} />
       </Casca>
     );
   }
   if (dados.dados === undefined) {
     return (
-      <Casca titulo="Atendimento" atual="inicio" voltar={voltar}>
+      <Casca titulo="Atendimento" voltar={voltar}>
         <Esqueleto linhas={6} altura={40} />
       </Casca>
     );
   }
   if (dados.dados === null) {
     return (
-      <Casca titulo="Atendimento" atual="inicio" voltar={voltar}>
+      <Casca titulo="Atendimento" voltar={voltar}>
         <EstadoErro titulo="Atendimento não encontrado neste aparelho" descricao="Ele pode ter sido descartado nas pendências. Volte ao início." />
       </Casca>
     );
@@ -146,7 +146,6 @@ export function Atendimento() {
           Passagem de caso
         </Botao>
       }
-      atual="inicio"
       voltar={voltar}
     >
       <View style={s.bloco}>
