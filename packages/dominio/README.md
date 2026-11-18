@@ -10,7 +10,7 @@ Funções puras (sem I/O), usadas igualmente pela DonaCida, pelo portal e pelo a
 
 Regras de `calcularResumo`:
 
-- evento apontado por uma `RETIFICACAO` deixa de contar em todas as seções (últimos sinais vitais, Glasgow, triagem, medicações, procedimentos, encerramento);
+- evento retificado COM `dadosCorrigidos` aparece com os valores corrigidos sobre os originais; SEM `dadosCorrigidos`, deixa de contar em todas as seções (últimos sinais vitais, Glasgow, triagem, medicações, procedimentos, encerramento);
 - item de prontuário inativado não entra;
 - aceita tanto o `Evento` vindo do servidor quanto o evento local ainda não sincronizado (só usa `id`, `tipo`, `ocorridoEm`, `dados`, `retificaEventoId`).
 
