@@ -1,0 +1,96 @@
+/* O design system já traz o Tailwind v4, as fontes, os tokens e os componentes. */
+@import '@medicalfield/ui/estilos.css';
+@source './';
+
+/* O que é só do portal. Tudo com os tokens do design system; nenhuma cor nova. */
+@layer components {
+  .bp-titulo-pagina {
+    margin-bottom: 0;
+    font-size: var(--text-titulo-1);
+    line-height: var(--text-titulo-1--line-height);
+    font-weight: 780;
+    font-stretch: 86%;
+    text-wrap: balance;
+  }
+
+  /* Pauta: linhas de ficha, uma afirmação por linha. */
+  .bp-pauta {
+    margin-bottom: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 2px solid var(--mf-tinta);
+    max-width: 30rem;
+  }
+  .bp-pauta li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--mf-fio);
+    color: var(--mf-tinta-2);
+  }
+
+  .bp-campos {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .bp-campos > .bp-leitura {
+    flex: 1 1 var(--bp-minimo, 13rem);
+    min-width: min(100%, var(--bp-minimo, 13rem));
+  }
+  .bp-campos > .bp-campos__largo {
+    flex-basis: 100%;
+  }
+
+  /* Tabela larga: a rolagem lateral fica na região focável do portal, não na interna. */
+  .bp-rolagem {
+    overflow-x: auto;
+    scrollbar-color: var(--mf-fio-forte) transparent;
+  }
+  .bp-rolagem > .mf-tabela-rolagem {
+    overflow: visible;
+  }
+  .bp-rolagem:focus-visible {
+    outline-offset: -3px;
+  }
+
+  /* Campo só de leitura: mesma caixa do campo da ficha, sem reagir como entrada. */
+  .mf-campo__caixa.bp-leitura:hover {
+    border-color: var(--mf-fio-forte);
+  }
+  .bp-leitura > .mf-rotulo {
+    cursor: default;
+  }
+  .bp-leitura > dd {
+    grid-column: 1 / -1;
+    margin: 0;
+    min-height: 1.25rem;
+    overflow-wrap: anywhere;
+  }
+
+  /* Veredito da verificação de documento: a afirmação vem antes dos metadados. */
+  .bp-veredito {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem;
+    border: 2px solid var(--mf-tinta);
+    background-color: var(--mf-papel);
+  }
+  .bp-veredito > svg {
+    flex: none;
+    width: 2rem;
+    height: 2rem;
+  }
+  .bp-veredito__titulo {
+    margin: 0 0 0.25rem;
+    font-size: var(--text-titulo-2);
+    line-height: var(--text-titulo-2--line-height);
+    font-weight: 780;
+    font-stretch: 80%;
+  }
+  .bp-veredito[data-integro='false'] {
+    border-color: var(--mf-carmim);
+    background-color: var(--mf-carmim-suave);
+  }
+  .bp-veredito[data-integro='false'] > svg,
+  .bp-veredito[data-integro='false'] .bp-veredito__titulo {
+    color: var(--mf-carmim);
+  }
+}

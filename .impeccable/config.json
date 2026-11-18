@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "archivo",
+        "createdAt": "2026-11-18T01:29:35.312Z",
+        "reason": "agente principal: DESIGN.md declara 'Archivo Variable' (nome do fontsource); no PDF a mesma familia e instalada no sistema com o nome 'Archivo'"
+      }
+    ]
+  }
+}
