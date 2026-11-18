@@ -1,3 +1,5 @@
+// Migracao 001. SQL em string porque o Metro nao importa .sql.
+export default `
 -- Banco local do app (plano arquitetural, F.2). Espelhos das tabelas centrais + estado_sync,
 -- outbox (padrao Command), log_local e sync_estado. Um comando por ponto-e-virgula no fim da linha.
 
@@ -84,7 +86,7 @@ CREATE TABLE atendimento_evento (
 );
 CREATE INDEX atendimento_evento_atendimento ON atendimento_evento (atendimento_id);
 
--- Um comando serializavel por linha. op_id = Idempotency-Key. `ordem` e a ordem de envio.
+-- Um comando serializavel por linha. op_id = Idempotency-Key. "ordem" e a ordem de envio.
 -- entidade/entidade_id dizem a que linha local o comando se refere; depende_de ('tabela:id')
 -- aponta a entidade que precisa existir no servidor antes (rejeitada => este fica retido).
 CREATE TABLE outbox (
@@ -126,3 +128,4 @@ CREATE TABLE sync_estado (
   chave TEXT PRIMARY KEY,
   valor TEXT NOT NULL
 );
+`;

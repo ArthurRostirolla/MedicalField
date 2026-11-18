@@ -1,5 +1,5 @@
 // Porta do banco local (padrao Adapter): a mesma logica roda sobre SQLite WASM/OPFS no navegador,
-// sobre o plugin nativo (SQLCipher) no Android e sobre SQLite em memoria nos testes.
+// sobre expo-sqlite (SQLCipher) no aparelho (Android/iOS) e sobre SQLite em memoria nos testes.
 
 export type Parametro = string | number | null;
 export interface ComandoSql {
@@ -11,7 +11,7 @@ export interface ExecutorSql {
   consultar<T = Record<string, unknown>>(sql: string, params?: Parametro[]): Promise<T[]>;
   /**
    * Consulta que NAO pode escrever. No SQLite WASM o proprio banco recusa (`PRAGMA query_only`);
-   * no Android vale o caminho de leitura do plugin. So a porta de diagnostico usa.
+   * no aparelho, uma conexao separada com `PRAGMA query_only`. So a porta de diagnostico usa.
    */
   consultarSomenteLeitura<T = Record<string, unknown>>(sql: string, params?: Parametro[]): Promise<T[]>;
   /** Executa o lote em UMA transacao: ou tudo entra, ou nada. Rejeita se qualquer comando falhar. */

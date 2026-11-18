@@ -1,8 +1,9 @@
 // Adaptador web do ExecutorSql: conversa com o Worker que e dono do SQLite/OPFS.
+// O Metro nao empacota Workers: scripts/worker.mjs compila sqlite.worker.ts para public/.
 import { ErroBancoLocal, type ComandoSql, type ExecutorSql, type Parametro } from './executor.ts';
 
 export async function abrirExecutorWeb(): Promise<ExecutorSql> {
-  const worker = new Worker(new URL('./sqlite.worker.ts', import.meta.url), { type: 'module' });
+  const worker = new Worker(`${process.env.EXPO_BASE_URL ?? ''}/sqlite.worker.js`, { type: 'module' });
   let proximoId = 1;
   const esperas = new Map<number, { resolver: (v: unknown) => void; rejeitar: (e: Error) => void }>();
 
