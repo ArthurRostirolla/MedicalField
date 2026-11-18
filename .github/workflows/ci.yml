@@ -48,12 +48,16 @@ jobs:
           cache-dependency-path: apps/jaiminho/pyproject.toml
       - name: Bibliotecas do WeasyPrint
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libharfbuzz-subset0 fonts-lato fonts-dejavu-core
-      - name: Banco de desenvolvimento
+      - name: Banco de teste
         run: |
           scripts/dev-db.sh subir
-          scripts/dev-db.sh migrar
+          scripts/dev-db.sh criar-banco mf_teste_jaiminho
+          scripts/dev-db.sh migrar mf_teste_jaiminho
       - name: Lint e testes
         working-directory: apps/jaiminho
+        env:
+          TESTE_DATABASE_URL: postgresql://mf_jaiminho:dev_jaiminho@localhost:5544/mf_teste_jaiminho
+          TESTE_DATABASE_URL_ADMIN: postgresql://postgres:dev_admin@localhost:5544/mf_teste_jaiminho
         run: |
           pip install -e ".[dev]"
           ruff check .
@@ -73,10 +77,11 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Banco de desenvolvimento
+      - name: Banco de teste da DonaCida
         run: |
           scripts/dev-db.sh subir
-          scripts/dev-db.sh migrar
+          scripts/dev-db.sh criar-banco mf_teste_cida
+          scripts/dev-db.sh migrar mf_teste_cida
       - run: npm run typecheck --if-present $WORKSPACES
       - run: npm test --if-present $WORKSPACES
 

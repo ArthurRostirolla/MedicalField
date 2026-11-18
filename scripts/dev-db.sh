@@ -56,7 +56,8 @@ case "${1:-}" in
     else
       docker start "$CONTAINER" >/dev/null
     fi
-    until docker exec "$CONTAINER" pg_isready -U postgres -q; do sleep 1; done
+    # Por TCP: durante o initdb o servidor temporario so escuta no socket e reinicia logo depois.
+    until docker exec "$CONTAINER" pg_isready -h 127.0.0.1 -U postgres -q; do sleep 1; done
     criar_papeis
     criar_banco "$BANCO_PADRAO"
     echo "Postgres de desenvolvimento em localhost:$PORTA (banco $BANCO_PADRAO)"
