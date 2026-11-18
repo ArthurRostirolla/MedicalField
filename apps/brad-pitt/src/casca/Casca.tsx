@@ -1,5 +1,5 @@
 import { aplicarTema, Botao, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
-import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, Users } from 'lucide-react';
+import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, UserRound, Users } from 'lucide-react';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { Outlet, useHref, useLocation, useNavigate } from 'react-router';
 import { sair } from '../api/cliente';
@@ -8,6 +8,7 @@ import { lerTema, salvarTema } from './tema';
 
 const TITULOS: Record<string, string> = {
   atendimentos: 'Atendimentos',
+  pacientes: 'Pacientes',
   prontuarios: 'Prontuários',
   medicamentos: 'Medicamentos',
   acessos: 'Logs de acesso',
@@ -17,7 +18,7 @@ const TITULOS: Record<string, string> = {
 };
 
 /** Telas de criação: o índice continua marcando a seção, o título diz o que se faz. */
-const NOVOS: Record<string, string> = { atendimentos: 'Novo atendimento', prontuarios: 'Novo paciente' };
+const NOVOS: Record<string, string> = { atendimentos: 'Novo atendimento', pacientes: 'Novo paciente' };
 
 const PAPEL = { ADMIN: 'Administração', PROFISSIONAL: 'Profissional' } as const;
 
@@ -40,6 +41,7 @@ export function Casca() {
 
   const itens: ItemNavegacao[] = [
     { id: 'atendimentos', rotulo: 'Atendimentos', icone: <ClipboardList aria-hidden />, href: href('/atendimentos'), grupo: 'Clínico' },
+    { id: 'pacientes', rotulo: 'Pacientes', icone: <UserRound aria-hidden />, href: href('/pacientes') },
     { id: 'prontuarios', rotulo: 'Prontuários', icone: <FileText aria-hidden />, href: href('/prontuarios') },
     { id: 'medicamentos', rotulo: 'Medicamentos', icone: <Pill aria-hidden />, href: href('/medicamentos') },
     // Auditoria só existe para ADMIN: o PROFISSIONAL não vê os itens.

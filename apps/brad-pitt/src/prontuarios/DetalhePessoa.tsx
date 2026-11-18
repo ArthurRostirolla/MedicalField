@@ -3,7 +3,7 @@ import { Botao, Esqueleto, EstadoErro, EstadoVazio, Etiqueta, Secao, Tabela, typ
 import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { ArrowLeft, ClipboardList, ClipboardPlus } from 'lucide-react';
-import { Link, useNavigate, useParams } from 'react-router';
+import { Link, useLocation, useNavigate, useParams } from 'react-router';
 import { ErroApi } from '../api/cliente';
 import { listarAtendimentosDaPessoa, obterPessoa, obterProntuario } from '../api/recursos';
 import { COLUNAS_ATENDIMENTO } from '../atendimentos/TelaAtendimentos';
@@ -43,6 +43,8 @@ const COLUNAS_ITEM: Coluna<ProntuarioItem>[] = [
 export function DetalhePessoa() {
   const { pessoaId = '' } = useParams();
   const navegar = useNavigate();
+  // A mesma página serve às duas seções; o voltar respeita por onde se chegou.
+  const secao = useLocation().pathname.startsWith('/pacientes') ? { para: '/pacientes', rotulo: 'Pacientes' } : { para: '/prontuarios', rotulo: 'Prontuários' };
   const pessoa = useQuery({ queryKey: ['pessoa', pessoaId], queryFn: () => obterPessoa(pessoaId) });
   const prontuario = useQuery({
     queryKey: ['prontuario', pessoaId],
@@ -55,9 +57,9 @@ export function DetalhePessoa() {
   );
 
   const voltar = (
-    <Link to="/prontuarios" className="mf-botao mf-botao--fantasma justify-self-start">
+    <Link to={secao.para} className="mf-botao mf-botao--fantasma justify-self-start">
       <ArrowLeft aria-hidden />
-      Prontuários
+      {secao.rotulo}
     </Link>
   );
 

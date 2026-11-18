@@ -44,7 +44,7 @@ describe('Novo atendimento e novo paciente', () => {
       if (c.caminho === '/prontuario' && c.metodo === 'POST') return json({ ...f.prontuario, itens: [] }, 201);
       return undefined;
     });
-    montar('/prontuarios/novo', CAIO);
+    montar('/pacientes/novo', CAIO);
     await userEvent.click(await screen.findByRole('button', { name: 'Só salvar o cadastro' }));
     expect(await screen.findByText(/informe o nome/)).toBeInTheDocument();
 
@@ -79,6 +79,21 @@ describe('Novo atendimento e novo paciente', () => {
     expect(para('/atendimento', 'POST')[0]?.corpo).toMatchObject({ pessoaId: f.pessoa.id, localDescricao: 'Rua A, 10' });
   });
 
+  it('Pacientes lista todo cadastro, busca por nome e oferece cadastrar o que não achou', async () => {
+    const f = ficha();
+    const { para } = simularApi((c) => {
+      if (c.caminho !== '/pessoa' || c.metodo !== 'GET') return undefined;
+      return json({ itens: c.consulta.get('busca') ? [] : [f.pessoa], proximoCursor: null });
+    });
+    montar('/pacientes', CAIO);
+    expect(await screen.findByText(f.pessoa.nome)).toBeInTheDocument();
+    expect(para('/pessoa')[0]?.consulta.has('busca')).toBe(false);
+
+    await userEvent.type(screen.getByLabelText('Buscar por nome ou CPF'), 'Zé');
+    expect(await screen.findByRole('link', { name: 'Cadastrar “Zé”' })).toHaveAttribute('href', `/pacientes/novo?nome=${encodeURIComponent('Zé')}`);
+    expect(para('/pessoa').at(-1)?.consulta.get('busca')).toBe('Zé');
+  });
+
   it('no prontuário: item acrescentado e inativado viram POSTs', async () => {
     const f = ficha();
     const item = { id: f.prontuario.id.replace(/.$/, '9'), prontuarioId: f.prontuario.id, pessoaId: f.pessoa.id, tipo: 'ALERGIA', descricao: 'Látex', registradoPor: null, registradoEm: '2026-03-21T12:00:00.000Z', inativadoEm: null };
@@ -90,7 +105,7 @@ describe('Novo atendimento e novo paciente', () => {
       if (c.caminho === `/prontuario-item/${item.id}/inativacao`) return json({ ...item, inativadoEm: '2026-11-18T12:00:00.000Z' });
       return undefined;
     });
-    montar(`/prontuarios/${f.pessoa.id}`, CAIO);
+    montar(`/pacientes/${f.pessoa.id}`, CAIO);
     expect(await screen.findByRole('link', { name: 'Novo atendimento' })).toHaveAttribute('href', `/atendimentos/novo?pessoa=${f.pessoa.id}`);
 
     await userEvent.type(await screen.findByLabelText('Descrição'), 'Dipirona');

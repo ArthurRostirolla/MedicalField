@@ -12,7 +12,8 @@ import { ProvedorAvisos } from './comum/avisos';
 import { TelaVerificacao } from './documentos/TelaVerificacao';
 import { TelaMedicamentos } from './medicamentos/TelaMedicamentos';
 import { DetalhePessoa } from './prontuarios/DetalhePessoa';
-import { TelaNovoPaciente } from './prontuarios/NovoPaciente';
+import { TelaNovoPaciente } from './pacientes/NovoPaciente';
+import { TelaPacientes } from './pacientes/TelaPacientes';
 import { TelaProntuarios } from './prontuarios/TelaProntuarios';
 import { TelaNovoProfissional } from './profissionais/TelaNovoProfissional';
 import { RequerAdmin, RequerSessao, useSessao } from './sessao/sessao';
@@ -40,8 +41,10 @@ export function Rotas() {
           <Route index element={<Navigate to="/atendimentos" replace />} />
           <Route path="/atendimentos/novo" element={<TelaNovoAtendimento />} />
           <Route path="/atendimentos/:id?" element={<TelaAtendimentos />} />
+          <Route path="/pacientes" element={<TelaPacientes />} />
+          <Route path="/pacientes/novo" element={<TelaNovoPaciente />} />
+          <Route path="/pacientes/:pessoaId" element={<DetalhePessoa />} />
           <Route path="/prontuarios" element={<TelaProntuarios />} />
-          <Route path="/prontuarios/novo" element={<TelaNovoPaciente />} />
           <Route path="/prontuarios/:pessoaId" element={<DetalhePessoa />} />
           <Route path="/medicamentos" element={<TelaMedicamentos />} />
           <Route path="/documentos/:id" element={<TelaVerificacao />} />

@@ -1,7 +1,7 @@
 // Tela de novo atendimento, como no app: primeiro o paciente (buscar ou cadastrar), depois queixa e local.
 // O paciente escolhido fica na URL (?pessoa=), então voltar e recarregar não perdem o passo.
-import { atendimentoEntradaSchema, type Pessoa } from '@medicalfield/contratos';
-import { Botao, CampoTexto, EstadoErro, EstadoVazio, Esqueleto, Etiqueta, Secao, type Coluna } from '@medicalfield/ui';
+import { atendimentoEntradaSchema } from '@medicalfield/contratos';
+import { Botao, CampoTexto, EstadoErro, EstadoVazio, Esqueleto, Secao } from '@medicalfield/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, CircleAlert, ClipboardPlus, UserPlus, UserRoundX, Users } from 'lucide-react';
 import { useDeferredValue, useState, type FormEvent } from 'react';
@@ -10,34 +10,10 @@ import { buscarPessoas, obterPessoa, obterProntuario, registrarAtendimento } fro
 import { CampoLeitura, CamposLeitura } from '../comum/CamposLeitura';
 import { useAvisar } from '../comum/avisos';
 import { FolhaLista } from '../comum/FolhaLista';
-import { descreverErro, formatarCpf, formatarData, formatarDataHora, idadeEm } from '../comum/formato';
+import { descreverErro, formatarCpf, formatarData, idadeEm } from '../comum/formato';
 import { useListaPorCursor } from '../comum/paginacao';
+import { COLUNAS_PACIENTE } from '../pacientes/TelaPacientes';
 
-const COLUNAS: Coluna<Pessoa>[] = [
-  {
-    id: 'pessoa',
-    titulo: 'Paciente',
-    quebra: true,
-    celula: (p) => (
-      <span className="flex flex-wrap items-center gap-2">
-        <strong className="font-[650]">{p.nome}</strong>
-        {p.naoIdentificada ? <Etiqueta>Não identificada</Etiqueta> : null}
-      </span>
-    ),
-  },
-  { id: 'nascimento', titulo: 'Nascimento', celula: (p) => <span className="mf-dado">{formatarData(p.dataNascimento)}</span> },
-  { id: 'cpf', titulo: 'CPF', celula: (p) => <span className="mf-dado">{formatarCpf(p.cpf)}</span> },
-  {
-    id: 'atualizado',
-    titulo: 'Atualizado',
-    alinhar: 'fim',
-    celula: (p) => (
-      <time className="mf-dado" dateTime={p.atualizadoEm}>
-        {formatarDataHora(p.atualizadoEm)}
-      </time>
-    ),
-  },
-];
 
 /** Duas colunas quando cabem; uma no celular (mesmo padrão dos filtros dos logs). */
 const GRADE = { gridTemplateColumns: 'repeat(auto-fit, minmax(min(16rem, 100%), 1fr))' };
@@ -62,7 +38,7 @@ function EscolherPaciente() {
   const [texto, setTexto] = useState('');
   const busca = useDeferredValue(texto.trim());
   const lista = useListaPorCursor(['pessoas', busca], (cursor) => buscarPessoas(busca, { limite: 20, cursor }));
-  const novo = busca ? `/prontuarios/novo?de=atendimento&nome=${encodeURIComponent(busca)}` : '/prontuarios/novo?de=atendimento';
+  const novo = busca ? `/pacientes/novo?de=atendimento&nome=${encodeURIComponent(busca)}` : '/pacientes/novo?de=atendimento';
 
   return (
     <FolhaLista
@@ -71,7 +47,7 @@ function EscolherPaciente() {
       plural="pacientes"
       acoes={
         <>
-          <Link to="/prontuarios/novo?de=atendimento&naoIdentificado=1" className="mf-botao">
+          <Link to="/pacientes/novo?de=atendimento&naoIdentificado=1" className="mf-botao">
             <UserRoundX aria-hidden />
             Não identificado
           </Link>
@@ -87,7 +63,7 @@ function EscolherPaciente() {
         </form>
       }
       lista={lista}
-      colunas={COLUNAS}
+      colunas={COLUNAS_PACIENTE}
       chave={(p) => p.id}
       aoSelecionar={(p) => void navegar(`/atendimentos/novo?pessoa=${p.id}`)}
       vazio={
@@ -206,8 +182,8 @@ function DadosDoAtendimento({ pessoaId }: { pessoaId: string }) {
             </p>
           ) : null}
           <div className="flex flex-wrap justify-end gap-2">
-            <Link to={`/prontuarios/${pessoaId}`} className="mf-botao">
-              Abrir prontuário
+            <Link to={`/pacientes/${pessoaId}`} className="mf-botao">
+              Ver paciente
             </Link>
             <Botao type="submit" variante="primario" icone={<ClipboardPlus aria-hidden />} carregando={criacao.isPending}>
               Abrir atendimento

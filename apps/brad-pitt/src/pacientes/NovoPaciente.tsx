@@ -137,7 +137,7 @@ export function TelaNovoPaciente() {
     onSuccess: ({ nome, comAtendimento }) => {
       for (const chave of ['prontuarios', 'pessoas', 'atendimentos']) void consultas.invalidateQueries({ queryKey: [chave] });
       avisar({ tom: 'sucesso', titulo: comAtendimento ? 'Paciente cadastrado e atendimento aberto' : 'Paciente cadastrado', descricao: nome });
-      void navegar(comAtendimento ? `/atendimentos/${ids.atendimento}` : `/prontuarios/${ids.pessoa}`, { replace: true });
+      void navegar(comAtendimento ? `/atendimentos/${ids.atendimento}` : `/pacientes/${ids.pessoa}`, { replace: true });
     },
     onError: (erro) => {
       if (erro instanceof CamposRecusados) return setErros(erro.campos);
@@ -157,7 +157,7 @@ export function TelaNovoPaciente() {
     gravacao.mutate(comAtendimento);
   }
 
-  const voltar = parametros.get('de') === 'atendimento' ? { para: '/atendimentos/novo', rotulo: 'Novo atendimento' } : { para: '/prontuarios', rotulo: 'Prontuários' };
+  const voltar = parametros.get('de') === 'atendimento' ? { para: '/atendimentos/novo', rotulo: 'Novo atendimento' } : { para: '/pacientes', rotulo: 'Pacientes' };
   const temErro = Object.keys(erros).length > 0;
 
   return (
