@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from jaiminho.http.erros import registrar_tratadores
 from jaiminho.http.middlewares import (
     AutenticacaoMiddleware,
+    LimiteCorpoMiddleware,
     LogAcessoMiddleware,
     RegistroAcesso,
     RequestIdMiddleware,
@@ -40,6 +41,8 @@ def criar_app(
     # add_middleware empilha: o último adicionado é o mais externo.
     # Ordem de execução: request-id -> log de acesso -> autenticação -> handler.
     app.add_middleware(AutenticacaoMiddleware, validador=validador)
+    # O teto de corpo fica dentro do log (a recusa é registrada) e antes da autenticação.
+    app.add_middleware(LimiteCorpoMiddleware)
     app.add_middleware(LogAcessoMiddleware, registro=registro_acesso, proxies=proxies_confiaveis, rotas=rotas.routes)
     app.add_middleware(RequestIdMiddleware)
     return app

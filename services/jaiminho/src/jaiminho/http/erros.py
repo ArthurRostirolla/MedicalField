@@ -32,6 +32,7 @@ _POR_STATUS = {
     403: ("SEM_PERMISSAO", "Sem permissão"),
     404: ("NAO_ENCONTRADO", "Recurso não encontrado"),
     405: ("VALIDACAO", "Método não permitido para esta rota"),
+    413: ("VALIDACAO", "Corpo da requisição acima do limite"),
     422: ("VALIDACAO", "Requisição inválida"),
     503: ("SERVICO_INDISPONIVEL", "Serviço indisponível"),
 }

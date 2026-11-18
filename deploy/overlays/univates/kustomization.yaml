@@ -38,6 +38,8 @@ configMapGenerator:
       - URL_PUBLICA_PORTAL=https://host-publico.exemplo.invalid/portal # TROCAR
       # SMTP: o padrao e o Mailpit do cluster (contingencia do passo 17). Para SMTP externo,
       # descomente e ajuste; usuario e senha vao no Secret (deploy/secrets.env -> criar-secrets.sh).
+      # ATENCAO: com usuario/senha de SMTP no Secret, o Jaiminho so sobe com SMTP_SEGURANCA
+      # starttls ou tls (ele recusa enviar credencial sem criptografia).
       # - SMTP_HOST=smtp.gmail.com
       # - SMTP_PORTA=587
       # - SMTP_SEGURANCA=starttls

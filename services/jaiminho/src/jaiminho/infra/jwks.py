@@ -71,6 +71,9 @@ class ValidadorToken:
         return agora > self._valido_ate or desconhecido
 
     async def _buscar(self) -> None:
+        # Sem cache e com o Mike fora: uma busca a cada INTERVALO_MINIMO, não uma por requisição.
+        if not self._chaves and time.monotonic() - self._tentado_em <= INTERVALO_MINIMO_SEGUNDOS:
+            raise ServicoIndisponivel("Serviço de identidade indisponível")
         self._tentado_em = time.monotonic()
         try:
             resposta = await self._cliente.get(self._url)

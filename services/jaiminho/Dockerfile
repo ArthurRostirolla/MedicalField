@@ -20,11 +20,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Dependências em camada própria: só reinstala quando o pyproject muda.
-COPY pyproject.toml ./
-RUN mkdir -p src/jaiminho && touch src/jaiminho/__init__.py \
- && pip install --no-cache-dir . \
- && pip uninstall -y jaiminho
+# Dependências travadas: versões e sha256 de requirements.lock (gerado do pyproject.toml, ver README).
+# --require-hashes recusa qualquer pacote fora do lock ou com hash diferente.
+COPY requirements.lock ./
+RUN pip install --no-cache-dir --require-hashes -r requirements.lock
 
 # Archivo + Martian Mono (SIL OFL 1.1), as famílias do design system (DESIGN.md), embutidas na imagem:
 # nada é baixado em tempo de execução. Fontes variáveis (eixos wght e wdth) do repositório google/fonts,
@@ -40,12 +39,14 @@ RUN chmod 755 /usr/share/fonts/truetype/medicalfield && fc-cache -f
 RUN su -s /bin/sh nobody -c "fc-list" | grep -q "Archivo" && su -s /bin/sh nobody -c "fc-list" | grep -q "Martian Mono"
 
 FROM base AS dev
-RUN pip install --no-cache-dir ".[dev]" && pip uninstall -y jaiminho
+COPY requirements-dev.lock ./
+RUN pip install --no-cache-dir --require-hashes -r requirements-dev.lock
 CMD ["pytest"]
 
 FROM base AS final
+# O código entra por PYTHONPATH: nada é construído nem baixado depois do lock.
 COPY src ./src
-RUN pip install --no-cache-dir --no-deps . && rm -rf src pyproject.toml
+ENV PYTHONPATH=/app/src
 USER 10001:10001
 EXPOSE 8080 9090
 CMD ["python", "-m", "jaiminho"]

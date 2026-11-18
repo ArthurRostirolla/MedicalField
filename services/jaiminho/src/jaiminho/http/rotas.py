@@ -58,7 +58,7 @@ class EnvioEntrada(_Dto):
     def _nome(cls, valor: str) -> str:
         valor = valor.strip()
         # Quebra de linha em nome vira injeção de cabeçalho no e-mail.
-        if not valor or any(ord(letra) < 32 for letra in valor):
+        if not valor or not valor.isprintable():
             raise ValueError("nome inválido")
         return valor
 
@@ -66,7 +66,8 @@ class EnvioEntrada(_Dto):
     @classmethod
     def _email(cls, valor: str) -> str:
         valor = valor.strip()
-        if not _EMAIL.match(valor) or not valor.isascii():
+        # isprintable barra todo caractere de controle (NUL, ESC, DEL...), não só CR/LF.
+        if not _EMAIL.match(valor) or not valor.isascii() or not valor.isprintable():
             raise ValueError("e-mail inválido")
         return valor
 
@@ -152,7 +153,8 @@ def criar_rotas(documentos: DocumentosUseCases, envios: EnviosUseCases) -> APIRo
 
     @rotas.get("", response_model=ListaDocumentos, summary="Documentos de um atendimento")
     async def listar(atendimento_id: Annotated[UUID, Query(alias="atendimentoId")]) -> dict[str, Any]:
-        return {"itens": await documentos.listar(atendimento_id)}
+        # Sem paginação (poucos documentos por atendimento): o cursor vai explícito e sempre nulo.
+        return {"itens": await documentos.listar(atendimento_id), "proximo_cursor": None}
 
     @rotas.get("/{id}", response_model=DocumentoComIntegridade, summary="Metadados e integridade")
     async def obter(id: UUID) -> Documento:

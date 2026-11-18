@@ -71,6 +71,25 @@ JWKS falsos servidos por HTTP de verdade e o SMTP falso. Outros comandos, na ima
 `python scripts/exportar_openapi.py` (regrava `openapi.yaml`) e `python exemplos/gerar_exemplo.py
 [--enviar host:porta]` (regrava o PDF de exemplo e, opcionalmente, envia por SMTP).
 
+## Dependências travadas
+
+`pyproject.toml` declara as faixas; `requirements.lock` (execução) e `requirements-dev.lock` (com pytest e ruff)
+fixam versão e sha256 de cada pacote, e o `Dockerfile` instala com `pip install --require-hashes`. Para regravar
+depois de mudar uma dependência (na imagem dev, que é Linux + Python 3.13 como a final):
+
+```bash
+MSYS_NO_PATHCONV=1 docker run --rm -v "$(cygpath -w "$PWD"):/app" -w /app medicalfield/jaiminho-dev sh -c "
+  pip install -q pip-tools &&
+  pip-compile -q --generate-hashes --strip-extras --no-header -o requirements.lock pyproject.toml &&
+  pip-compile -q --generate-hashes --strip-extras --no-header --extra dev -o requirements-dev.lock pyproject.toml"
+```
+
+## Limites de entrada
+
+Corpo de requisição em `/api/v1/*` tem teto de 64 KiB (`LimiteCorpoMiddleware`): acima disso a resposta é 413 no
+corpo de erro padrão (`codigo: VALIDACAO`), decidida pelo `Content-Length` ou, sem ele, cortando a leitura ao
+passar do teto; a conexão é fechada. O teto vem antes da autenticação.
+
 ## A ficha em PDF
 
 Template em `src/jaiminho/infra/pdf/` (`ficha.html` + `ficha.css`), A4, com faixa "DADOS DEMONSTRATIVOS — SEM

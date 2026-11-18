@@ -1,4 +1,4 @@
-"""Cadeia de responsabilidade: request-id -> log de acesso -> autenticação -> handler.
+"""Cadeia de responsabilidade: request-id -> log de acesso -> (limite de corpo) -> autenticação -> handler.
 
 Middlewares ASGI puros, montados nessa ordem em `http/app.py`.
 """
@@ -24,6 +24,9 @@ from jaiminho.infra.log import LinhaAcesso, request_id_atual
 log = logging.getLogger(__name__)
 
 PREFIXO_API = "/api/v1"
+ROTA_DESCONHECIDA = "(rota desconhecida)"
+# As rotas só recebem JSON pequeno (um id, ou nome + e-mail + vínculo).
+LIMITE_CORPO_BYTES = 64 * 1024
 _REQUEST_ID_ACEITO = re.compile(r"^[A-Za-z0-9._:-]{1,100}$")
 
 
@@ -107,9 +110,19 @@ class LogAcessoMiddleware:
         """Padrão da rota (`/api/v1/documento/{id}`), nunca o caminho com ids."""
         rota = scope.get("route")
         if rota is None:
-            # A requisição parou antes do roteador (401): resolve aqui só para o log.
-            rota = next((r for r in self._rotas if r.matches(scope)[0] == Match.FULL), None)
-        return getattr(rota, "path", None) or "(rota desconhecida)"
+            # A requisição parou antes do roteador (401, 413): resolve aqui só para o log.
+            # Caminho que existe com outro método (405) também tem padrão; o resto é rota desconhecida.
+            parciais = []
+            for candidata in self._rotas:
+                resultado = candidata.matches(scope)[0]
+                if resultado == Match.FULL:
+                    rota = candidata
+                    break
+                if resultado == Match.PARTIAL:
+                    parciais.append(candidata)
+            else:
+                rota = parciais[0] if parciais else None
+        return getattr(rota, "path", None) or ROTA_DESCONHECIDA
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or not scope["path"].startswith(PREFIXO_API):
@@ -137,7 +150,8 @@ class LogAcessoMiddleware:
                         data_hora=data_hora,
                         ip_cliente=ip_do_cliente(
                             cliente[0] if cliente else "desconhecido",
-                            Headers(scope=scope).get("x-forwarded-for"),
+                            # Vários cabeçalhos X-Forwarded-For valem como um só, na ordem em que chegaram.
+                            ", ".join(Headers(scope=scope).getlist("x-forwarded-for")) or None,
                             self._proxies,
                         ),
                         profissional_id=profissional.id if profissional else None,
@@ -151,6 +165,55 @@ class LogAcessoMiddleware:
             except Exception:
                 # Falha no log nunca derruba a requisição.
                 log.exception("falha ao registrar o log de acesso")
+
+
+class LimiteCorpoMiddleware:
+    """Recusa corpo acima de LIMITE_CORPO_BYTES sem lê-lo inteiro (com ou sem Content-Length).
+
+    Fica antes da autenticação: quem não tem token também não consegue despejar megabytes no serviço.
+    """
+
+    def __init__(self, app: ASGIApp, limite: int = LIMITE_CORPO_BYTES) -> None:
+        self.app = app
+        self._limite = limite
+
+    async def _recusar(self, scope: Scope, receive: Receive, send: Send) -> None:
+        resposta = resposta_erro(413, "VALIDACAO", f"Corpo da requisição acima do limite de {self._limite} bytes")
+        # Fecha a conexão: o servidor não fica lendo o resto do corpo para reaproveitá-la.
+        resposta.headers["Connection"] = "close"
+        await resposta(scope, receive, send)
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http" or not scope["path"].startswith(PREFIXO_API):
+            await self.app(scope, receive, send)
+            return
+        declarado = Headers(scope=scope).get("content-length", "")
+        if declarado.isdigit() and int(declarado) > self._limite:
+            await self._recusar(scope, receive, send)
+            return
+
+        # Sem Content-Length (chunked) o tamanho só aparece lendo: lê até o teto e entrega o que leu ao handler.
+        corpo = bytearray()
+        while True:
+            mensagem = await receive()
+            if mensagem["type"] != "http.request":
+                return  # cliente desconectou
+            corpo += mensagem.get("body", b"")
+            if len(corpo) > self._limite:
+                await self._recusar(scope, receive, send)
+                return
+            if not mensagem.get("more_body", False):
+                break
+        entregue = False
+
+        async def receber() -> Message:
+            nonlocal entregue
+            if entregue:
+                return await receive()
+            entregue = True
+            return {"type": "http.request", "body": bytes(corpo), "more_body": False}
+
+        await self.app(scope, receber, send)
 
 
 class AutenticacaoMiddleware:

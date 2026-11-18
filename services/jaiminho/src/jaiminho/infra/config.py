@@ -82,6 +82,12 @@ def carregar(env: Mapping[str, str]) -> Config:
     except ValueError:
         erros.append("EMAIL_BACKOFF_SEGUNDOS deve ser uma lista de inteiros não negativos separados por vírgula")
 
+    # Usuário e senha nunca trafegam em claro: com credencial, o padrão é STARTTLS e "nenhuma" é recusada.
+    com_credencial = bool(env.get("SMTP_USUARIO") or env.get("SMTP_SENHA"))
+    seguranca = escolha("SMTP_SEGURANCA", ("nenhuma", "starttls", "tls"), "starttls" if com_credencial else "nenhuma")
+    if com_credencial and seguranca == "nenhuma":
+        erros.append("SMTP_SEGURANCA=nenhuma não é aceita com SMTP_USUARIO/SMTP_SENHA; use starttls ou tls")
+
     config = Config(
         database_url=obrigatoria("DATABASE_URL"),
         jwks_url=obrigatoria("JWKS_URL"),
@@ -92,7 +98,7 @@ def carregar(env: Mapping[str, str]) -> Config:
         email_remetente=obrigatoria("EMAIL_REMETENTE"),
         smtp_usuario=env.get("SMTP_USUARIO") or None,
         smtp_senha=env.get("SMTP_SENHA") or None,
-        smtp_seguranca=escolha("SMTP_SEGURANCA", ("nenhuma", "starttls", "tls"), "nenhuma"),
+        smtp_seguranca=seguranca,
         email_backoff_segundos=backoff,
         porta=inteiro("PORTA", 8080),
         porta_gestao=inteiro("PORTA_GESTAO", 9090),
