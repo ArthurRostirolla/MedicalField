@@ -48,7 +48,6 @@ export function TelaAtendimentos() {
         // Em tela estreita, a ficha aberta ocupa o lugar da lista.
         className={cx('xl:sticky xl:top-4 xl:max-h-[calc(100dvh-2rem)] xl:overflow-y-auto', id && 'max-xl:hidden')}
         titulo="Livro de atendimentos"
-        descricao="Últimos recebidos primeiro · somente leitura"
         plural="atendimentos"
         lista={lista}
         colunas={COLUNAS_ATENDIMENTO}
@@ -56,23 +55,13 @@ export function TelaAtendimentos() {
         selecionada={id}
         aoSelecionar={(a) => void navegar(`/atendimentos/${a.id}`)}
         vazio={
-          <EstadoVazio
-            className="m-3"
-            icone={<ClipboardList aria-hidden />}
-            titulo="Nenhum atendimento na central"
-            descricao="Os atendimentos chegam quando o app do profissional sincroniza. Use “Atualizar” para conferir de novo."
-          />
+          <EstadoVazio className="m-3" icone={<ClipboardList aria-hidden />} titulo="Nenhum atendimento na central" />
         }
       />
       {id ? (
         <DetalheAtendimento key={id} id={id} />
       ) : (
-        <EstadoVazio
-          className="max-xl:hidden"
-          icone={<MousePointerClick aria-hidden />}
-          titulo="Escolha um atendimento"
-          descricao="A passagem de caso, a ficha em PDF e a linha do tempo completa abrem aqui."
-        />
+        <EstadoVazio className="max-xl:hidden" icone={<MousePointerClick aria-hidden />} titulo="Escolha um atendimento" />
       )}
     </div>
   );

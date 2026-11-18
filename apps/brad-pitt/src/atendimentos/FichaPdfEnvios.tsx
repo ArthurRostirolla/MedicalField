@@ -156,11 +156,7 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
   if (!documento) {
     return (
       <Secao titulo={titulo}>
-        <EstadoVazio
-          icone={<FileText aria-hidden />}
-          titulo="Ficha ainda não gerada"
-          descricao="“Gerar PDF” monta a ficha com a passagem de caso e a linha do tempo deste atendimento. Com ela pronta, dá para baixar e enviar por e-mail."
-        />
+        <EstadoVazio icone={<FileText aria-hidden />} titulo="Ficha ainda não gerada" />
       </Secao>
     );
   }
@@ -207,7 +203,6 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
         <div className="border-b border-fio p-3">
           <Select
             rotulo="Versão da ficha"
-            ajuda="Cada geração depois de um evento novo cria outra versão. Os envios pertencem à versão escolhida."
             value={documento.id}
             onChange={(evento) => setVersao(evento.target.value)}
             opcoes={documentos.data.map((d, indice) => ({
@@ -232,12 +227,7 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
             chave={(envio) => envio.id}
             carregando={envios.isPending}
             vazio={
-              <EstadoVazio
-                className="m-3"
-                icone={<MailQuestion aria-hidden />}
-                titulo="Nenhum envio desta ficha"
-                descricao="“Enviar por e-mail” manda o PDF ao paciente ou a um familiar e mostra aqui a situação da entrega."
-              />
+              <EstadoVazio className="m-3" icone={<MailQuestion aria-hidden />} titulo="Nenhum envio desta ficha" />
             }
           />
         </RegiaoRolavel>

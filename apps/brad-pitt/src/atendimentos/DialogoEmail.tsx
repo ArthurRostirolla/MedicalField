@@ -38,7 +38,7 @@ function Formulario({ documentoId, idForm, aoConcluir, aoMudarEnviando }: Formul
     mutationFn: (entrada: Parameters<typeof enviarPorEmail>[1]) => enviarPorEmail(documentoId, entrada, chave),
     onSuccess: () => {
       void consultas.invalidateQueries({ queryKey: ['envios', documentoId] });
-      avisar({ titulo: 'Envio na fila', descricao: 'A situação aparece em “Ficha em PDF e envios” e se atualiza sozinha.' });
+      avisar({ titulo: 'Envio na fila' });
       aoConcluir();
     },
     onError: (erro) => {
@@ -80,7 +80,6 @@ function Formulario({ documentoId, idForm, aoConcluir, aoMudarEnviando }: Formul
 
   return (
     <form id={idForm} className="grid grid-cols-1 gap-3" onSubmit={aoEnviar} noValidate>
-      <p className="m-0 text-tinta-2">O PDF segue anexado. Confira o endereço: a ficha contém dados de saúde.</p>
       <CampoTexto
         rotulo="Nome do destinatário"
         name="destinatarioNome"

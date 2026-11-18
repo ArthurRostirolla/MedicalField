@@ -46,19 +46,13 @@ export function TelaProntuarios() {
   return (
     <FolhaLista
       titulo="Prontuários"
-      descricao="Em ordem alfabética · somente leitura"
       plural="prontuários"
       lista={lista}
       colunas={COLUNAS}
       chave={(p) => p.id}
       aoSelecionar={(p) => void navegar(`/prontuarios/${p.pessoaId}`)}
       vazio={
-        <EstadoVazio
-          className="m-3"
-          icone={<FileText aria-hidden />}
-          titulo="Nenhum prontuário na central"
-          descricao="Os prontuários chegam quando o app do profissional sincroniza. Use “Atualizar” para conferir de novo."
-        />
+        <EstadoVazio className="m-3" icone={<FileText aria-hidden />} titulo="Nenhum prontuário na central" />
       }
     />
   );

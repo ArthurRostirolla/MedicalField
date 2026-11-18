@@ -60,7 +60,6 @@ export function TelaMedicamentos() {
   return (
     <Secao
       titulo="Medicamentos"
-      descricao="Cadastro de apoio usado pelo app ao registrar medicação · somente leitura"
       acoes={<BotaoAtualizar atualizando={consulta.isFetching && !consulta.isPending} aoAtualizar={() => void consulta.refetch()} />}
       rente
     >
@@ -95,19 +94,9 @@ export function TelaMedicamentos() {
                     className="m-3"
                     icone={<SearchX aria-hidden />}
                     titulo={`Nada no cadastro com “${busca.trim()}”`}
-                    descricao={
-                      incluirInativos
-                        ? 'Confira a grafia ou busque pelo princípio ativo.'
-                        : 'Confira a grafia, busque pelo princípio ativo ou marque “Incluir inativos”.'
-                    }
                   />
                 ) : (
-                  <EstadoVazio
-                    className="m-3"
-                    icone={<Pill aria-hidden />}
-                    titulo="Cadastro de medicamentos vazio"
-                    descricao="Os medicamentos são incluídos direto no banco central. Use “Atualizar” depois da inclusão."
-                  />
+                  <EstadoVazio className="m-3" icone={<Pill aria-hidden />} titulo="Cadastro de medicamentos vazio" />
                 )
               }
             />

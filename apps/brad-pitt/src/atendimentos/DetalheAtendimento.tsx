@@ -107,18 +107,14 @@ export function DetalheAtendimento({ id }: { id: string }) {
 
       <Secao
         titulo="Linha do tempo"
-        descricao={`${eventos.length} ${eventos.length === 1 ? 'entrada' : 'entradas'} · nada é apagado, só retificado`}
+        descricao={`${eventos.length} ${eventos.length === 1 ? 'entrada' : 'entradas'}`}
         acoes={<BotaoAtualizar atualizando={ficha.isFetching} aoAtualizar={() => void ficha.refetch()} />}
         rente
       >
         {eventos.length > 0 ? (
           <LinhaDoTempo eventos={eventos} />
         ) : (
-          <EstadoVazio
-            className="m-3"
-            titulo="Nenhum evento registrado"
-            descricao="Os eventos aparecem aqui quando o app do profissional sincroniza com a central."
-          />
+          <EstadoVazio className="m-3" titulo="Nenhum evento registrado" />
         )}
       </Secao>
 

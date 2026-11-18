@@ -98,7 +98,7 @@ export function DetalhePessoa() {
       {voltar}
       <Secao
         titulo={p.nome}
-        descricao={p.naoIdentificada ? 'Pessoa não identificada na cena' : 'Dados cadastrais · somente leitura'}
+        descricao={p.naoIdentificada ? 'Pessoa não identificada na cena' : undefined}
         acoes={
           <BotaoAtualizar
             atualizando={pessoa.isFetching || prontuario.isFetching}
@@ -145,21 +145,13 @@ export function DetalhePessoa() {
         </CamposLeitura>
       </Secao>
 
-      <Secao
-        titulo="Prontuário"
-        descricao="Alergias, comorbidades e medicações contínuas · item inativado continua na folha, riscado"
-        rente
-      >
+      <Secao titulo="Prontuário" rente>
         {prontuario.isPending ? (
           <div className="p-3" aria-busy="true">
             <Esqueleto linhas={4} />
           </div>
         ) : semProntuario ? (
-          <EstadoVazio
-            className="m-3"
-            titulo="Pessoa sem prontuário"
-            descricao="O prontuário é criado pelo app do profissional ou no primeiro atendimento."
-          />
+          <EstadoVazio className="m-3" titulo="Pessoa sem prontuário" />
         ) : prontuario.isError ? (
           <EstadoErro
             {...descreverErro(prontuario.error, 'o prontuário')}
@@ -178,13 +170,7 @@ export function DetalhePessoa() {
                 colunas={COLUNAS_ITEM}
                 linhas={itens}
                 chave={(item) => item.id}
-                vazio={
-                  <EstadoVazio
-                    className="m-3"
-                    titulo="Nenhum item registrado"
-                    descricao="Alergias, comorbidades e medicações contínuas aparecem aqui quando o profissional registra no app."
-                  />
-                }
+                vazio={<EstadoVazio className="m-3" titulo="Nenhum item registrado" />}
               />
             </RegiaoRolavel>
           </>
@@ -193,19 +179,13 @@ export function DetalhePessoa() {
 
       <FolhaLista
         titulo="Atendimentos desta pessoa"
-        descricao="Últimos recebidos na central primeiro"
         plural="atendimentos"
         lista={atendimentos}
         colunas={COLUNAS_ATENDIMENTO}
         chave={(a) => a.id}
         aoSelecionar={(a) => void navegar(`/atendimentos/${a.id}`)}
         vazio={
-          <EstadoVazio
-            className="m-3"
-            icone={<ClipboardList aria-hidden />}
-            titulo="Nenhum atendimento desta pessoa"
-            descricao="Quando houver, a linha do tempo de cada um abre a partir daqui."
-          />
+          <EstadoVazio className="m-3" icone={<ClipboardList aria-hidden />} titulo="Nenhum atendimento desta pessoa" />
         }
       />
     </div>

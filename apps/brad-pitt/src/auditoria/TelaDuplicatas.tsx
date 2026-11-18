@@ -43,18 +43,12 @@ export function TelaDuplicatas() {
   return (
     <FolhaLista
       titulo="Possíveis duplicatas"
-      descricao="Mesmo CPF, ou mesmo nome e data de nascimento · o cadastro é aceito e fica sinalizado para revisão"
       plural="cadastros sinalizados"
       lista={lista}
       colunas={COLUNAS}
       chave={(p) => p.id}
       vazio={
-        <EstadoVazio
-          className="m-3"
-          icone={<Users aria-hidden />}
-          titulo="Nenhum cadastro sinalizado"
-          descricao="Quando o app enviar uma pessoa com o CPF, ou com o nome e o nascimento, de outra já cadastrada, ela aparece aqui."
-        />
+        <EstadoVazio className="m-3" icone={<Users aria-hidden />} titulo="Nenhum cadastro sinalizado" />
       }
     />
   );

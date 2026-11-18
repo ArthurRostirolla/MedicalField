@@ -55,12 +55,7 @@ export function RequerSessao() {
 export function RequerAdmin() {
   const profissional = useProfissional();
   if (profissional.papel !== 'ADMIN') {
-    return (
-      <EstadoErro
-        titulo="Área restrita à administração"
-        descricao="Seu perfil não tem acesso à auditoria. As demais áreas do portal continuam disponíveis no índice."
-      />
-    );
+    return <EstadoErro titulo="Área restrita à administração" />;
   }
   return <Outlet />;
 }

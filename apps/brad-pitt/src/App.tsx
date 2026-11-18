@@ -49,7 +49,6 @@ export function Rotas() {
             element={
               <EstadoVazio
                 titulo="Página não encontrada"
-                descricao="Este endereço não existe no portal."
                 acao={<Link to="/atendimentos">Ir para os atendimentos</Link>}
               />
             }

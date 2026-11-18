@@ -91,7 +91,6 @@ export function TelaLogsAcesso() {
   return (
     <FolhaLista
       titulo="Logs de acesso"
-      descricao="Uma linha por requisição à API · mais recentes primeiro"
       plural="registros"
       lista={lista}
       colunas={colunas}
@@ -128,11 +127,6 @@ export function TelaLogsAcesso() {
           className="m-3"
           icone={<ScrollText aria-hidden />}
           titulo={comFiltro ? 'Nenhum registro com estes filtros' : 'Nenhum registro de acesso'}
-          descricao={
-            comFiltro
-              ? 'Amplie o período ou use “Limpar filtros”.'
-              : 'Cada requisição à API gera uma linha, gravada em até um segundo.'
-          }
         />
       }
     />
