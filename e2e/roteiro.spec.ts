@@ -171,12 +171,12 @@ test('roteiro acadêmico de 17 passos', async () => {
 
   await passo(7, 'Cliente: Online - Registrar um atendimento', () => cliente, async () => {
     await simularOffline(cliente, false);
-    await cliente.goto('/app/#/pacientes');
+    await cliente.goto('/app/pacientes');
     await cliente.getByLabel('Buscar por nome ou CPF').fill('Clara Fictícia');
     await cliente.getByRole('link', { name: /Clara Fictícia Souza/ }).click();
     await cliente.getByLabel('Queixa principal').fill(queixaOnline);
     await cliente.getByRole('button', { name: 'Iniciar atendimento' }).click();
-    await cliente.waitForURL(/#\/atendimentos\//);
+    await cliente.waitForURL(/\/atendimentos\/[0-9a-f-]{36}/);
     await registrarSinais(cliente);
     await registrarGlasgow(cliente);
     await registrarTriagem(cliente, 'AMARELO');

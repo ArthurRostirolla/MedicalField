@@ -44,7 +44,7 @@ test.afterAll(async () => {
 });
 
 async function adicionarAlergia(page: Page, pessoaId: string, descricao: string): Promise<void> {
-  await page.goto(`/app/#/pacientes/${pessoaId}`);
+  await page.goto(`/app/pacientes/${pessoaId}`);
   const secao = page.getByRole('region', { name: 'Alergias' });
   await secao.getByLabel('Nova alergia').fill(descricao);
   await secao.getByRole('button', { name: 'Adicionar' }).click();
@@ -52,21 +52,21 @@ async function adicionarAlergia(page: Page, pessoaId: string, descricao: string)
 }
 
 async function iniciarAtendimento(page: Page, pessoaId: string, queixa: string): Promise<string> {
-  await page.goto(`/app/#/pacientes/${pessoaId}`);
+  await page.goto(`/app/pacientes/${pessoaId}`);
   await page.getByLabel('Queixa principal').fill(queixa);
   await page.getByRole('button', { name: 'Iniciar atendimento' }).click();
-  await page.waitForURL(/#\/atendimentos\//);
+  await page.waitForURL(/\/atendimentos\/[0-9a-f-]{36}/);
   const id = /atendimentos\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   await registrarSinais(page);
   return id;
 }
 
 async function novaPessoaComCpf(page: Page, nome: string, cpf: string): Promise<string> {
-  await page.goto('/app/#/pacientes/novo');
+  await page.goto('/app/pacientes/novo');
   await page.getByLabel('Nome completo').fill(nome);
   await page.getByLabel('CPF').fill(cpf);
   await page.getByRole('button', { name: 'Salvar e iniciar atendimento' }).click();
-  await page.waitForURL(/#\/atendimentos\//);
+  await page.waitForURL(/\/atendimentos\/[0-9a-f-]{36}/);
   const atendimentoId = /atendimentos\/([0-9a-f-]{36})/.exec(page.url())![1]!;
   const [linha] = await local<{ pessoa_id: string }>(page, 'SELECT pessoa_id FROM atendimento WHERE id = ?', [atendimentoId]);
   return linha!.pessoa_id;
