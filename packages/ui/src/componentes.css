@@ -1510,8 +1510,7 @@
       position: sticky;
       top: 0;
       align-self: start;
-      /* desconta a faixa demonstrativa (1 linha + recuo + fios) que fica acima */
-      height: calc(100dvh - 1.5rem - 2px);
+      height: 100dvh;
       overflow-y: auto;
     }
   }
