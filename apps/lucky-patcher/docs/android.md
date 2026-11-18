@@ -69,3 +69,22 @@ Instalar num aparelho com depuração USB (ou emulador): `adb install -r app\bui
 - O retorno ao primeiro plano usa `visibilitychange` do WebView; `@capacitor/app` está instalado mas não é usado (se o evento do WebView não disparar em algum aparelho, troque por `App.addListener('resume', …)`).
 - Ícone e tela de abertura são os padrões do Capacitor.
 - iOS não é entregue (o build exige macOS).
+
+
+## Atualização de 18/11/2026 — APK gerado e validado em emulador
+
+O APK de depuração **foi gerado** e o app **rodou** num emulador (Pixel 6, Android 17). O adaptador nativo (`executorCapacitor.ts`, SQLCipher) passou por login, registro offline, reinício do processo e sincronização — ver `docs/VALIDATION_EVIDENCE.md` (E-008) e `e2e/android/android.mjs`.
+
+O erro "Unable to establish loopback connection" do Gradle some ao usar uma pasta temporária de caminho curto:
+
+```powershell
+New-Item -ItemType Directory -Force C:\univates\tmp-gradle | Out-Null
+$env:JAVA_HOME = 'C:\Program Files\Android\Android Studio\jbr'
+$env:ANDROID_HOME = "$env:LOCALAPPDATA\Android\Sdk"
+$env:TEMP = 'C:\univates\tmp-gradle'; $env:TMP = $env:TEMP
+$env:JAVA_TOOL_OPTIONS = '-Djdk.net.unixdomain.tmpdir=C:\univates\tmp-gradle'
+npm run build:android -w @medicalfield/lucky-patcher
+cd apps\lucky-patcher\android; .\gradlew.bat assembleDebug
+```
+
+O `compileSdk 36` não foi obstáculo. No emulador, o endereço do servidor é `http://10.0.2.2:8088` (o `10.0.2.2` é a máquina hospedeira); num aparelho físico, o IP da máquina na rede.

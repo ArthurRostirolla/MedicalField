@@ -35,3 +35,6 @@ Decisão registrada: "mais recentes primeiro" em `GET /atendimento` ordena por `
 | D-01 | Cluster k3s local não voltava após `parar` (IP do contêiner mudava) | Rede Docker própria com IP fixo em `deploy/scripts/cluster-local.sh` |
 | D-02 | `ItemNav` de `packages/ui` recarregava a página ao navegar (apagava o token em memória) | O link delega o clique simples ao roteador do app |
 | D-03 | Tabela rolável de `packages/ui` inalcançável por teclado (axe `scrollable-region-focusable`) | `role="region"`, rótulo e `tabIndex` |
+| D-09 | Build do APK falhava no Gradle ("Unable to establish loopback connection") | Pasta temporária curta para os soquetes locais do Java |
+| D-10 | Topo fixo do app sob a barra de status do Android | `padding-top: env(safe-area-inset-top)` em `.mf-app__topo` |
+| D-11 | Retificação com dados corrigidos tirava o evento da passagem de caso (sinais vitais apareciam como "não registrado") | `calcularResumo` aplica os dados corrigidos sobre o evento original; teste novo |

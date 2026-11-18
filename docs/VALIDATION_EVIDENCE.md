@@ -90,3 +90,19 @@ Cada entrada: o que foi executado, o comando ou a ação, o resultado observado 
   - Passo 17: situação "Enviado" no portal e mensagem com anexo `application/pdf` no Mailpit.
 - **Consumo (`kubectl top`):** Jaiminho 96 Mi, Mike 65 Mi, Cida 44 Mi, Postgres 29 Mi, Mailpit 16 Mi, web 13 Mi — cerca de 263 Mi de aplicação.
 - **Limites:** cluster local em Docker, não a VM da Univates; e-mail no Mailpit, não em caixa externa.
+
+## E-008 — App Android: APK construído e validado em emulador (FE-06; OF-02, OF-03, OF-05, OF-07 no nativo)
+
+- **Data:** 2026-11-18
+- **Executado pelo agente principal:** `npm run build:android` + `gradlew assembleDebug` (JDK do Android Studio); `adb install` no emulador `Pixel_6` (Android 17, WebView 145), iniciado sem janela; depois `node e2e/android/android.mjs`, que dirige o WebView do app por depuração remota e confere o banco central do cluster por `kubectl exec`. O app alcança o gateway do k3s local em `http://10.0.2.2:8088`.
+- **Observado (3 execuções, 5 de 5 verificações em cada):**
+  1. Login com endereço do servidor informado e descida inicial: 14 medicamentos no SQLite nativo, igual à central.
+  2. Offline pelo seletor: pessoa + prontuário com alergia + atendimento + sinais vitais → 4 operações na fila, 0 linhas na central.
+  3. **Processo do app morto (`am force-stop`) e reaberto:** fila intacta (4), pessoa presente, seletor continua em Offline, sessão mantida sem novo login, nada sincronizado.
+  4. Volta da rede: 1 pessoa, 1 atendimento, 1 evento e 1 alergia na central; sincronizar de novo não duplicou.
+  5. O banco é o arquivo nativo `databases/medicalfieldSQLite.db`, **cifrado** (sem o cabeçalho "SQLite format 3" em claro).
+- **Defeitos encontrados e corrigidos:**
+  - D-09: o Gradle falhava com "Unable to establish loopback connection" — o Java não abre o soquete local numa pasta temporária de caminho longo. Resolvido apontando `TEMP`/`TMP` e `-Djdk.net.unixdomain.tmpdir` para uma pasta curta (documentado em `apps/lucky-patcher/docs/android.md`).
+  - D-10: o topo fixo do app ficava por baixo da barra de status do Android. Corrigido em `packages/ui` (`.mf-app__topo` com `padding-top: env(safe-area-inset-top)`); conferido na captura `docs/testes/evidencias/android/03-reaberto-com-pendencias.png`.
+- **Evidências:** `docs/testes/evidencias/android/` (4 capturas do emulador + `resultado.md`).
+- **Limites:** emulador, não aparelho físico; APK de depuração (não assinado para publicação); tráfego HTTP sem TLS até o gateway local.

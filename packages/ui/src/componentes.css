@@ -1475,6 +1475,8 @@
   }
   .mf-app__topo {
     position: sticky;
+    /* Borda a borda (Android/iOS): o topo fixo cobre a area da barra de status em vez de ficar sob ela. */
+    padding-top: env(safe-area-inset-top);
     top: 0;
     z-index: 10;
     background-color: var(--mf-papel);

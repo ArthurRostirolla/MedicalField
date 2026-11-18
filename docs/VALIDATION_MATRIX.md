@@ -6,7 +6,7 @@ Legenda: `Não implementado` · `Implementado` (código existe, não exercitado)
 
 Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOWN_ISSUES.md](KNOWN_ISSUES.md) · Andamento das tarefas: [acompanhamento.md](acompanhamento.md) (é o `IMPLEMENTATION_STATUS` do projeto).
 
-Última atualização: sistema completo implantado no k3s local; roteiro de 17 passos validado. Faltam: repetição de backup/NetworkPolicy, conflitos com dois clientes, QA independente, APK.
+Última atualização: sistema completo no k3s local, roteiro de 17 passos e app Android validados. Em andamento: QA independente e documentação dos entregáveis.
 
 ## Roteiro acadêmico (17 passos)
 
@@ -74,7 +74,7 @@ Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOW
 | FE-03 | App: fluxo de campo em largura de celular, temas claro e escuro | Validado | E-006 |
 | FE-04 | Revisão visual Impeccable das telas renderizadas (portal e app) | Validado | E-005, E-006 |
 | FE-05 | Navegação por teclado e foco visível | Validado no portal; no app corrigido após a crítica, sem nova medição | E-005, E-006 |
-| FE-06 | App Android (Capacitor) | Implementado: projeto gerado, **APK não construído**, adaptador nativo nunca executado | `apps/lucky-patcher/docs/android.md` |
+| FE-06 | App Android (Capacitor) | Validado em emulador (APK de depuração; banco nativo cifrado; offline, reinício e sincronização) | E-008 |
 
 ## Kubernetes
 
