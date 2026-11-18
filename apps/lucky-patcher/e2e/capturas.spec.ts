@@ -42,8 +42,11 @@ for (const largura of [390, 1280]) {
     const erros = vigiarConsole(page);
 
     await page.goto('/app/');
-    await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
+    await expect(page.getByRole('radio', { name: 'COREN' })).toBeVisible();
     await fotografar(page, 'entrar', largura);
+    await page.getByRole('radio', { name: 'COREN' }).click();
+    await expect(page.getByRole('heading', { name: 'Entrar com COREN' })).toBeVisible();
+    await fotografar(page, 'entrar-credencial', largura);
 
     await entrar(page);
     await esperarTudoEnviado(page);

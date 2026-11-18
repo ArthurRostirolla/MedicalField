@@ -114,6 +114,7 @@ const alergia = `Alergia Android ${marca}`;
 let { navegador, pagina } = await abrirApp({ limparDados: true });
 try {
   // 1. Primeiro acesso: endereco do servidor + login (pela rede do emulador ate o gateway local).
+  await pagina.getByRole('radio', { name: 'COREN' }).click();
   await pagina.getByLabel('Número do COREN').fill('200002');
   await pagina.getByLabel('Senha').fill(senha);
   await pagina.getByLabel('Endereço do servidor').fill(SERVIDOR);

@@ -320,21 +320,39 @@ export interface SeletorCartoesProps<T extends string> {
   opcoes: ReadonlyArray<OpcaoCartao<T>>;
   valor: T;
   aoMudar: (valor: T) => void;
+  /** Um cartao por linha (icone, texto, selo): para escolha que leva a outra tela. */
+  empilhado?: boolean;
 }
 
-/** Poucas opcoes grandes, cada uma com icone, titulo e detalhe. */
-export function SeletorCartoes<T extends string>({ rotulo, opcoes, valor, aoMudar }: SeletorCartoesProps<T>) {
+/** Poucas opcoes grandes, cada uma com icone, titulo e detalhe (`.mf-cartao` do web). */
+export function SeletorCartoes<T extends string>({ rotulo, opcoes, valor, aoMudar, empilhado }: SeletorCartoesProps<T>) {
   const s = useEstilos((c) => ({
-    cartao: { flex: 1, minWidth: 96, padding: 12, gap: 4, borderWidth: 1, borderColor: c.fioForte, borderRadius: MEDIDA.raio, backgroundColor: c.papel },
-    marcado: { borderColor: c.tinta, borderWidth: 2, padding: 11, backgroundColor: c.papel2 },
+    cartao: { minHeight: MEDIDA.alvo, borderWidth: 1, borderColor: c.fio, borderRadius: MEDIDA.raioSobreposicao, backgroundColor: c.papel },
+    grade: { flex: 1, padding: 10, gap: 4 },
+    linha: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 14 },
+    marcado: { borderColor: c.marca, backgroundColor: c.marcaSuave },
+    selo: { width: 20, height: 20, borderRadius: 10, backgroundColor: c.marca, alignItems: 'center', justifyContent: 'center' },
   }));
   const { cores } = useTema();
   return (
     <View role="radiogroup" aria-label={rotulo} style={{ gap: 8 }}>
-      <Texto forte>{rotulo}</Texto>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+      <Texto tamanho="pequeno" forte tom="tinta2">
+        {rotulo}
+      </Texto>
+      <View style={{ flexDirection: empilhado ? 'column' : 'row', gap: 8 }}>
         {opcoes.map((opcao) => {
           const marcado = valor === opcao.valor;
+          const icone = <Icone icone={opcao.icone} cor={marcado ? cores.marca : cores.tinta2} tamanho={empilhado ? 24 : 22} />;
+          const selo = marcado ? (
+            <View style={s.selo}>
+              <Icone icone={Check} cor={cores.sobreMarca} tamanho={13} />
+            </View>
+          ) : null;
+          const detalhe = opcao.detalhe ? (
+            <Texto tom="tinta2" style={{ fontSize: 13, lineHeight: 17 }}>
+              {opcao.detalhe}
+            </Texto>
+          ) : null;
           return (
             <Pressable
               key={opcao.valor}
@@ -342,18 +360,27 @@ export function SeletorCartoes<T extends string>({ rotulo, opcoes, valor, aoMuda
               aria-checked={marcado}
               aria-label={opcao.titulo}
               onPress={() => aoMudar(opcao.valor)}
-              style={[s.cartao, marcado && s.marcado]}
+              style={({ pressed }) => [s.cartao, empilhado ? s.linha : s.grade, marcado && s.marcado, pressed && { transform: [{ scale: 0.98 }] }]}
             >
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                <Icone icone={opcao.icone} />
-                {marcado ? <Icone icone={Check} cor={cores.tinta} tamanho={18} /> : null}
-              </View>
-              <Texto forte>{opcao.titulo}</Texto>
-              {opcao.detalhe ? (
-                <Texto tamanho="pequeno" tom="tinta2">
-                  {opcao.detalhe}
-                </Texto>
-              ) : null}
+              {empilhado ? (
+                <>
+                  {icone}
+                  <View style={{ flex: 1 }}>
+                    <Texto forte>{opcao.titulo}</Texto>
+                    {detalhe}
+                  </View>
+                  {selo}
+                </>
+              ) : (
+                <>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', minHeight: 22 }}>
+                    {icone}
+                    {selo}
+                  </View>
+                  <Texto forte>{opcao.titulo}</Texto>
+                  {detalhe}
+                </>
+              )}
             </Pressable>
           );
         })}

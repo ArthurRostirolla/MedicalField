@@ -1,6 +1,6 @@
 // Apoio dos testes de ponta a ponta: SQL no banco central, login e os gestos do profissional.
 import { execFileSync } from 'node:child_process';
-import { expect, type Page, type Request } from '@playwright/test';
+import { expect, type Locator, type Page, type Request } from '@playwright/test';
 
 /** Roda SQL no Postgres central (conteiner de dev) e devolve a saida crua (-At). */
 export function sql(consulta: string): string {
@@ -42,7 +42,8 @@ export function vigiarConsole(page: Page, ignorar: RegExp[] = []): string[] {
 
 export async function entrar(page: Page, registro = '200002'): Promise<void> {
   await page.goto('/app/');
-  await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
+  await page.getByRole('radio', { name: 'COREN' }).click();
+  await expect(page.getByRole('heading', { name: 'Entrar com COREN' })).toBeVisible();
   await page.getByLabel('Número do COREN').fill(registro);
   await page.getByLabel('Senha').fill(senhaDemo());
   await page.getByRole('button', { name: 'Entrar' }).click();
@@ -66,12 +67,17 @@ export const estadoLocal = (page: Page, chave: string): Promise<string | null> =
 export const pendentesLocais = async (page: Page): Promise<number> =>
   (await local<{ n: number }>(page, "SELECT count(*) AS n FROM outbox WHERE status != 'CONFIRMADA'"))[0]!.n;
 
-const chave = (page: Page) => page.getByRole('switch', { name: /Simular conectividade/ });
+/** O seletor "Simular conectividade" fica no detalhe da linha de conexao: abre o detalhe se preciso. */
+export async function chaveSimular(page: Page): Promise<Locator> {
+  const chave = page.getByRole('switch', { name: /Simular conectividade/ });
+  if (!(await chave.isVisible())) await page.getByRole('button', { name: 'Detalhes da conexão' }).first().click();
+  return chave;
+}
 
-/** O seletor "Simular conectividade" da tira permanente. */
 export async function simularOffline(page: Page, ligado: boolean): Promise<void> {
-  if (((await chave(page).getAttribute('aria-checked')) === 'true') !== ligado) await chave(page).click();
-  await expect(chave(page)).toHaveAttribute('aria-checked', String(ligado));
+  const chave = await chaveSimular(page);
+  if (((await chave.getAttribute('aria-checked')) === 'true') !== ligado) await chave.click();
+  await expect(chave).toHaveAttribute('aria-checked', String(ligado));
   await expect(page.getByRole('status').filter({ hasText: ligado ? 'Offline' : 'Online' }).filter({ visible: true }).first()).toBeVisible();
 }
 

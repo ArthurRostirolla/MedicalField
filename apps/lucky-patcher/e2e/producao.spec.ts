@@ -7,9 +7,10 @@ import { senhaDemo } from './apoio.ts';
 
 test('build de producao: window.__mf e undefined, antes e depois do login', async ({ page }) => {
   await page.goto('/app/');
-  await expect(page.getByRole('heading', { name: 'Entrar' })).toBeVisible();
+  await expect(page.getByRole('radio', { name: 'COREN' })).toBeVisible();
   expect(await page.evaluate(() => typeof (window as unknown as { __mf?: unknown }).__mf)).toBe('undefined');
 
+  await page.getByRole('radio', { name: 'COREN' }).click();
   await page.getByLabel('Número do COREN').fill('200002');
   await page.getByLabel('Senha').fill(senhaDemo());
   await page.getByRole('button', { name: 'Entrar' }).click();
