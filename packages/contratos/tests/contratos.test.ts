@@ -11,6 +11,7 @@ import {
   paginacaoQuerySchema,
   pessoaAlteracaoSchema,
   pessoaEntradaSchema,
+  pessoasQuerySchema,
   STATUS_POR_CODIGO,
 } from '../src/index.ts';
 
@@ -128,5 +129,41 @@ describe('Mike e Jaiminho', () => {
     expect(logsEntradaSchema.safeParse({ logs: Array(501).fill(log) }).success).toBe(false);
     expect(envioEntradaSchema.safeParse({ destinatarioNome: 'A', destinatarioEmail: 'a@b.co', vinculo: 'FAMILIAR' }).success).toBe(true);
     expect(envioEntradaSchema.safeParse({ destinatarioNome: 'A', destinatarioEmail: 'sem-arroba', vinculo: 'FAMILIAR' }).success).toBe(false);
+  });
+});
+
+describe('caracteres de controle (D-QA-07)', () => {
+  const pessoa = (nome: string) => pessoaEntradaSchema.safeParse({ id, nome, editadoEm: agora }).success;
+
+  it('NUL e demais caracteres de controle sao rejeitados em texto; \\n, \\r e \\t passam', () => {
+    expect(pessoa('QA\u0000nul')).toBe(false);
+    expect(pessoa('sino\u0007')).toBe(false);
+    expect(pessoa('del\u007f')).toBe(false);
+    expect(pessoa('Maria\tda Silva')).toBe(true);
+    expect(aceita('OBSERVACAO', { texto: 'linha 1\r\nlinha 2' })).toBe(true);
+    expect(aceita('OBSERVACAO', { texto: 'linha 1\u0000' })).toBe(false);
+    expect(aceita('MEDICACAO', { medicamentoId: null, nome: 'A', dose: '1\u0001', unidade: 'g', via: 'EV' })).toBe(false);
+  });
+
+  it('vale tambem para busca, cursor, login e o detalhe livre do log', () => {
+    expect(pessoasQuerySchema.safeParse({ busca: 'a\u0000' }).success).toBe(false);
+    expect(paginacaoQuerySchema.safeParse({ cursor: 'a\u0000' }).success).toBe(false);
+    expect(loginEntradaSchema.safeParse({ tipoRegistro: 'CRM', registro: '1\u0000', senha: 'x' }).success).toBe(false);
+    const log = { id, ocorridoEm: agora, acao: 'LOGIN', resultado: 'SUCESSO', estavaOnline: false };
+    expect(logsEntradaSchema.safeParse({ logs: [{ ...log, detalhe: { a: { b: 'x\u0000' } } }] }).success).toBe(false);
+    expect(logsEntradaSchema.safeParse({ logs: [{ ...log, detalhe: { a: { b: 'x' } } }] }).success).toBe(true);
+  });
+});
+
+describe('dadosCorrigidos da retificacao (D-QA-21)', () => {
+  const retificacao = (dadosCorrigidos: unknown) =>
+    aceita('RETIFICACAO', { motivo: 'erro', dadosCorrigidos }, { retificaEventoId: id });
+
+  it('so valores simples, sem objeto aninhado, sem caractere de controle e com teto de campos', () => {
+    expect(retificacao({ saturacao: 95, via: 'EV', conferido: true, destino: null })).toBe(true);
+    expect(retificacao({ dados: { aninhado: 1 } })).toBe(false);
+    expect(retificacao({ lista: [1, 2] })).toBe(false);
+    expect(retificacao({ via: 'EV\u0000' })).toBe(false);
+    expect(retificacao(Object.fromEntries(Array.from({ length: 21 }, (_, i) => [`c${i}`, i])))).toBe(false);
   });
 });

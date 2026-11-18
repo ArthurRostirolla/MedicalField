@@ -1840,7 +1840,16 @@ components:
                   type: object
                   propertyNames:
                     type: string
-                  additionalProperties: {}
+                    minLength: 1
+                    maxLength: 50
+                  additionalProperties:
+                    anyOf:
+                      - type: string
+                        minLength: 1
+                        maxLength: 4000
+                      - type: number
+                      - type: boolean
+                      - type: "null"
               required:
                 - motivo
               additionalProperties: false
@@ -2316,7 +2325,16 @@ components:
                   type: object
                   propertyNames:
                     type: string
-                  additionalProperties: {}
+                    minLength: 1
+                    maxLength: 50
+                  additionalProperties:
+                    anyOf:
+                      - type: string
+                        minLength: 1
+                        maxLength: 4000
+                      - type: number
+                      - type: boolean
+                      - type: "null"
               required:
                 - motivo
               additionalProperties: false
@@ -2770,7 +2788,16 @@ components:
                         type: object
                         propertyNames:
                           type: string
-                        additionalProperties: {}
+                          minLength: 1
+                          maxLength: 50
+                        additionalProperties:
+                          anyOf:
+                            - type: string
+                              minLength: 1
+                              maxLength: 4000
+                            - type: number
+                            - type: boolean
+                            - type: "null"
                     required:
                       - motivo
                     additionalProperties: false
@@ -3487,7 +3514,16 @@ components:
                         type: object
                         propertyNames:
                           type: string
-                        additionalProperties: {}
+                          minLength: 1
+                          maxLength: 50
+                        additionalProperties:
+                          anyOf:
+                            - type: string
+                              minLength: 1
+                              maxLength: 4000
+                            - type: number
+                            - type: boolean
+                            - type: "null"
                     required:
                       - motivo
                     additionalProperties: false

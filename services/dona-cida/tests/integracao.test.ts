@@ -23,7 +23,7 @@ let jwks: Server;
 let admin: pg.Client;
 let base: string;
 let baseGestao: string;
-let assinar: (expiraEm?: string | number, emissor?: string) => Promise<string>;
+let assinar: (expiraEm?: string | number, emissor?: string, profissionalId?: string) => Promise<string>;
 let token: string;
 
 type Resposta = { status: number; corpo: any; requestId: string | null };
@@ -76,11 +76,11 @@ beforeAll(async () => {
   });
   await new Promise<void>((resolver) => jwks.listen(0, '127.0.0.1', resolver));
 
-  assinar = (expiraEm = '15m', emissor = 'medicalfield') =>
+  assinar = (expiraEm = '15m', emissor = 'medicalfield', profissionalId = PROFISSIONAL_ID) =>
     new SignJWT({ nome: 'Enf. Teste Integração', tipoRegistro: 'COREN', registro: '200002', uf: 'RS', papel: 'PROFISSIONAL' })
       .setProtectedHeader({ alg: 'EdDSA', kid: 'teste-1' })
       .setIssuer(emissor)
-      .setSubject(PROFISSIONAL_ID)
+      .setSubject(profissionalId)
       .setIssuedAt()
       .setExpirationTime(expiraEm)
       .setJti(randomUUID())
@@ -549,5 +549,78 @@ describe('descida por cursor (GET /sync/alteracoes)', () => {
     expect([p3.prontuarioItens.length, p3.temMais, p3.proximoCursor]).toEqual([1, false, tudo.proximoCursor]);
 
     expect((await api('GET', '/sync/alteracoes?desde=abc')).status).toBe(422);
+  });
+});
+
+describe('correcoes do QA', () => {
+  const cursor = (chave: string, id: string): string => Buffer.from(JSON.stringify([chave, id])).toString('base64url');
+  const ROTAS_PAGINADAS = ['/pessoa', '/atendimento', '/prontuario', '/medicamento'];
+
+  it('D-QA-06: cursor forjado ou malformado -> 422 VALIDACAO com campo "cursor" nas 4 rotas (nunca 500)', async () => {
+    const forjados = [
+      'WyJ4IiwieSJd', // ["x","y"], o caso do relatorio
+      cursor('x', randomUUID().toUpperCase()),
+      cursor('2026-11-18 00:00:00+00', 'nao-e-uuid'),
+      cursor('a\u0000b', randomUUID()),
+      Buffer.from('{"a":1}').toString('base64url'),
+      Buffer.from('[1,2]').toString('base64url'),
+    ];
+    for (const rota of ROTAS_PAGINADAS) {
+      for (const forjado of forjados) {
+        const resposta = await api('GET', `${rota}?cursor=${forjado}`);
+        expect([rota, resposta.status, resposta.corpo.codigo]).toEqual([rota, 422, 'VALIDACAO']);
+        expect(resposta.corpo.detalhes).toEqual([{ campo: 'cursor', mensagem: 'cursor inválido' }]);
+      }
+    }
+    // /atendimento ordena por instante: texto que nao e instante, e data impossivel, tambem sao 422
+    for (const chave of ['x', '2026-13-45 99:00:00+00', '2026-02-31 00:00:00+00']) {
+      expect((await api('GET', `/atendimento?cursor=${cursor(chave, randomUUID())}`)).status).toBe(422);
+    }
+    // e um cursor bem formado, mesmo inventado, continua funcionando
+    expect((await api('GET', `/atendimento?cursor=${cursor('2026-01-01 00:00:00+00', randomUUID())}`)).status).toBe(200);
+    expect((await api('GET', `/pessoa?cursor=${cursor('M', randomUUID())}`)).status).toBe(200);
+  });
+
+  it('D-QA-07: caractere nulo em texto -> 422 VALIDACAO apontando o campo (nunca 500), e nada e gravado', async () => {
+    const id = randomUUID();
+    const pessoa = await api('POST', '/pessoa', { corpo: { id, nome: 'QA\u0000nul', editadoEm: agora() } });
+    expect([pessoa.status, pessoa.corpo.codigo, pessoa.corpo.detalhes[0].campo]).toEqual([422, 'VALIDACAO', 'nome']);
+    expect(await sql('select 1 from clinico.pessoa where id = $1', [id])).toEqual([]);
+
+    const pessoaId = await novaPessoa();
+    const atendimentoId = randomUUID();
+    await api('POST', '/atendimento', { corpo: { id: atendimentoId, pessoaId, iniciadoEm: agora() } });
+    const evento = (tipo: string, dados: unknown, extra: object = {}) =>
+      api('POST', '/atendimento-evento', { corpo: { id: randomUUID(), atendimentoId, tipo, ocorridoEm: agora(), dados, ...extra } });
+    expect((await evento('OBSERVACAO', { texto: 'a\u0000b' })).status).toBe(422);
+    const original = randomUUID();
+    await api('POST', '/atendimento-evento', { corpo: { id: original, atendimentoId, tipo: 'OBSERVACAO', ocorridoEm: agora(), dados: { texto: 'ok' } } });
+    expect((await evento('RETIFICACAO', { motivo: 'm', dadosCorrigidos: { texto: 'x\u0000' } }, { retificaEventoId: original })).status).toBe(422);
+    expect((await evento('RETIFICACAO', { motivo: 'm', dadosCorrigidos: { a: { b: 1 } } }, { retificaEventoId: original })).status).toBe(422);
+    expect((await evento('RETIFICACAO', { motivo: 'm', dadosCorrigidos: { texto: 'corrigido' } }, { retificaEventoId: original })).status).toBe(201);
+
+    expect((await api('PATCH', `/pessoa/${pessoaId}`, { corpo: { campos: { telefone: '51\u0000' }, editadoEm: agora() } })).status).toBe(422);
+    expect((await api('GET', '/pessoa?busca=a%00b')).status).toBe(422);
+  });
+
+  it('D-QA-17: a mesma Idempotency-Key enviada por OUTRO profissional -> 422, sem a resposta do primeiro', async () => {
+    const chave = randomUUID();
+    const id = randomUUID();
+    const corpo = { id, nome: 'Pessoa Do Primeiro Profissional', editadoEm: agora(), telefone: '51 91111-2222' };
+    expect((await api('POST', '/pessoa', { corpo, chave })).status).toBe(201);
+
+    const outroProfissional = randomUUID();
+    const deOutro = await api('POST', '/pessoa', { corpo, chave, token: await assinar('15m', 'medicalfield', outroProfissional) });
+    expect(deOutro.status).toBe(422);
+    expect(deOutro.corpo).toEqual({ codigo: 'CHAVE_IDEMPOTENCIA_CONFLITANTE', mensagem: expect.any(String), requestId: deOutro.requestId });
+    expect(JSON.stringify(deOutro.corpo)).not.toContain('91111');
+
+    // para o dono da chave nada mudou: repeticao continua 200 com a resposta original
+    expect((await api('POST', '/pessoa', { corpo, chave })).status).toBe(200);
+    expect(await sql('select profissional_id from clinico.auditoria_clinica where entidade_id = $1', [id])).toEqual([
+      { profissional_id: PROFISSIONAL_ID },
+    ]);
+    // a mesma chave em outra rota tambem e conflito
+    expect((await api('POST', '/prontuario', { corpo: { id: randomUUID(), pessoaId: id }, chave })).corpo.codigo).toBe('CHAVE_IDEMPOTENCIA_CONFLITANTE');
   });
 });

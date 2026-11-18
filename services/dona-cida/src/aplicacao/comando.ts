@@ -47,10 +47,17 @@ export class ExecutorComandos {
         await repositorio.travarChave(opId);
         const anterior = await repositorio.buscarOperacao(opId);
         if (anterior) {
-          if (anterior.hashCorpo !== contexto.hashCorpo) {
+          // A chave vale para UM comando de UM profissional: mesmo autor, mesma rota, mesmo corpo.
+          // Qualquer diferenca e conflito - e a resposta guardada (de outra pessoa) nunca e devolvida.
+          const mesmoComando =
+            anterior.profissionalId === contexto.autor.profissionalId &&
+            anterior.metodo === contexto.metodo &&
+            anterior.rota === contexto.rota &&
+            anterior.hashCorpo === contexto.hashCorpo;
+          if (!mesmoComando) {
             throw new ErroAplicacao(
               'CHAVE_IDEMPOTENCIA_CONFLITANTE',
-              'Esta Idempotency-Key já foi usada com outro corpo.',
+              'Esta Idempotency-Key já foi usada em outra operação.',
             );
           }
           // Repeticao: devolve a resposta original, sem tocar em nada.

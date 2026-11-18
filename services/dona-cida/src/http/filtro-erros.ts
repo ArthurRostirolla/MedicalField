@@ -38,6 +38,12 @@ export function traduzirErro(erro: unknown): ErroAplicacao {
     if (bancoIndisponivel(codigo, mensagem)) {
       return new ErroAplicacao('SERVICO_INDISPONIVEL', 'Serviço temporariamente indisponível.');
     }
+    // Rede de seguranca: classe 22 do SQLSTATE = "o dado nao serve" (texto com NUL, data impossivel,
+    // numero fora da faixa...). E culpa do que foi enviado, nao do servidor: 422, para o outbox do app
+    // tratar como rejeicao definitiva em vez de reenviar para sempre.
+    if (/^22[0-9A-Z]{3}$/.test(codigo)) return new ErroAplicacao('VALIDACAO', 'Dados inválidos.', [
+      { campo: 'corpo', mensagem: 'contém valor que não pode ser gravado' },
+    ]);
     // Rede de seguranca: chave estrangeira que escapou das conferencias dos casos de uso.
     if (codigo === '23503') return new ErroAplicacao('VALIDACAO', 'Dados inválidos.', [
       { campo: 'corpo', mensagem: 'referência a registro inexistente' },
@@ -45,6 +51,24 @@ export function traduzirErro(erro: unknown): ErroAplicacao {
   }
   return new ErroAplicacao('ERRO_INTERNO', 'Erro interno.');
 }
+
+/**
+ * Texto do erro tecnico para o log. A mensagem de um erro do Postgres repete o valor recebido
+ * ("invalid input syntax for type uuid: ..."), entao dele so sai o SQLSTATE.
+ */
+export function descreverErro(erro: unknown): string {
+  if (!(erro instanceof Error)) return 'erro não identificado';
+  const codigo: unknown = (erro as { code?: unknown }).code;
+  return typeof codigo === 'string' && /^[0-9A-Z]{5}$/.test(codigo)
+    ? `${erro.name}: SQLSTATE ${codigo}`
+    : `${erro.name}: ${erro.message}`;
+}
+
+/** So as linhas "at ..." da pilha: a primeira repete a mensagem. */
+const pilhaSemMensagem = (erro: unknown): string | undefined =>
+  erro instanceof Error
+    ? erro.stack?.split('\n').filter((linha) => /^\s+at /.test(linha)).join('\n')
+    : undefined;
 
 /** Filtro global: TODO erro sai no corpo padrao `{ codigo, mensagem, detalhes?, requestId }`. */
 @Catch()
@@ -59,11 +83,9 @@ export class FiltroDeErros implements ExceptionFilter {
     const traduzido = traduzirErro(erro);
 
     if (traduzido.status >= 500) {
-      // So nome, mensagem e pilha do erro tecnico: nunca o corpo da requisicao.
-      const original = erro instanceof Error ? erro : new Error('erro não identificado');
-      this.log.error(`${traduzido.codigo}: ${original.name}: ${original.message}`, {
+      this.log.error(`${traduzido.codigo}: ${descreverErro(erro)}`, {
         requestId,
-        ...(traduzido.codigo === 'ERRO_INTERNO' ? { pilha: original.stack } : {}),
+        ...(traduzido.codigo === 'ERRO_INTERNO' ? { pilha: pilhaSemMensagem(erro) } : {}),
       });
     }
     if (resposta.headersSent) return;

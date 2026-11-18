@@ -1,7 +1,15 @@
 // DonaCida - nucleo clinico e sincronizacao (docs/contratos.md, secao 6).
 // As faixas numericas sao apenas limites de digitacao plausivel: o sistema nao interpreta valor clinico.
 import { z } from 'zod';
-import { booleanoQuerySchema, dataHoraSchema, dataSchema, paginacaoQuerySchema, texto, uuidSchema } from './comum.ts';
+import {
+  booleanoQuerySchema,
+  dataHoraSchema,
+  dataSchema,
+  paginacaoQuerySchema,
+  texto,
+  textoLivre,
+  uuidSchema,
+} from './comum.ts';
 
 // ---------- Medicamento ----------
 
@@ -83,7 +91,7 @@ export type PessoaAlteracao = z.infer<typeof pessoaAlteracaoSchema>;
 
 /** Query de `GET /pessoa`: `busca` = parte do nome ou CPF. */
 export const pessoasQuerySchema = paginacaoQuerySchema.extend({
-  busca: z.string().trim().max(200).optional(),
+  busca: textoLivre().trim().max(200).optional(),
   somenteDuplicatas: booleanoQuerySchema,
 });
 export type PessoasQuery = z.infer<typeof pessoasQuerySchema>;
@@ -225,7 +233,14 @@ export type DadosObservacao = z.infer<typeof dadosObservacaoSchema>;
 
 export const dadosRetificacaoSchema = z.strictObject({
   motivo: texto(1000),
-  dadosCorrigidos: z.record(z.string(), z.unknown()).optional(),
+  /**
+   * Campos corrigidos do evento original (o resumo os aplica sobre os dados dele e eles vao ao PDF):
+   * so valores simples, como os proprios `dados` dos eventos - nada de objeto aninhado.
+   */
+  dadosCorrigidos: z
+    .record(texto(50), z.union([texto(4000), z.number(), z.boolean(), z.null()]))
+    .refine((campos) => Object.keys(campos).length <= 20, 'no máximo 20 campos')
+    .optional(),
 });
 export type DadosRetificacao = z.infer<typeof dadosRetificacaoSchema>;
 

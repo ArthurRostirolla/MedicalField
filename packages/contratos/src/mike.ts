@@ -1,6 +1,6 @@
 // MikeBaguncinha - identidade e auditoria (docs/contratos.md, secoes 3 e 5).
 import { z } from 'zod';
-import { dataHoraSchema, texto, uuidSchema } from './comum.ts';
+import { dataHoraSchema, semNulo, texto, textoLivre, uuidSchema } from './comum.ts';
 
 export const tipoRegistroSchema = z.enum(['CRM', 'COREN', 'SOCORRISTA']);
 export type TipoRegistro = z.infer<typeof tipoRegistroSchema>;
@@ -26,8 +26,8 @@ export type Claims = z.infer<typeof claimsSchema>;
 export const loginEntradaSchema = z.strictObject({
   tipoRegistro: tipoRegistroSchema,
   registro: texto(40),
-  uf: z.string().max(2).optional(),
-  senha: z.string().min(1, 'obrigatório').max(200),
+  uf: textoLivre().max(2).optional(),
+  senha: textoLivre().min(1, 'obrigatório').max(200),
 });
 export type LoginEntrada = z.infer<typeof loginEntradaSchema>;
 
@@ -51,7 +51,7 @@ export const sessaoSchema = z.object({
 export type Sessao = z.infer<typeof sessaoSchema>;
 
 /** Corpo de `POST /auth/refresh` e `POST /auth/logout` (o cookie `mf_refresh` tambem vale). */
-export const refreshEntradaSchema = z.strictObject({ refreshToken: z.string().min(1).optional() });
+export const refreshEntradaSchema = z.strictObject({ refreshToken: textoLivre().min(1).optional() });
 export type RefreshEntrada = z.infer<typeof refreshEntradaSchema>;
 
 export const resultadoLogSchema = z.enum(['SUCESSO', 'FALHA']);
@@ -60,11 +60,11 @@ export const logClienteSchema = z.strictObject({
   id: uuidSchema,
   ocorridoEm: dataHoraSchema,
   acao: texto(100),
-  entidade: z.string().max(100).optional(),
-  entidadeId: z.string().max(100).optional(),
+  entidade: textoLivre().max(100).optional(),
+  entidadeId: textoLivre().max(100).optional(),
   resultado: resultadoLogSchema,
   estavaOnline: z.boolean(),
-  detalhe: z.record(z.string(), z.unknown()).optional(),
+  detalhe: z.record(z.string(), z.unknown()).refine(semNulo, 'contém caractere nulo').optional(),
 });
 export type LogCliente = z.infer<typeof logClienteSchema>;
 
@@ -107,7 +107,7 @@ const filtroPeriodo = {
   ate: dataHoraSchema.optional(),
   profissionalId: uuidSchema.optional(),
   limite: z.coerce.number().int().min(1).max(200).optional(),
-  cursor: z.string().optional(),
+  cursor: textoLivre().optional(),
 };
 /** Query de `GET /auditoria/acesso` (mais recentes primeiro). */
 export const auditoriaAcessoQuerySchema = z.object({ ...filtroPeriodo, servico: servicoSchema.optional() });

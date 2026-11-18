@@ -12,8 +12,22 @@ export const dataHoraSchema = z.iso.datetime({ error: 'deve ser data e hora ISO-
 /** Data pura `YYYY-MM-DD`. */
 export const dataSchema = z.iso.date({ error: 'deve ser uma data YYYY-MM-DD' });
 
-/** Texto obrigatorio, sem ser so espacos. */
-export const texto = (max = 500) => z.string().trim().min(1, 'obrigatório').max(max);
+/**
+ * Caracteres de controle, menos \n, \r e \t. O NUL (\u0000) nem cabe em texto do Postgres:
+ * aceito aqui, viraria erro do banco no servidor e operacao reenviada para sempre no outbox do app.
+ */
+// eslint-disable-next-line no-control-regex -- a intencao e exatamente casar caracteres de controle
+export const CARACTERE_DE_CONTROLE = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/;
+
+/** Qualquer texto vindo de fora: sem caractere de controle. Use no lugar de `z.string()` em entradas. */
+export const textoLivre = () =>
+  z.string().refine((valor) => !CARACTERE_DE_CONTROLE.test(valor), 'contém caractere de controle não permitido');
+
+/** Texto obrigatorio, sem ser so espacos e sem caractere de controle. */
+export const texto = (max = 500) => textoLivre().trim().min(1, 'obrigatório').max(max);
+
+/** Objeto livre que vai para uma coluna jsonb: o jsonb do Postgres recusa \u0000 em qualquer profundidade. */
+export const semNulo = (valor: unknown): boolean => !JSON.stringify(valor ?? null).includes('\\u0000');
 
 export const LIMITE_PADRAO = 50;
 export const LIMITE_MAXIMO = 200;
@@ -21,7 +35,7 @@ export const LIMITE_MAXIMO = 200;
 /** Query string das listas paginadas: `?limite=50&cursor=<opaco>`. */
 export const paginacaoQuerySchema = z.object({
   limite: z.coerce.number().int().min(1).max(LIMITE_MAXIMO).default(LIMITE_PADRAO),
-  cursor: z.string().min(1).max(500).optional(),
+  cursor: textoLivre().min(1).max(500).optional(),
 });
 export type PaginacaoQuery = z.infer<typeof paginacaoQuerySchema>;
 

@@ -15,6 +15,7 @@ import { sql, type RawBuilder, type Selectable, type SelectQueryBuilder } from '
 import { validacao } from '../dominio/erros.ts';
 import type {
   EventoNovo,
+  OperacaoGuardada,
   OperacaoSync,
   Paginacao,
   PessoaGuardada,
@@ -139,11 +140,27 @@ const COLUNA_DA_PESSOA: Record<CampoEditavelPessoa, keyof PessoaLinha> = {
 const codificarCursor = (chave: string, id: string): string =>
   Buffer.from(JSON.stringify([chave, id])).toString('base64url');
 
-function decodificarCursor(cursor: string): [string, string] {
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
+/** O que cada tipo de chave pode conter - exatamente o formato que `codificarCursor` recebe do banco. */
+const CHAVE_VALIDA: Record<Ordenacao['tipo'], RegExp> = {
+  // timestamptz::text, ex.: 2026-11-18 00:49:52.285123+00
+  timestamptz: /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01]) ([01]\d|2[0-3]):[0-5]\d:[0-5]\d(\.\d{1,6})?[+-]\d{2}(:\d{2})?$/,
+  // texto qualquer, menos caracteres de controle (o NUL nem e aceito pelo Postgres)
+  text: /^[^\u0000-\u001F\u007F]{0,1000}$/,
+};
+
+/**
+ * O cursor e opaco para o cliente, mas vem dele: tudo e conferido ANTES de chegar ao SQL.
+ * A mensagem de erro nunca repete o valor recebido.
+ */
+function decodificarCursor(cursor: string, tipo: Ordenacao['tipo']): [string, string] {
   try {
     const lido: unknown = JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
-    if (Array.isArray(lido) && lido.length === 2 && typeof lido[0] === 'string' && typeof lido[1] === 'string') {
-      return [lido[0], lido[1]];
+    if (Array.isArray(lido) && lido.length === 2) {
+      const [chave, id]: unknown[] = lido;
+      if (typeof chave === 'string' && typeof id === 'string' && UUID.test(id) && CHAVE_VALIDA[tipo].test(chave)) {
+        return [chave, id];
+      }
     }
   } catch {
     // cai no erro abaixo
@@ -168,7 +185,7 @@ async function paginar<L extends { _chave: string; id: string }>(
 ): Promise<{ linhas: L[]; proximoCursor: string | null }> {
   const sentido = ordem.decrescente ? 'desc' : 'asc';
   if (cursor) {
-    const [chave, id] = decodificarCursor(cursor);
+    const [chave, id] = decodificarCursor(cursor, ordem.tipo);
     const comparador = sql.raw(ordem.decrescente ? '<' : '>');
     consulta = consulta.where(
       sql<boolean>`(${ordem.chave}, ${ordem.id}) ${comparador} (${chave}::${sql.raw(ordem.tipo)}, ${id}::uuid)`,
@@ -199,13 +216,21 @@ export class RepositorioClinicoSql implements RepositorioClinico {
     await sql`select pg_advisory_xact_lock(hashtextextended(${opId}, 0))`.execute(this.banco);
   }
 
-  async buscarOperacao(opId: string): Promise<{ hashCorpo: string; resposta: unknown } | null> {
+  async buscarOperacao(opId: string): Promise<OperacaoGuardada | null> {
     const linha = await this.banco
       .selectFrom('clinico.operacao_sync')
-      .select(['hash_corpo', 'resposta'])
+      .select(['hash_corpo', 'resposta', 'profissional_id', 'metodo', 'rota'])
       .where('op_id', '=', opId)
       .executeTakeFirst();
-    return linha ? { hashCorpo: linha.hash_corpo, resposta: linha.resposta } : null;
+    return linha
+      ? {
+          hashCorpo: linha.hash_corpo,
+          resposta: linha.resposta,
+          profissionalId: linha.profissional_id,
+          metodo: linha.metodo,
+          rota: linha.rota,
+        }
+      : null;
   }
 
   async registrarOperacao(operacao: OperacaoSync): Promise<void> {

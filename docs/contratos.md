@@ -232,6 +232,10 @@ As faixas são apenas limites de digitação plausível — **o sistema não int
 3. **Estratégias de conflito** (`dominio/conflito`, padrão Strategy): eventos e itens de prontuário → `UniaoImutavel`; pessoa → `CampoMaisRecente` (por campo, comparando `editadoEm` com `carimbos_campos`; valor anterior vai para `auditoria_clinica`); medicamento → `ServidorVence`; duplicata provável (mesmo CPF, ou mesmo nome sem diferença de caixa + mesma data de nascimento) → `RevisaoManual`: aceita e preenche `possivelDuplicataDe`.
 4. **Relógio.** `ocorridoEm`/`editadoEm`/`iniciadoEm` mais de 5 min à frente do servidor é limitado ao horário do servidor e registrado em `auditoria_clinica.observacao`.
 5. **Nunca rejeitar dado clínico por conflito cadastral.** Rejeição (422) só por corpo inválido ou referência inexistente (`pessoaId`/`atendimentoId` desconhecido → 422 `VALIDACAO`, não 404, para o outbox reter os dependentes).
+6. **Chave de idempotência é por profissional e por comando.** A mesma `Idempotency-Key` vinda de outro profissional, de outra rota ou com outro corpo → 422 `CHAVE_IDEMPOTENCIA_CONFLITANTE`, sem devolver a resposta guardada.
+7. **Texto sem caracteres de controle.** Todo campo de texto recusa caracteres de controle (exceto `
+`, ``, `	`) → 422 `VALIDACAO`. Cursor de paginação malformado → 422 com `campo: "cursor"`. Nenhum erro de dado vira 500.
+8. **`dadosCorrigidos` da retificação é plano:** até 20 campos, chave de até 50 caracteres, valor simples (texto, número, booleano ou nulo). Esses valores são aplicados sobre o evento original na passagem de caso.
 
 O resumo (`Resumo`) é calculado por função pura em `packages/dominio`, usada pela DonaCida, pelo portal e pelo app.
 

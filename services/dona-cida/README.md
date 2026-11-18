@@ -31,6 +31,8 @@ A integração usa Postgres real, num banco isolado, e sobe a aplicação inteir
 
 ```bash
 bash scripts/dev-db.sh criar-banco mf_teste_cida && bash scripts/dev-db.sh migrar mf_teste_cida
+# criar-banco ja liga a carga de demonstracao, de que alguns testes dependem. Em banco criado de outro jeito, ANTES de migrar:
+#   docker exec medicalfield-dev-pg psql -U postgres -d <banco> -c "ALTER DATABASE <banco> SET medicalfield.dados_demo = 'on'"
 npm test -w @medicalfield/dona-cida
 ```
 
@@ -54,7 +56,7 @@ src/
   aplicacao/   casos de uso; `comando.ts` é o receptor idempotente (dado + operacao_sync + auditoria_clinica numa transação)
   dominio/     estratégias de conflito (Strategy), relógio, hash canônico, erros, interfaces dos repositórios
   infra/       SQL (Kysely), JWKS, configuração, log
-migrations/    dbmate; 000250 é a carga de demonstração
+migrations/    dbmate; 000250 é a carga de demonstração (só insere se o banco tiver medicalfield.dados_demo = on)
 ```
 
 | Dado | Estratégia (`dominio/conflito`) |
@@ -70,6 +72,10 @@ migrations/    dbmate; 000250 é a carga de demonstração
 - Id do próprio caminho inexistente (`PATCH /pessoa/{id}`, inativação, GETs) → **404**; referência no corpo inexistente (`pessoaId`, `atendimentoId`, `retificaEventoId`) → **422**.
 - `POST /prontuario` para quem já tem prontuário une os itens e só **preenche** `tipoSanguineo`/`observacoes` que estiverem vazios — nunca sobrescreve.
 - `medicamentoId` que o catálogo não conhece não rejeita o evento: ele é gravado como "fora do catálogo".
+- A `Idempotency-Key` vale para um comando de **um profissional**: a mesma chave vinda de outro profissional, de outra rota ou com outro corpo → 422 `CHAVE_IDEMPOTENCIA_CONFLITANTE`, sem devolver a resposta guardada.
+- Texto com caractere de controle (NUL etc.; quebra de linha e tabulação são aceitas) → 422. Como rede de segurança, qualquer erro de dado do Postgres (SQLSTATE classe 22) também vira 422, nunca 500 — 5xx faria o outbox reenviar para sempre.
+- Cursor de paginação é conferido antes do SQL (formato da chave + UUID); inválido → 422 com `campo: "cursor"`. O log de erro de banco leva só o SQLSTATE, nunca a mensagem (ela repete o valor enviado).
+- `dadosCorrigidos` da retificação: até 20 campos de valor simples (texto, número, booleano, nulo).
 - `X-Dispositivo-Id` malformado é ignorado (vira nulo); `Idempotency-Key` malformada → 422.
 - CPF: 11 dígitos sem pontuação, sem conferir dígito verificador. CNS: 15 dígitos.
 - `GET /atendimento/{pessoaId}` também é paginado e traz `pessoaNome`.

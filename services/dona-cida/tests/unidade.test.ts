@@ -9,7 +9,7 @@ import { ErroAplicacao } from '../src/dominio/erros.ts';
 import { hashDoCorpo, jsonCanonico } from '../src/dominio/hash.ts';
 import { limitarAoServidor } from '../src/dominio/relogio.ts';
 import type { OperacaoSync, RegistroAuditoria, RepositorioClinico, UnidadeDeTrabalho } from '../src/dominio/repositorios.ts';
-import { traduzirErro } from '../src/http/filtro-erros.ts';
+import { descreverErro, traduzirErro } from '../src/http/filtro-erros.ts';
 import { criarListaDeProxies, resolverIpCliente } from '../src/http/ip-cliente.ts';
 
 describe('estrategias de conflito', () => {
@@ -114,15 +114,18 @@ describe('idempotencia (ExecutorComandos)', () => {
     const auditorias: RegistroAuditoria[] = [];
     const repositorio = {
       travarChave: async () => {},
-      buscarOperacao: async (opId: string) => operacoes.get(opId) ?? null,
+      buscarOperacao: async (opId: string) => {
+        const operacao = operacoes.get(opId);
+        return operacao ? { ...operacao, profissionalId: operacao.autor.profissionalId } : null;
+      },
       registrarOperacao: async (operacao: OperacaoSync) => void operacoes.set(operacao.opId, operacao),
       registrarAuditoria: async (registro: RegistroAuditoria) => void auditorias.push(registro),
     } as unknown as RepositorioClinico;
     const unidade: UnidadeDeTrabalho = { leitura: repositorio, transacao: (trabalho) => trabalho(repositorio) };
     return { executor: new ExecutorComandos(unidade), operacoes, auditorias };
   }
-  const contexto = (corpo: unknown, chave: string | null = 'chave-1'): ContextoComando => ({
-    autor: { profissionalId: 'p1', profissionalNome: 'Profissional', dispositivoId: null },
+  const contexto = (corpo: unknown, chave: string | null = 'chave-1', profissionalId = 'p1'): ContextoComando => ({
+    autor: { profissionalId, profissionalNome: 'Profissional', dispositivoId: null },
     chaveIdempotencia: chave,
     hashCorpo: hashDoCorpo(corpo),
     metodo: 'POST',
@@ -154,6 +157,21 @@ describe('idempotencia (ExecutorComandos)', () => {
       codigo: 'CHAVE_IDEMPOTENCIA_CONFLITANTE',
       status: 422,
     });
+  });
+
+  it('D-QA-17: a chave vale por profissional (e por rota) - outro autor recebe conflito, nunca a resposta guardada', async () => {
+    const { executor } = montar();
+    let execucoes = 0;
+    const acao = async () => ({ status: 201 as const, corpo: { segredo: (execucoes += 1) } });
+    await executor.executar(contexto({ a: 1 }), 'e1', acao);
+
+    const deOutro = executor.executar(contexto({ a: 1 }, 'chave-1', 'p2'), 'e1', acao);
+    await expect(deOutro).rejects.toMatchObject({ codigo: 'CHAVE_IDEMPOTENCIA_CONFLITANTE', status: 422 });
+    await expect(deOutro).rejects.not.toHaveProperty('corpo');
+    await expect(
+      executor.executar({ ...contexto({ a: 1 }), rota: '/api/v1/prontuario' }, 'e1', acao),
+    ).rejects.toMatchObject({ codigo: 'CHAVE_IDEMPOTENCIA_CONFLITANTE' });
+    expect(execucoes).toBe(1);
   });
 
   it('sem chave nao registra operacao e sempre executa', async () => {
@@ -193,6 +211,21 @@ describe('traducao de erros', () => {
   it('erro desconhecido vira ERRO_INTERNO sem vazar a mensagem', () => {
     const traduzido = traduzirErro(new Error('senha do banco = 123'));
     expect(traduzido).toMatchObject({ codigo: 'ERRO_INTERNO', status: 500, message: 'Erro interno.' });
+  });
+
+  it('D-QA-07: erro de dado do Postgres (classe 22) vira 422, nao 500 - o outbox nao reenvia para sempre', () => {
+    for (const sqlstate of ['22021', '22P02', '22007', '22008', '22003', '22P05', '22001']) {
+      expect(traduzirErro(Object.assign(new Error('x'), { code: sqlstate }))).toMatchObject({ codigo: 'VALIDACAO', status: 422 });
+    }
+    // outras classes continuam 500 (ex.: 42 = erro de SQL nosso)
+    expect(traduzirErro(Object.assign(new Error('x'), { code: '42703' })).status).toBe(500);
+  });
+
+  it('D-QA-06: o log de um erro do Postgres leva so o SQLSTATE, nunca a mensagem (que repete o valor enviado)', () => {
+    const doBanco = Object.assign(new Error('invalid input syntax for type uuid: "valor-do-cliente"'), { code: '22P02' });
+    expect(descreverErro(doBanco)).toBe('Error: SQLSTATE 22P02');
+    expect(descreverErro(doBanco)).not.toContain('valor-do-cliente');
+    expect(descreverErro(new TypeError('x is not a function'))).toBe('TypeError: x is not a function');
   });
 
   it('banco fora vira 503; corpo JSON quebrado vira 422', () => {

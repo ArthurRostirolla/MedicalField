@@ -35,6 +35,15 @@ export type OperacaoSync = {
   resposta: unknown;
 };
 
+/** O que a idempotencia precisa saber de uma operacao ja recebida. */
+export type OperacaoGuardada = {
+  hashCorpo: string;
+  resposta: unknown;
+  profissionalId: string;
+  metodo: string;
+  rota: string;
+};
+
 export type RegistroAuditoria = {
   entidade: 'pessoa' | 'prontuario' | 'prontuario_item' | 'atendimento' | 'atendimento_evento';
   entidadeId: string;
@@ -50,7 +59,7 @@ export interface RepositorioClinico {
   // --- idempotencia e auditoria (somente insercao) ---
   /** Serializa comandos concorrentes com a mesma chave ate o fim da transacao. */
   travarChave(opId: string): Promise<void>;
-  buscarOperacao(opId: string): Promise<{ hashCorpo: string; resposta: unknown } | null>;
+  buscarOperacao(opId: string): Promise<OperacaoGuardada | null>;
   registrarOperacao(operacao: OperacaoSync): Promise<void>;
   registrarAuditoria(registro: RegistroAuditoria): Promise<void>;
 

@@ -10,6 +10,7 @@ const lido = eventoEntradaSchema.safeParse(corpo); // união discriminada por `t
 
 - `*Schema` valida; o tipo de mesmo nome (sem o sufixo) é o `z.infer` dele.
 - Entradas são `strictObject`: campo desconhecido é rejeitado. Glasgow confere o `total`; triagem confere a classificação contra o protocolo; `retificaEventoId` só existe (e é obrigatório) em `RETIFICACAO`.
+- Todo texto de entrada recusa caracteres de controle (`texto()` / `textoLivre()`; quebra de linha e tabulação passam) — o app rejeita antes de enfileirar o que o banco não aceitaria. Esquema novo: use esses dois, não `z.string()` puro.
 - `CODIGOS_ERRO`, `STATUS_POR_CODIGO`, `erroSchema` e `ehFalhaTransitoria(status)` (regra do outbox: 4xx definitivo, rede/5xx transitório).
 - Sem dependência de Node: roda no navegador. Única dependência: `zod`.
 
