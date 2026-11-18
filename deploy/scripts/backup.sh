@@ -1,31 +1,26 @@
 #!/usr/bin/env bash
-# Backup do banco do cluster (contexto atual do kubectl).
+# Backup do banco central (pg_dump formato custom) em deploy/backups/, mantendo os 7 mais novos.
+# Na VM, agendado no cron:  15 3 * * * /opt/medicalfield/deploy/scripts/backup.sh agora
 #
-#   deploy/scripts/backup.sh                    dispara o CronJob agora e lista o volume de backups
-#   deploy/scripts/backup.sh listar             lista os backups guardados no volume
-#   deploy/scripts/backup.sh exportar <arquivo> pg_dump direto para um arquivo FORA do cluster
+#   deploy/scripts/backup.sh [agora]      novo backup em deploy/backups/
+#   deploy/scripts/backup.sh listar
 set -euo pipefail
 export MSYS_NO_PATHCONV=1
-NAMESPACE=medicalfield
 
-listar() { kubectl -n "$NAMESPACE" exec postgres-0 -c postgres -- ls -lh /backups; }
+DEPLOY="$(cd "$(dirname "$0")/.." && pwd)"
+DESTINO="$DEPLOY/backups"
+cd "$DEPLOY"
 
 case "${1:-agora}" in
   agora)
-    job="backup-manual-$(date -u +%Y%m%d%H%M%S)"
-    kubectl -n "$NAMESPACE" create job "$job" --from=cronjob/backup
-    if ! kubectl -n "$NAMESPACE" wait --for=condition=complete "job/$job" --timeout=300s; then
-      kubectl -n "$NAMESPACE" logs "job/$job" --tail=50 || true
-      echo "Backup falhou (job $job)." >&2; exit 1
-    fi
-    listar
+    mkdir -p "$DESTINO"
+    arquivo="$DESTINO/medicalfield-$(date -u +%Y%m%dT%H%M%SZ).dump"
+    docker compose exec -T postgres pg_dump -U postgres --format=custom medicalfield > "$arquivo.parcial"
+    [ -s "$arquivo.parcial" ] || { rm -f "$arquivo.parcial"; echo "Dump vazio." >&2; exit 1; }
+    mv "$arquivo.parcial" "$arquivo"
+    ls -1t "$DESTINO"/medicalfield-*.dump | tail -n +8 | xargs -r rm -f
+    ls -lh "$DESTINO"
     ;;
-  listar) listar ;;
-  exportar)
-    destino="${2:?informe o arquivo de destino}"
-    kubectl -n "$NAMESPACE" exec postgres-0 -c postgres -- pg_dump -U postgres --format=custom medicalfield > "$destino"
-    [ -s "$destino" ] || { echo "Dump vazio." >&2; exit 1; }
-    ls -lh "$destino"
-    ;;
-  *) sed -n '2,6p' "$0"; exit 1 ;;
+  listar) ls -lh "$DESTINO" ;;
+  *) sed -n '2,7p' "$0"; exit 1 ;;
 esac
