@@ -9,7 +9,19 @@ npm run android -w @medicalfield/lucky-patcher   # Android: emulador ou aparelho
 npm run ios -w @medicalfield/lucky-patcher       # iOS: simulador ou aparelho (macOS + Xcode)
 ```
 
-Sem Mac, o build iOS sai pelo EAS Build (`npx eas build -p ios`). O Expo Go não serve, porque o SQLCipher exige um *development build*.
+Sem Mac, o build iOS sai pelo EAS Build (`npx eas build -p ios`).
+
+## Expo Go com túnel (demonstração, sem build)
+
+```bash
+npm run tunel -w @medicalfield/lucky-patcher     # Metro na porta 8090 + túnel do Expo
+```
+
+Escaneie o QR (ou digite a URL `exp://…` que aparece em "Waiting on https://…") no Expo Go do iPhone ou Android, em qualquer rede. O login já vem com o servidor preenchido: a VM, `https://177-44-248-60.sslip.io` (troque com `MF_SERVIDOR=https://…`).
+
+- **No Expo Go o banco local fica SEM cifra**: o Expo Go traz o SQLite comum, sem SQLCipher. O app detecta isso (`noExpoGo` em `src/banco/executorExpo.ts`), abre o banco sem `PRAGMA key` e avisa no log. Use só com dados fictícios; o development build e o release continuam cifrados.
+- O Expo Go da loja só roda a versão atual do SDK (58). O React está fixado em `19.3.0` em todo o monorepo (`overrides` no `package.json` da raiz), a versão que o React Native do Expo Go espera; duas cópias do React quebrariam o app.
+- O servidor precisa ser alcançável pelo celular e em HTTPS: a VM serve. O backend local (`localhost:8088`) não é visto pelo celular.
 
 No primeiro acesso o app pede o **endereço do servidor**:
 
