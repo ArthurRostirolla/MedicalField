@@ -136,14 +136,16 @@ npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF
 
 ### App Android (emulador)
 
-Com o cluster local no ar, um emulador (ou aparelho) visível em `adb devices` e o APK de depuração instalado — como gerar e instalar: [`apps/lucky-patcher/docs/android.md`](apps/lucky-patcher/docs/android.md):
+Com o cluster local no ar, um emulador (ou aparelho) visível em `adb devices` e o APK de depuração instalado — como gerar e instalar: [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md):
 
 ```bash
 export MF_SENHA_DEMO='<senha de demonstração>'
 node e2e/android/android.mjs
 ```
 
-Dirige o WebView do app por depuração remota, confere o banco central por `kubectl exec` e regrava [`docs/testes/evidencias/android/`](docs/testes/evidencias/android/resultado.md). No emulador o servidor é `http://10.0.2.2:8088`; num aparelho físico, defina `MF_SERVIDOR_ANDROID`.
+> **Pendente:** este roteiro dirige o WebView do app Capacitor e não funciona com o app Expo (React Native não tem WebView). Ele precisa ser refeito, por exemplo com um fluxo Maestro. Até lá, o roteiro no aparelho (Android e iOS) é manual ([`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md)).
+
+Dirigia o WebView do app por depuração remota, confere o banco central por `kubectl exec` e regrava [`docs/testes/evidencias/android/`](docs/testes/evidencias/android/resultado.md). No emulador o servidor é `http://10.0.2.2:8088`; num aparelho físico, defina `MF_SERVIDOR_ANDROID`.
 
 ### Por peça
 
@@ -200,7 +202,7 @@ Cada serviço e o portal têm um `README.md` próprio, com variáveis de ambient
 | **VM da Univates** | **Não implantado.** Não houve acesso à VM. O procedimento está em [`docs/operacao/instalacao-vm.md`](docs/operacao/instalacao-vm.md) e os manifestos em `deploy/overlays/univates`, com pontos marcados `TROCAR`; nada disso foi executado. |
 | **Acesso público HTTPS** | Não executado; depende da VM. |
 | **Argo CD** | Manifesto escrito (`deploy/argocd/`), não instalado. O cluster local é implantado com `kubectl apply -k`. |
-| **Aparelho Android físico** | Não testado. O APK de depuração foi construído e o app validado num **emulador** (ver acima); falta um aparelho real, um APK assinado para publicação e TLS até o servidor. Ver [`apps/lucky-patcher/docs/android.md`](apps/lucky-patcher/docs/android.md). |
+| **Aparelho Android físico** | Não testado. O APK de depuração foi construído e o app validado num **emulador** (ver acima); falta um aparelho real, um APK assinado para publicação e TLS até o servidor. Ver [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md). |
 | **E-mail em caixa externa** | Não testado. O envio é validado contra o Mailpit (SMTP real, de captura); faltam credenciais de um provedor. |
 | **Conflito com dois aparelhos reais** | As quatro estratégias são cobertas por testes de integração do servidor, não por dois clientes ao mesmo tempo. |
 | **NetworkPolicy e backup/restauração** | Executados uma vez; não repetidos de forma independente. |

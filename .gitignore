@@ -19,9 +19,6 @@ bin/
 deploy/**/secrets*.env
 *.sqlite
 *.db
-apps/lucky-patcher/android/app/build/
-apps/lucky-patcher/android/.gradle/
-apps/lucky-patcher/android/local.properties
 playwright-report/
 test-results/
 .DS_Store

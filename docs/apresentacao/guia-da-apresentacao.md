@@ -19,7 +19,7 @@ Faça com 30 minutos de antecedência. Os comandos estão no roteiro de testes, 
 - [ ] Escolha o sufixo da rodada (`AULA1`) e, se já apresentou antes nesta máquina, use outro.
 - [ ] Abas prontas no editor ou navegador: `docs/arquitetura/arquitetura.md` (diagramas), `docs/dados/modelagem.md`, `docs/api/README.md`.
 - [ ] **Rode o roteiro automatizado uma vez** (`npm run roteiro -w @medicalfield/e2e`) para ter certeza de que está tudo no ar — e para ter evidência fresca caso a demonstração ao vivo falhe.
-- [ ] **Android (opcional):** emulador Pixel 6 aberto, APK instalado (`apps/lucky-patcher/docs/android.md`) e `adb devices` mostrando o emulador. Rode `node e2e/android/android.mjs` uma vez antes, para ter as capturas frescas.
+- [ ] **Android (opcional):** emulador Pixel 6 aberto, APK instalado (`apps/lucky-patcher/docs/nativo.md`) e `adb devices` mostrando o emulador. Rode `node e2e/android/android.mjs` uma vez antes, para ter as capturas frescas.
 - [ ] Zoom do navegador e do terminal legíveis no projetor.
 
 ## 2. Roteiro de fala (15 minutos)
@@ -187,7 +187,7 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 | **O app não abre o banco local** | Use o Chrome (não uma janela anônima antiga nem outro navegador). Em último caso: DevTools → Application → Clear site data, e entre de novo — o que já subiu não se perde. |
 | **Sem projetor para o terminal** | O passo 9 pode ser mostrado pela consequência: Medicamentos → Atualizar no portal. |
 | **Perguntam pela VM** | Abra [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) e `deploy/overlays/univates/kustomization.yaml`. É o mesmo conjunto de manifestos do cluster local, com imagens do registro e o nome público. Não foi executado. |
-| **Perguntam pelo Android**, ou o emulador não sobe | Mostre as capturas em [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md) (início sincronizado, atendimento offline, reaberto com pendências, sincronizado) e o `resultado.md`. Detalhes: [`../../apps/lucky-patcher/docs/android.md`](../../apps/lucky-patcher/docs/android.md) e a evidência E-008. Diga o limite: emulador, APK de depuração, sem TLS. |
+| **Perguntam pelo Android**, ou o emulador não sobe | Mostre as capturas em [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md) (início sincronizado, atendimento offline, reaberto com pendências, sincronizado) e o `resultado.md`. Detalhes: [`../../apps/lucky-patcher/docs/nativo.md`](../../apps/lucky-patcher/docs/nativo.md) e a evidência E-008. Diga o limite: emulador, APK de depuração, sem TLS. |
 
 ## 5. Perguntas prováveis e respostas curtas
 

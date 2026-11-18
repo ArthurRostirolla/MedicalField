@@ -311,7 +311,7 @@ Código compartilhado entre o backend TypeScript e os dois front-ends (monorepo 
 | Acesso a dados no Go | `sqlc` + `pgx` | Só `pgx`, SQL escrito à mão | Poucas consultas; gerador não se pagava. |
 | Formulários | React Hook Form + zod | Estado do React + zod | Sem dependência extra; a validação é a do contrato. |
 | Sessão do app | *Refresh token* no Keystore (Android) / cookie (web) | Sessão inteira no **banco local** (cifrado só no Android); o cookie `HttpOnly` é usado apenas pelo portal | O app precisa abrir sem rede; ver [segurança](seguranca.md). |
-| App Android | APK entregue | **APK de depuração**, validado em **emulador**; não assinado para publicação, sem teste em aparelho físico | O Gradle exigiu uma pasta temporária de caminho curto (D-09); ver `apps/lucky-patcher/docs/android.md`. |
+| App Android | APK entregue | **APK de depuração**, validado em **emulador**; não assinado para publicação, sem teste em aparelho físico | O Gradle exigiu uma pasta temporária de caminho curto (D-09); ver `apps/lucky-patcher/docs/nativo.md`. |
 | Implantação | VM da Univates, Argo CD | **k3s local em Docker**, `kubectl apply -k` | Sem acesso à VM. |
 
 ## 10. Estado atual

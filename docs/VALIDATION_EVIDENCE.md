@@ -102,7 +102,7 @@ Cada entrada: o que foi executado, o comando ou a ação, o resultado observado 
   4. Volta da rede: 1 pessoa, 1 atendimento, 1 evento e 1 alergia na central; sincronizar de novo não duplicou.
   5. O banco é o arquivo nativo `databases/medicalfieldSQLite.db`, **cifrado** (sem o cabeçalho "SQLite format 3" em claro).
 - **Defeitos encontrados e corrigidos:**
-  - D-09: o Gradle falhava com "Unable to establish loopback connection" — o Java não abre o soquete local numa pasta temporária de caminho longo. Resolvido apontando `TEMP`/`TMP` e `-Djdk.net.unixdomain.tmpdir` para uma pasta curta (documentado em `apps/lucky-patcher/docs/android.md`).
+  - D-09: o Gradle falhava com "Unable to establish loopback connection" — o Java não abre o soquete local numa pasta temporária de caminho longo. Resolvido apontando `TEMP`/`TMP` e `-Djdk.net.unixdomain.tmpdir` para uma pasta curta (documentado em `apps/lucky-patcher/docs/nativo.md`).
   - D-10: o topo fixo do app ficava por baixo da barra de status do Android. Corrigido em `packages/ui` (`.mf-app__topo` com `padding-top: env(safe-area-inset-top)`); conferido na captura `docs/testes/evidencias/android/03-reaberto-com-pendencias.png`.
 - **Evidências:** `docs/testes/evidencias/android/` (4 capturas do emulador + `resultado.md`).
 - **Limites:** emulador, não aparelho físico; APK de depuração (não assinado para publicação); tráfego HTTP sem TLS até o gateway local.
