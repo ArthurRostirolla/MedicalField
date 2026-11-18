@@ -5,7 +5,7 @@ import { useEffect, type ReactNode } from 'react';
 import { Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useApp, useAvisar, useConectividade, useContagens, useMotor, useSessao } from './contexto.tsx';
-import { BarraConectividade, Botao, FaixaDemonstrativa, Icone, Marca, MEDIDA, Texto, Titulo, useTema, type LucideIcon } from './ds/index.ts';
+import { BarraConectividade, Botao, Icone, Marca, MEDIDA, Texto, Titulo, useTema, type LucideIcon } from './ds/index.ts';
 import { formatarMomento } from './formato.ts';
 
 /** A tira de conectividade ligada ao Observer e ao seletor "Simular conectividade". */
@@ -72,7 +72,6 @@ export function Casca({ titulo, subtitulo, acaoTopo, atual, voltar, acaoVoltar, 
   return (
     <View style={{ flex: 1, backgroundColor: cores.mesa }}>
       <View style={{ paddingTop: margens.top, backgroundColor: cores.papel }}>
-        <FaixaDemonstrativa />
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: MEDIDA.recuo, paddingVertical: 10 }}>
           <View style={{ flex: 1 }}>
             {typeof titulo === 'string' ? <Titulo nivel={1}>{titulo}</Titulo> : titulo}
@@ -163,7 +162,6 @@ export function CascaSimples({ conectividade, children }: { conectividade?: Reac
   return (
     <View style={{ flex: 1, backgroundColor: cores.mesa }}>
       <View style={{ paddingTop: margens.top, backgroundColor: cores.papel }}>
-        <FaixaDemonstrativa />
         <View style={{ paddingHorizontal: MEDIDA.recuo, paddingVertical: 12 }}>
           <Marca />
         </View>

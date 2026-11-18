@@ -243,12 +243,3 @@ export function Esqueleto({ linhas = 1, largura = '100%', altura, className }: E
   );
 }
 
-/* ───────── Faixa de dados demonstrativos ───────── */
-
-export function FaixaDemonstrativa({ className }: { className?: string }) {
-  return (
-    <p className={cx('mf-faixa', className)}>
-      <span>Dados demonstrativos — sem validade clínica</span>
-    </p>
-  );
-}

@@ -532,11 +532,9 @@ Espaço em múltiplos de 4 px sobre a escala padrão do Tailwind v4 (0.25rem por
 
 **Portal.** Grade de duas colunas: índice lateral de 14.5rem em papel, com fio de 2 px de tinta à direita, e conteúdo. Cabeçalho da página com 3.5rem de altura mínima e fio de 1 px embaixo; área principal com 1.5rem de recuo. A partir de 64rem o índice fica fixo na altura da janela. Abaixo de 64rem a grade vira uma coluna, o índice vira uma tira horizontal rolável com itens de 3rem, os títulos de grupo e o rodapé de usuário somem e o recuo cai para 1rem. A composição da vitrine é livro de registros à esquerda e ficha aberta à direita (6fr / 7fr a partir de 80rem), com a via rosa no topo da ficha.
 
-**App de campo.** Coluna única. Topo fixo com a faixa demonstrativa, o cabeçalho (3.5rem, título truncado em uma linha, subtítulo em pequeno) e a tira de conectividade (3rem); conteúdo; barra inferior fixa de abas com 3.5rem, fio de 2 px de tinta em cima e respeito a `safe-area-inset-bottom`. A aba atual é bloco invertido.
+**App de campo.** Coluna única. Topo fixo com o cabeçalho (3.5rem, título truncado em uma linha, subtítulo em pequeno) e a linha de conectividade (2rem, discreta: ponto, estado e pendências; um toque abre o detalhe com "Simular offline"); conteúdo; barra inferior fixa de abas com 3.5rem, fio de 2 px de tinta em cima e respeito a `safe-area-inset-bottom`. A aba atual é bloco invertido.
 
 **Pontos de quebra.** `md` 48rem, `lg` 64rem, `xl` 80rem. Componentes que vivem em colunas de largura variável respondem ao próprio contêiner, não à janela: a tira de conectividade aperta abaixo de 24rem sem esconder palavra; a grade da passagem de caso cai de 3 para 2 colunas abaixo de 36rem e para 1 abaixo de 20rem; o seletor de triagem cai para 2 colunas abaixo de 40rem.
-
-**Faixa demonstrativa.** "Dados demonstrativos — sem validade clínica" abre toda tela (e o PDF), em rótulo de caixa-alta com espaçamento 0,12em sobre hachura diagonal.
 
 ## Elevation & Depth
 
@@ -561,7 +559,7 @@ Fios: 1 px `fio` para pauta e divisória; 1 px `fio-forte` para contorno de cont
 
 Formas com significado: seis formas fixas de triagem (losango, triângulo, quadrado, círculo, hexágono, cruz em X) e quatro marcas de sincronização (vazada, meia, cheia, riscada). O símbolo da marca são duas folhas sobrepostas — a folha de papel com duas linhas de pauta e um ponto violeta, e a cópia rosa atrás. Ícones vêm de um único conjunto de traço (lucide-react), sempre com função: tipo de evento, ação, estado.
 
-A hachura diagonal de 6 px (tinta a 10–12% de opacidade) é a textura da faixa demonstrativa e de mais nada.
+Não há textura nem hachura: superfícies lisas, separadas por fio.
 
 ## Components
 
@@ -644,13 +642,12 @@ Livro de registros: células de 13 px com recuo de 0.375rem × 0.75rem, cabeçal
 - **Do** — use numeral tabular em sinal vital, horário e contagem; Martian Mono só em hora, nº da entrada, código e contagem.
 - **Do** — separe com fio (1 px pauta, 2 px de tinta em cabeçalho) e deixe caixas vizinhas dividirem o mesmo fio; canto de 2 px em controle, 3 px em sobreposição, vivo em folha.
 - **Do** — acrescente todo par novo de texto e fundo a `contraste.test.ts` com o mínimo que ele deve cumprir (7 texto principal, 4,5 texto, 3 contorno e foco).
-- **Do** — abra toda tela com a faixa "Dados demonstrativos — sem validade clínica" enquanto os dados forem fictícios.
 - **Do** — escreva o erro dizendo o que falhou e o que fazer; escreva o vazio dizendo o que aparece ali.
 
 ### Don't:
 **O que NÃO fazer.**
 - **Don't** — nada de "interface médica azul e branca" nem painel de cartões com métricas no topo. Azul aqui é só o nível azul do Manchester.
-- **Don't** — nada de gradiente de cor, em fundo, botão ou texto. A hachura de traço duro da faixa demonstrativa é o único padrão repetido e não é transição de cor.
+- **Don't** — nada de gradiente de cor, em fundo, botão ou texto.
 - **Don't** — nada de vidro: sem `backdrop-filter`, sem desfoque, sem superfície translúcida. O único translúcido é o véu chapado do diálogo.
 - **Don't** — nada de grade de cartões arredondados. O contêiner é a seção de canto vivo com fio; canto nunca passa de 3 px; seção não se aninha em seção.
 - **Don't** — nenhum bloco sólido em matiz de triagem (vermelho, laranja, amarelo, verde, azul, preto do protocolo) fora da etiqueta e do seletor de triagem; e nenhuma forma de triagem numa etiqueta genérica.

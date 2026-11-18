@@ -14,7 +14,6 @@ import {
   EstadoVazio,
   Etiqueta,
   EtiquetaTriagem,
-  FaixaDemonstrativa,
   LinhaDoTempo,
   Marca,
   Paginacao,
@@ -227,7 +226,6 @@ const SECOES = [
 export function Vitrine({ tema, aoMudarTema }: { tema: Tema; aoMudarTema: (tema: Tema) => void }) {
   return (
     <div className="min-h-dvh bg-mesa">
-      <FaixaDemonstrativa />
       <header className="sticky top-0 z-20 border-b-2 border-tinta bg-papel">
         <div className="mx-auto flex max-w-[90rem] flex-wrap items-center gap-x-6 gap-y-1 px-4 py-2 lg:px-8">
           <Marca />
@@ -541,10 +539,6 @@ export function Vitrine({ tema, aoMudarTema }: { tema: Tema; aoMudarTema: (tema:
               <Esqueleto largura="40%" altura="1.25rem" />
               <Esqueleto linhas={3} />
             </div>
-          </Peca>
-
-          <Peca nome="Faixa demonstrativa" nota="Obrigatória em toda tela e no PDF.">
-            <FaixaDemonstrativa />
           </Peca>
         </Capitulo>
 

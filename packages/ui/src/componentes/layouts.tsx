@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react';
 import { cx } from '../util';
-import { FaixaDemonstrativa, Marca } from './superficies';
+import { Marca } from './superficies';
 
 export interface ItemNavegacao {
   id: string;
@@ -69,7 +69,6 @@ export interface LayoutPortalProps extends Navegavel {
 export function LayoutPortal({ itens, atual, aoNavegar, titulo, acoes, usuario, children }: LayoutPortalProps) {
   return (
     <div className="mf-portal" data-contexto="portal">
-      <FaixaDemonstrativa />
       <aside className="mf-portal__indice">
         <div className="mf-portal__marca">
           <Marca />
@@ -126,8 +125,7 @@ export function LayoutApp({
   return (
     <div className={cx('mf-app', className)} data-contexto="campo">
       <div className="mf-app__topo">
-        <FaixaDemonstrativa />
-        <header className="mf-app__cabecalho">
+          <header className="mf-app__cabecalho">
           <div className="mf-app__titulos">
             <h1 className="mf-app__titulo">{titulo}</h1>
             {subtitulo ? <p className="mf-app__subtitulo">{subtitulo}</p> : null}

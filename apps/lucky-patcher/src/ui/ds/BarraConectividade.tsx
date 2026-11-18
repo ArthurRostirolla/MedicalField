@@ -1,8 +1,9 @@
-// Tira permanente do app de campo: estado da conexao, pendencias e o seletor "Simular conectividade".
-import { CircleAlert, Wifi, WifiOff } from 'lucide-react-native';
+// Linha discreta do app de campo: estado da conexao e pendencias numa linha so; um toque abre o detalhe
+// (ver pendencias e o seletor "Simular conectividade").
+import { ChevronDown, ChevronUp, CircleAlert } from 'lucide-react-native';
+import { useState } from 'react';
 import { ActivityIndicator, Pressable, View } from 'react-native';
-import { Chave, Icone, Texto } from './base.tsx';
-import { MarcaSync } from './etiquetas.tsx';
+import { Botao, Chave, Icone, Texto } from './base.tsx';
 import { useTema } from './tema.tsx';
 import { MEDIDA } from './tokens.ts';
 
@@ -19,11 +20,11 @@ export interface BarraConectividadeProps {
   sincronizando?: boolean;
   /** Hora da ultima sincronizacao, ja formatada (ex.: "21:04"). */
   ultimaSync?: string;
-  /** Torna a contagem um botao que abre a tela de pendencias. */
+  /** Mostra, no detalhe, o botao que abre a tela de pendencias. */
   aoAbrirPendencias?: () => void;
 }
 
-/** Offline vira bloco invertido (icone + palavra), entao o estado nao depende de cor. */
+/** Online fica quase invisivel; offline ganha a palavra em tinta forte (o estado nao depende so da cor do ponto). */
 export function BarraConectividade({
   online,
   simulandoOffline,
@@ -35,70 +36,78 @@ export function BarraConectividade({
   aoAbrirPendencias,
 }: BarraConectividadeProps) {
   const { cores } = useTema();
+  const [aberta, setAberta] = useState(false);
   const detalhe = online ? (ultimaSync ? `sync ${ultimaSync}` : 'conectado') : simulandoOffline ? 'simulado' : 'sem rede';
   const textoPendencias = sincronizando
     ? `Enviando ${pendencias}…`
     : pendencias === 0
       ? 'Tudo enviado'
       : `${pendencias} ${pendencias === 1 ? 'pendente' : 'pendentes'}`;
-  const corEstado = online ? cores.tinta : cores.sobreInverso;
-
-  const conteudoPendencias = (
-    <>
-      {sincronizando ? <ActivityIndicator size="small" color={cores.tinta} /> : <MarcaSync estado={pendencias === 0 ? 'confirmado' : 'local'} cor={cores.tinta2} />}
-      <View>
-        <Texto tamanho="pequeno" forte>
-          {textoPendencias}
-        </Texto>
-        {rejeitadas > 0 ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <Icone icone={CircleAlert} cor={cores.carmim} tamanho={12} />
-            <Texto tamanho="rotulo" tom="carmim" forte>
-              {rejeitadas} {rejeitadas === 1 ? 'rejeitada' : 'rejeitadas'}
-            </Texto>
-          </View>
-        ) : null}
-      </View>
-    </>
-  );
-  const estiloPendencias = { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 48, paddingHorizontal: 12 } as const;
+  const tom = online ? cores.tinta3 : cores.tinta;
 
   return (
-    <View
-      role="region"
-      aria-label="Conectividade e sincronização"
-      style={{ flexDirection: 'row', alignItems: 'stretch', borderTopWidth: 1, borderBottomWidth: 1, borderColor: cores.fio, backgroundColor: cores.papel }}
-    >
-      <View
-        role={'status' as 'alert'}
-        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: MEDIDA.recuo, minWidth: 116, backgroundColor: online ? 'transparent' : cores.inverso }}
+    <View role="region" aria-label="Conectividade e sincronização" style={{ borderBottomWidth: 1, borderColor: cores.fio, backgroundColor: cores.papel }}>
+      {/* A linha toda abre o detalhe (atalho para o dedo); o botao acessivel e o chevron no fim. */}
+      <Pressable
+        accessible={false}
+        onPress={() => setAberta(!aberta)}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 8,
+          minHeight: 32,
+          paddingHorizontal: MEDIDA.recuo,
+          backgroundColor: pressed ? cores.papel2 : 'transparent',
+        })}
       >
-        <Icone icone={online ? Wifi : WifiOff} cor={corEstado} />
-        <View>
-          <Texto forte style={{ color: corEstado }}>
+        <View aria-hidden style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: online ? cores.fioForte : cores.marca }} />
+        <View role={'status' as 'alert'} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexShrink: 1 }}>
+          <Texto tamanho="rotulo" forte={!online} style={{ color: tom }}>
             {online ? 'Online' : 'Offline'}
           </Texto>
-          <Texto tamanho="rotulo" style={{ color: online ? cores.tinta3 : cores.sobreInverso }}>
-            {detalhe}
+          <Texto tamanho="rotulo" style={{ color: cores.tinta3 }}>
+            · {detalhe}
           </Texto>
         </View>
-      </View>
-
-      {aoAbrirPendencias ? (
-        <Pressable role="button" aria-label={`${textoPendencias}. Abrir pendências`} onPress={aoAbrirPendencias} style={estiloPendencias}>
-          {conteudoPendencias}
-        </Pressable>
-      ) : (
-        <View role={'status' as 'alert'} style={estiloPendencias}>
-          {conteudoPendencias}
+        <View style={{ flex: 1 }} />
+        <View role={'status' as 'alert'} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          {sincronizando ? <ActivityIndicator size="small" color={cores.tinta3} /> : null}
+          {rejeitadas > 0 ? <Icone icone={CircleAlert} cor={cores.carmim} tamanho={12} /> : null}
+          <Texto tamanho="rotulo" style={{ color: rejeitadas > 0 ? cores.carmim : pendencias > 0 ? cores.tinta : cores.tinta3 }}>
+            {rejeitadas > 0 ? `${rejeitadas} ${rejeitadas === 1 ? 'rejeitada' : 'rejeitadas'} · ` : ''}
+            {textoPendencias}
+          </Texto>
         </View>
-      )}
+        <Pressable
+          role="button"
+          aria-label="Detalhes da conexão"
+          aria-expanded={aberta}
+          onPress={() => setAberta(!aberta)}
+          hitSlop={8}
+          style={{ marginRight: -6, padding: 6 }}
+        >
+          <Icone icone={aberta ? ChevronUp : ChevronDown} cor={cores.tinta3} tamanho={14} />
+        </Pressable>
+      </Pressable>
 
-      <View style={{ justifyContent: 'center', paddingRight: 12 }}>
-        <Chave marcado={simulandoOffline} aoMudar={aoMudarSimulacao} aria-label="Simular conectividade: ficar offline">
-          {'Simular\noffline'}
-        </Chave>
-      </View>
+      {aberta ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: MEDIDA.recuo, paddingBottom: 4 }}>
+          {aoAbrirPendencias ? (
+            <Botao variante="fantasma" onPress={aoAbrirPendencias} aria-label={`${textoPendencias}. Abrir pendências`} style={{ paddingHorizontal: 0 }}>
+              <Texto tamanho="pequeno" forte>
+                Ver pendências
+              </Texto>
+            </Botao>
+          ) : (
+            <View />
+          )}
+          <Chave marcado={simulandoOffline} aoMudar={aoMudarSimulacao} aria-label="Simular conectividade: ficar offline">
+            <Texto tamanho="pequeno" tom="tinta2">
+              Simular offline
+            </Texto>
+          </Chave>
+        </View>
+      ) : null}
     </View>
   );
 }

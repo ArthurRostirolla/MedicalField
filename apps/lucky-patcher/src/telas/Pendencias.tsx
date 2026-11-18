@@ -108,7 +108,7 @@ export function Pendencias() {
           {conexao.online
             ? 'Online: a fila sobe sozinha, uma operação por vez, na ordem em que foi registrada.'
             : conexao.simulandoOffline
-              ? 'Simulação de offline ligada: desligue a chave “Simular offline”, no alto, para enviar.'
+              ? 'Simulação de offline ligada: desligue “Simular offline” no detalhe da linha de conexão, no alto, para enviar.'
               : 'Sem contato com o servidor: a fila sobe sozinha quando a rede voltar.'}
           {motor.ultimoErro && conexao.online ? ` Última tentativa: ${motor.ultimoErro}` : ''}
         </Texto>

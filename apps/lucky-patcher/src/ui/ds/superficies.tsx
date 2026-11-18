@@ -12,17 +12,30 @@ import { MEDIDA } from './tokens.ts';
 
 /** Cruz sobre o quadrado vermelho + nome. */
 export function Marca() {
-  const { cores } = useTema();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-      <Svg viewBox="0 0 24 24" width={24} height={24} aria-hidden>
-        <Rect x={1.5} y={1.5} width={21} height={21} rx={5} fill={cores.marca} />
-        <Path d="M9.75 5.5h4.5v4.25h4.25v4.5h-4.25v4.25h-4.5v-4.25H5.5v-4.5h4.25z" fill={cores.sobreMarca} />
-      </Svg>
-      <Texto forte style={{ fontSize: 18, fontWeight: '800' }}>
-        MedicalField
-      </Texto>
+      <MarcaSimbolo />
+      <MarcaNome />
     </View>
+  );
+}
+
+/** So o quadrado com a cruz (a abertura anima as duas pecas da marca separadas). */
+export function MarcaSimbolo() {
+  const { cores } = useTema();
+  return (
+    <Svg viewBox="0 0 24 24" width={24} height={24} aria-hidden>
+      <Rect x={1.5} y={1.5} width={21} height={21} rx={5} fill={cores.marca} />
+      <Path d="M9.75 5.5h4.5v4.25h4.25v4.5h-4.25v4.25h-4.5v-4.25H5.5v-4.5h4.25z" fill={cores.sobreMarca} />
+    </Svg>
+  );
+}
+
+export function MarcaNome() {
+  return (
+    <Texto forte style={{ fontSize: 18, fontWeight: '800' }}>
+      MedicalField
+    </Texto>
   );
 }
 
@@ -279,13 +292,3 @@ export function Esqueleto({ linhas = 1, largura = '100%', altura = 16 }: Esquele
   );
 }
 
-/* ───────── Faixa de dados demonstrativos ───────── */
-
-export function FaixaDemonstrativa() {
-  const { cores } = useTema();
-  return (
-    <View style={{ backgroundColor: cores.inverso, paddingVertical: 2, alignItems: 'center' }}>
-      <Rotulo style={{ color: cores.sobreInverso }}>Dados demonstrativos — sem validade clínica</Rotulo>
-    </View>
-  );
-}

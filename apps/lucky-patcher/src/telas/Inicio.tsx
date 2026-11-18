@@ -210,7 +210,7 @@ export function Inicio() {
         </Botao>
         {conexao.simulandoOffline ? (
           <Texto tamanho="pequeno" tom="tinta2">
-            Simulação de offline ligada: desligue a chave “Simular offline”, no alto, para enviar.
+            Simulação de offline ligada: desligue “Simular offline” no detalhe da linha de conexão, no alto, para enviar.
           </Texto>
         ) : null}
         {resultado ? (

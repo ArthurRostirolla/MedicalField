@@ -17,7 +17,6 @@ test('login de ADMIN entra no portal e a sessão sobrevive a recarregar a págin
   const erros = vigiarConsole(page);
   await entrar(page);
   await expect(page).toHaveURL(/\/portal\/atendimentos$/);
-  await expect(page.getByText('Dados demonstrativos — sem validade clínica')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Logs de acesso' })).toBeVisible();
 
   // O access token só existe em memória: recarregar depende do refresh pelo cookie.

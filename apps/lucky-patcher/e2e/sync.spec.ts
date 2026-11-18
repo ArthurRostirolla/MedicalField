@@ -13,6 +13,7 @@ import {
   registrarObservacao,
   registrarSinais,
   registrarTriagem,
+  chaveSimular,
   simularOffline,
   sincronizar,
   sql,
@@ -133,7 +134,7 @@ test('4. offline pelo seletor: grava local, nada sai, sobrevive a recarregar e s
   // Recarregar a pagina: tudo continua la, e o seletor tambem (nenhuma requisicao na reabertura).
   await page.reload();
   await expect(page.getByRole('heading', { name: nome, level: 1 })).toBeVisible();
-  await expect(page.getByRole('switch', { name: /Simular conectividade/ })).toHaveAttribute('aria-checked', 'true');
+  await expect(await chaveSimular(page)).toHaveAttribute('aria-checked', 'true');
   await expect(page.getByRole('list', { name: 'Linha do tempo do atendimento' }).getByRole('listitem')).toHaveCount(4);
   await expect(page.getByText('7 pendentes').filter({ visible: true }).first()).toBeVisible();
   expect(await pendentesLocais(page)).toBe(7);

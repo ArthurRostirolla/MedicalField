@@ -1,4 +1,4 @@
-import { Esqueleto, EstadoErro, FaixaDemonstrativa } from '@medicalfield/ui';
+import { Esqueleto, EstadoErro } from '@medicalfield/ui';
 import { useEffect, useSyncExternalStore } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router';
 import type { Profissional } from '@medicalfield/contratos';
@@ -35,7 +35,6 @@ export function RequerSessao() {
   if (sessao.situacao === 'restaurando') {
     return (
       <div className="min-h-dvh bg-mesa" aria-busy="true">
-        <FaixaDemonstrativa />
         <p className="mf-so-leitor" role="status">
           Conferindo a sessão…
         </p>

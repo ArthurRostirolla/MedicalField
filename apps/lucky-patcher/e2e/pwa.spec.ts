@@ -1,7 +1,7 @@
 // Cenario 5: offline REAL (sem usar o seletor), sobre o build de producao servido por `vite preview`.
 // O service worker entrega a casca do app; o banco local (OPFS) entrega os dados.
 import { expect, test } from '@playwright/test';
-import { contar, entrar, esperarTudoEnviado, novoPacienteComAtendimento, pendentesLocais, registrarSinais, registrarTriagem, unico, vigiarConsole } from './apoio.ts';
+import { chaveSimular, contar, entrar, esperarTudoEnviado, novoPacienteComAtendimento, pendentesLocais, registrarSinais, registrarTriagem, unico, vigiarConsole } from './apoio.ts';
 
 test('5. offline real: o app abre pela casca do PWA, registra e sincroniza ao voltar', async ({ page, context }) => {
   // Sem rede de verdade o navegador registra as proprias falhas de conexao; fora isso, nenhum erro.
@@ -19,7 +19,7 @@ test('5. offline real: o app abre pela casca do PWA, registra e sincroniza ao vo
   await page.reload(); // sem rede: so abre se a casca vier do service worker
   await expect(page.getByRole('heading', { name: 'Início', level: 1 })).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: 'Offline' }).filter({ visible: true }).first()).toContainText(/sem rede/i);
-  await expect(page.getByRole('switch', { name: /Simular conectividade/ })).toHaveAttribute('aria-checked', 'false');
+  await expect(await chaveSimular(page)).toHaveAttribute('aria-checked', 'false');
 
   const nome = unico('Paciente Sem Rede');
   const { pessoaId, atendimentoId } = await novoPacienteComAtendimento(page, nome, 'Látex');

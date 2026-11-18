@@ -59,7 +59,6 @@ aplicarTema(temaPreferido()); // grava data-tema="claro" | "escuro" no <html>
 | `Dialogo` | `<dialog>` nativo |
 | `Toast`, `PilhaToasts`, `useToasts` | Avisos em bloco invertido; erro não some sozinho |
 | `EstadoVazio`, `EstadoErro`, `Esqueleto` | Estados de lista e de carregamento |
-| `FaixaDemonstrativa` | "DADOS DEMONSTRATIVOS — SEM VALIDADE CLÍNICA" (os layouts já incluem) |
 | `LayoutPortal`, `LayoutApp`, `Marca` | Índice lateral + conteúdo; cabeçalho + tira de conectividade + barra inferior |
 
 `EventoLinha` e `ResumoPassagem` são estruturalmente compatíveis com `Evento` e `Resumo` de `docs/contratos.md` §6 — passe os objetos da API direto. O pacote não depende de `@medicalfield/contratos`.

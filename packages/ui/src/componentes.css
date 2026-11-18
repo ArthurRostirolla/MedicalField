@@ -1373,26 +1373,6 @@
     animation: mf-pisca 1.2s steps(2, jump-none) infinite;
   }
 
-  /* ───────── Faixa de dados demonstrativos ───────── */
-  .mf-faixa {
-    margin: 0;
-    padding: 0.25rem 0.75rem;
-    border-bottom: 1px solid var(--mf-rosa-fio);
-    background-color: var(--mf-marca-suave);
-    color: var(--mf-marca-forte);
-    font-size: var(--mf-rotulo);
-    line-height: 1rem;
-    font-weight: 650;
-    font-stretch: 78%;
-    letter-spacing: 0.12em;
-    text-align: center;
-    text-transform: uppercase;
-  }
-  .mf-faixa span {
-    padding: 0 0.5rem;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
-  }
 
   /* ───────── Marca ───────── */
   .mf-marca-nome {
@@ -1419,12 +1399,9 @@
   .mf-portal {
     display: grid;
     grid-template-columns: 14.5rem minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     min-height: 100dvh;
     background-color: var(--mf-mesa);
-  }
-  .mf-portal > .mf-faixa {
-    grid-column: 1 / -1;
   }
   .mf-portal__indice {
     display: flex;
@@ -1541,7 +1518,7 @@
   @media (width < 64rem) {
     .mf-portal {
       grid-template-columns: minmax(0, 1fr);
-      grid-template-rows: auto auto minmax(0, 1fr);
+      grid-template-rows: auto minmax(0, 1fr);
     }
     .mf-portal__indice {
       flex-direction: row;

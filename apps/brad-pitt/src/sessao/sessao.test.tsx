@@ -64,7 +64,6 @@ describe('guarda de rota', () => {
     montar('/auditoria/duplicatas', HELENA);
     expect(await screen.findByText('Nenhum cadastro sinalizado')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Logs de acesso' })).toBeInTheDocument();
-    expect(screen.getByText('Dados demonstrativos — sem validade clínica')).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole('button', { name: 'Sair' }));
     expect(await screen.findByRole('heading', { name: 'Identificação profissional' })).toBeInTheDocument();

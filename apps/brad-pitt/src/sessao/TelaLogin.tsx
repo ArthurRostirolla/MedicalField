@@ -1,5 +1,5 @@
 import type { TipoRegistro } from '@medicalfield/contratos';
-import { Botao, CampoTexto, FaixaDemonstrativa, Marca, Select, SeletorCartoes, type OpcaoCartao } from '@medicalfield/ui';
+import { Botao, CampoTexto, Marca, Select, SeletorCartoes, type OpcaoCartao } from '@medicalfield/ui';
 import { Ambulance, CircleAlert, HeartPulse, LogIn, Stethoscope } from 'lucide-react';
 import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useLocation } from 'react-router';
@@ -71,7 +71,6 @@ export function TelaLogin() {
 
   return (
     <div className="bp-login" data-contexto="portal">
-      <FaixaDemonstrativa />
       <main className="bp-login__grade">
         <section className="bp-login__editorial">
           <div className="bp-login__bloco">
