@@ -1,0 +1,1771 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-17T00:00:00.000Z",
+  "title": "Design System: MedicalField",
+  "extensions": {
+    "colorMeta": {
+      "mesa": {
+        "role": "neutral",
+        "displayName": "Mesa",
+        "canonical": "#eceaf0",
+        "oklch": "oklch(94.0% 0.008 301.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.008 301.4)",
+          "oklch(26.0% 0.008 301.4)",
+          "oklch(38.0% 0.008 301.4)",
+          "oklch(50.0% 0.008 301.4)",
+          "oklch(61.0% 0.008 301.4)",
+          "oklch(72.0% 0.008 301.4)",
+          "oklch(84.0% 0.008 301.4)",
+          "oklch(95.0% 0.008 301.4)"
+        ]
+      },
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel",
+        "canonical": "#fbfafc",
+        "oklch": "oklch(98.6% 0.003 308.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 308.4)",
+          "oklch(26.0% 0.003 308.4)",
+          "oklch(38.0% 0.003 308.4)",
+          "oklch(50.0% 0.003 308.4)",
+          "oklch(61.0% 0.003 308.4)",
+          "oklch(72.0% 0.003 308.4)",
+          "oklch(84.0% 0.003 308.4)",
+          "oklch(95.0% 0.003 308.4)"
+        ]
+      },
+      "papel-2": {
+        "role": "neutral",
+        "displayName": "Papel 2",
+        "canonical": "#f2f0f5",
+        "oklch": "oklch(95.8% 0.007 304.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.007 304.2)",
+          "oklch(26.0% 0.007 304.2)",
+          "oklch(38.0% 0.007 304.2)",
+          "oklch(50.0% 0.007 304.2)",
+          "oklch(61.0% 0.007 304.2)",
+          "oklch(72.0% 0.007 304.2)",
+          "oklch(84.0% 0.007 304.2)",
+          "oklch(95.0% 0.007 304.2)"
+        ]
+      },
+      "inverso": {
+        "role": "neutral",
+        "displayName": "Inverso",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "sobre-inverso": {
+        "role": "neutral",
+        "displayName": "Sobre inverso",
+        "canonical": "#fbfafc",
+        "oklch": "oklch(98.6% 0.003 308.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 308.4)",
+          "oklch(26.0% 0.003 308.4)",
+          "oklch(38.0% 0.003 308.4)",
+          "oklch(50.0% 0.003 308.4)",
+          "oklch(61.0% 0.003 308.4)",
+          "oklch(72.0% 0.003 308.4)",
+          "oklch(84.0% 0.003 308.4)",
+          "oklch(95.0% 0.003 308.4)"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta berinjela-preta",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta 2",
+        "canonical": "#453c50",
+        "oklch": "oklch(37.4% 0.036 305.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.036 305.2)",
+          "oklch(26.0% 0.036 305.2)",
+          "oklch(38.0% 0.036 305.2)",
+          "oklch(50.0% 0.036 305.2)",
+          "oklch(61.0% 0.036 305.2)",
+          "oklch(72.0% 0.036 305.2)",
+          "oklch(84.0% 0.036 305.2)",
+          "oklch(95.0% 0.036 305.2)"
+        ]
+      },
+      "tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta 3",
+        "canonical": "#665d72",
+        "oklch": "oklch(49.5% 0.035 304.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.035 304.6)",
+          "oklch(26.0% 0.035 304.6)",
+          "oklch(38.0% 0.035 304.6)",
+          "oklch(50.0% 0.035 304.6)",
+          "oklch(61.0% 0.035 304.6)",
+          "oklch(72.0% 0.035 304.6)",
+          "oklch(84.0% 0.035 304.6)",
+          "oklch(95.0% 0.035 304.6)"
+        ]
+      },
+      "fio": {
+        "role": "neutral",
+        "displayName": "Fio",
+        "canonical": "#d2ccdb",
+        "oklch": "oklch(85.5% 0.021 304.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.021 304.0)",
+          "oklch(26.0% 0.021 304.0)",
+          "oklch(38.0% 0.021 304.0)",
+          "oklch(50.0% 0.021 304.0)",
+          "oklch(61.0% 0.021 304.0)",
+          "oklch(72.0% 0.021 304.0)",
+          "oklch(84.0% 0.021 304.0)",
+          "oklch(95.0% 0.021 304.0)"
+        ]
+      },
+      "fio-forte": {
+        "role": "neutral",
+        "displayName": "Fio forte",
+        "canonical": "#7b7289",
+        "oklch": "oklch(56.8% 0.036 303.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.036 303.0)",
+          "oklch(26.0% 0.036 303.0)",
+          "oklch(38.0% 0.036 303.0)",
+          "oklch(50.0% 0.036 303.0)",
+          "oklch(61.0% 0.036 303.0)",
+          "oklch(72.0% 0.036 303.0)",
+          "oklch(84.0% 0.036 303.0)",
+          "oklch(95.0% 0.036 303.0)"
+        ]
+      },
+      "marca": {
+        "role": "primary",
+        "displayName": "Violeta de tinta copiativa",
+        "canonical": "#5a2a8c",
+        "oklch": "oklch(40.4% 0.155 302.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.155 302.3)",
+          "oklch(26.0% 0.155 302.3)",
+          "oklch(38.0% 0.155 302.3)",
+          "oklch(50.0% 0.155 302.3)",
+          "oklch(61.0% 0.155 302.3)",
+          "oklch(72.0% 0.155 302.3)",
+          "oklch(84.0% 0.155 302.3)",
+          "oklch(95.0% 0.155 302.3)"
+        ]
+      },
+      "marca-forte": {
+        "role": "primary",
+        "displayName": "Violeta forte",
+        "canonical": "#46206f",
+        "oklch": "oklch(34.2% 0.130 301.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.130 301.9)",
+          "oklch(26.0% 0.130 301.9)",
+          "oklch(38.0% 0.130 301.9)",
+          "oklch(50.0% 0.130 301.9)",
+          "oklch(61.0% 0.130 301.9)",
+          "oklch(72.0% 0.130 301.9)",
+          "oklch(84.0% 0.130 301.9)",
+          "oklch(95.0% 0.130 301.9)"
+        ]
+      },
+      "marca-suave": {
+        "role": "primary",
+        "displayName": "Violeta suave",
+        "canonical": "#ebe3f4",
+        "oklch": "oklch(92.7% 0.024 307.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.024 307.0)",
+          "oklch(26.0% 0.024 307.0)",
+          "oklch(38.0% 0.024 307.0)",
+          "oklch(50.0% 0.024 307.0)",
+          "oklch(61.0% 0.024 307.0)",
+          "oklch(72.0% 0.024 307.0)",
+          "oklch(84.0% 0.024 307.0)",
+          "oklch(95.0% 0.024 307.0)"
+        ]
+      },
+      "sobre-marca": {
+        "role": "primary",
+        "displayName": "Sobre marca",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      },
+      "foco": {
+        "role": "primary",
+        "displayName": "Foco",
+        "canonical": "#5a2a8c",
+        "oklch": "oklch(40.4% 0.155 302.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.155 302.3)",
+          "oklch(26.0% 0.155 302.3)",
+          "oklch(38.0% 0.155 302.3)",
+          "oklch(50.0% 0.155 302.3)",
+          "oklch(61.0% 0.155 302.3)",
+          "oklch(72.0% 0.155 302.3)",
+          "oklch(84.0% 0.155 302.3)",
+          "oklch(95.0% 0.155 302.3)"
+        ]
+      },
+      "rosa": {
+        "role": "secondary",
+        "displayName": "Via rosa",
+        "canonical": "#f7dde5",
+        "oklch": "oklch(92.1% 0.030 357.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.030 357.1)",
+          "oklch(26.0% 0.030 357.1)",
+          "oklch(38.0% 0.030 357.1)",
+          "oklch(50.0% 0.030 357.1)",
+          "oklch(61.0% 0.030 357.1)",
+          "oklch(72.0% 0.030 357.1)",
+          "oklch(84.0% 0.030 357.1)",
+          "oklch(95.0% 0.030 357.1)"
+        ]
+      },
+      "rosa-fio": {
+        "role": "secondary",
+        "displayName": "Fio da via rosa",
+        "canonical": "#c98aa0",
+        "oklch": "oklch(70.2% 0.082 356.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.082 356.8)",
+          "oklch(26.0% 0.082 356.8)",
+          "oklch(38.0% 0.082 356.8)",
+          "oklch(50.0% 0.082 356.8)",
+          "oklch(61.0% 0.082 356.8)",
+          "oklch(72.0% 0.082 356.8)",
+          "oklch(84.0% 0.082 356.8)",
+          "oklch(95.0% 0.082 356.8)"
+        ]
+      },
+      "rosa-tinta": {
+        "role": "secondary",
+        "displayName": "Tinta da via rosa",
+        "canonical": "#7a2146",
+        "oklch": "oklch(40.1% 0.127 359.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.127 359.2)",
+          "oklch(26.0% 0.127 359.2)",
+          "oklch(38.0% 0.127 359.2)",
+          "oklch(50.0% 0.127 359.2)",
+          "oklch(61.0% 0.127 359.2)",
+          "oklch(72.0% 0.127 359.2)",
+          "oklch(84.0% 0.127 359.2)",
+          "oklch(95.0% 0.127 359.2)"
+        ]
+      },
+      "carmim": {
+        "role": "tertiary",
+        "displayName": "Carmim",
+        "canonical": "#a3114a",
+        "oklch": "oklch(46.6% 0.178 6.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.178 6.2)",
+          "oklch(26.0% 0.178 6.2)",
+          "oklch(38.0% 0.178 6.2)",
+          "oklch(50.0% 0.178 6.2)",
+          "oklch(61.0% 0.178 6.2)",
+          "oklch(72.0% 0.178 6.2)",
+          "oklch(84.0% 0.178 6.2)",
+          "oklch(95.0% 0.178 6.2)"
+        ]
+      },
+      "carmim-suave": {
+        "role": "tertiary",
+        "displayName": "Carmim suave",
+        "canonical": "#fbe6ee",
+        "oklch": "oklch(94.4% 0.025 352.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.025 352.5)",
+          "oklch(26.0% 0.025 352.5)",
+          "oklch(38.0% 0.025 352.5)",
+          "oklch(50.0% 0.025 352.5)",
+          "oklch(61.0% 0.025 352.5)",
+          "oklch(72.0% 0.025 352.5)",
+          "oklch(84.0% 0.025 352.5)",
+          "oklch(95.0% 0.025 352.5)"
+        ]
+      },
+      "escuro-mesa": {
+        "role": "neutral",
+        "displayName": "Mesa (tema escuro)",
+        "canonical": "#0f0b14",
+        "oklch": "oklch(15.9% 0.020 304.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.020 304.6)",
+          "oklch(26.0% 0.020 304.6)",
+          "oklch(38.0% 0.020 304.6)",
+          "oklch(50.0% 0.020 304.6)",
+          "oklch(61.0% 0.020 304.6)",
+          "oklch(72.0% 0.020 304.6)",
+          "oklch(84.0% 0.020 304.6)",
+          "oklch(95.0% 0.020 304.6)"
+        ]
+      },
+      "escuro-papel": {
+        "role": "neutral",
+        "displayName": "Papel (tema escuro)",
+        "canonical": "#18121f",
+        "oklch": "oklch(19.6% 0.027 305.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 305.2)",
+          "oklch(26.0% 0.027 305.2)",
+          "oklch(38.0% 0.027 305.2)",
+          "oklch(50.0% 0.027 305.2)",
+          "oklch(61.0% 0.027 305.2)",
+          "oklch(72.0% 0.027 305.2)",
+          "oklch(84.0% 0.027 305.2)",
+          "oklch(95.0% 0.027 305.2)"
+        ]
+      },
+      "escuro-papel-2": {
+        "role": "neutral",
+        "displayName": "Papel 2 (tema escuro)",
+        "canonical": "#211929",
+        "oklch": "oklch(23.1% 0.032 306.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.032 306.9)",
+          "oklch(26.0% 0.032 306.9)",
+          "oklch(38.0% 0.032 306.9)",
+          "oklch(50.0% 0.032 306.9)",
+          "oklch(61.0% 0.032 306.9)",
+          "oklch(72.0% 0.032 306.9)",
+          "oklch(84.0% 0.032 306.9)",
+          "oklch(95.0% 0.032 306.9)"
+        ]
+      },
+      "escuro-inverso": {
+        "role": "neutral",
+        "displayName": "Inverso (tema escuro)",
+        "canonical": "#ede8f3",
+        "oklch": "oklch(93.8% 0.016 306.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 306.4)",
+          "oklch(26.0% 0.016 306.4)",
+          "oklch(38.0% 0.016 306.4)",
+          "oklch(50.0% 0.016 306.4)",
+          "oklch(61.0% 0.016 306.4)",
+          "oklch(72.0% 0.016 306.4)",
+          "oklch(84.0% 0.016 306.4)",
+          "oklch(95.0% 0.016 306.4)"
+        ]
+      },
+      "escuro-sobre-inverso": {
+        "role": "neutral",
+        "displayName": "Sobre inverso (tema escuro)",
+        "canonical": "#18121f",
+        "oklch": "oklch(19.6% 0.027 305.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 305.2)",
+          "oklch(26.0% 0.027 305.2)",
+          "oklch(38.0% 0.027 305.2)",
+          "oklch(50.0% 0.027 305.2)",
+          "oklch(61.0% 0.027 305.2)",
+          "oklch(72.0% 0.027 305.2)",
+          "oklch(84.0% 0.027 305.2)",
+          "oklch(95.0% 0.027 305.2)"
+        ]
+      },
+      "escuro-tinta": {
+        "role": "neutral",
+        "displayName": "Tinta berinjela-preta (tema escuro)",
+        "canonical": "#ede8f3",
+        "oklch": "oklch(93.8% 0.016 306.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 306.4)",
+          "oklch(26.0% 0.016 306.4)",
+          "oklch(38.0% 0.016 306.4)",
+          "oklch(50.0% 0.016 306.4)",
+          "oklch(61.0% 0.016 306.4)",
+          "oklch(72.0% 0.016 306.4)",
+          "oklch(84.0% 0.016 306.4)",
+          "oklch(95.0% 0.016 306.4)"
+        ]
+      },
+      "escuro-tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta 2 (tema escuro)",
+        "canonical": "#c0b7cc",
+        "oklch": "oklch(79.3% 0.031 305.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.031 305.0)",
+          "oklch(26.0% 0.031 305.0)",
+          "oklch(38.0% 0.031 305.0)",
+          "oklch(50.0% 0.031 305.0)",
+          "oklch(61.0% 0.031 305.0)",
+          "oklch(72.0% 0.031 305.0)",
+          "oklch(84.0% 0.031 305.0)",
+          "oklch(95.0% 0.031 305.0)"
+        ]
+      },
+      "escuro-tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta 3 (tema escuro)",
+        "canonical": "#988ea7",
+        "oklch": "oklch(66.4% 0.038 303.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.038 303.5)",
+          "oklch(26.0% 0.038 303.5)",
+          "oklch(38.0% 0.038 303.5)",
+          "oklch(50.0% 0.038 303.5)",
+          "oklch(61.0% 0.038 303.5)",
+          "oklch(72.0% 0.038 303.5)",
+          "oklch(84.0% 0.038 303.5)",
+          "oklch(95.0% 0.038 303.5)"
+        ]
+      },
+      "escuro-fio": {
+        "role": "neutral",
+        "displayName": "Fio (tema escuro)",
+        "canonical": "#3a3046",
+        "oklch": "oklch(32.9% 0.040 305.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.040 305.1)",
+          "oklch(26.0% 0.040 305.1)",
+          "oklch(38.0% 0.040 305.1)",
+          "oklch(50.0% 0.040 305.1)",
+          "oklch(61.0% 0.040 305.1)",
+          "oklch(72.0% 0.040 305.1)",
+          "oklch(84.0% 0.040 305.1)",
+          "oklch(95.0% 0.040 305.1)"
+        ]
+      },
+      "escuro-fio-forte": {
+        "role": "neutral",
+        "displayName": "Fio forte (tema escuro)",
+        "canonical": "#807492",
+        "oklch": "oklch(58.1% 0.047 303.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.047 303.2)",
+          "oklch(26.0% 0.047 303.2)",
+          "oklch(38.0% 0.047 303.2)",
+          "oklch(50.0% 0.047 303.2)",
+          "oklch(61.0% 0.047 303.2)",
+          "oklch(72.0% 0.047 303.2)",
+          "oklch(84.0% 0.047 303.2)",
+          "oklch(95.0% 0.047 303.2)"
+        ]
+      },
+      "escuro-marca": {
+        "role": "primary",
+        "displayName": "Violeta de tinta copiativa (tema escuro)",
+        "canonical": "#c9a9f3",
+        "oklch": "oklch(78.9% 0.108 303.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.108 303.8)",
+          "oklch(26.0% 0.108 303.8)",
+          "oklch(38.0% 0.108 303.8)",
+          "oklch(50.0% 0.108 303.8)",
+          "oklch(61.0% 0.108 303.8)",
+          "oklch(72.0% 0.108 303.8)",
+          "oklch(84.0% 0.108 303.8)",
+          "oklch(95.0% 0.108 303.8)"
+        ]
+      },
+      "escuro-marca-forte": {
+        "role": "primary",
+        "displayName": "Violeta forte (tema escuro)",
+        "canonical": "#dcc6f8",
+        "oklch": "oklch(86.1% 0.072 304.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.072 304.9)",
+          "oklch(26.0% 0.072 304.9)",
+          "oklch(38.0% 0.072 304.9)",
+          "oklch(50.0% 0.072 304.9)",
+          "oklch(61.0% 0.072 304.9)",
+          "oklch(72.0% 0.072 304.9)",
+          "oklch(84.0% 0.072 304.9)",
+          "oklch(95.0% 0.072 304.9)"
+        ]
+      },
+      "escuro-marca-suave": {
+        "role": "primary",
+        "displayName": "Violeta suave (tema escuro)",
+        "canonical": "#2f2241",
+        "oklch": "oklch(28.3% 0.057 302.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.057 302.2)",
+          "oklch(26.0% 0.057 302.2)",
+          "oklch(38.0% 0.057 302.2)",
+          "oklch(50.0% 0.057 302.2)",
+          "oklch(61.0% 0.057 302.2)",
+          "oklch(72.0% 0.057 302.2)",
+          "oklch(84.0% 0.057 302.2)",
+          "oklch(95.0% 0.057 302.2)"
+        ]
+      },
+      "escuro-sobre-marca": {
+        "role": "primary",
+        "displayName": "Sobre marca (tema escuro)",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "escuro-foco": {
+        "role": "primary",
+        "displayName": "Foco (tema escuro)",
+        "canonical": "#c9a9f3",
+        "oklch": "oklch(78.9% 0.108 303.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.108 303.8)",
+          "oklch(26.0% 0.108 303.8)",
+          "oklch(38.0% 0.108 303.8)",
+          "oklch(50.0% 0.108 303.8)",
+          "oklch(61.0% 0.108 303.8)",
+          "oklch(72.0% 0.108 303.8)",
+          "oklch(84.0% 0.108 303.8)",
+          "oklch(95.0% 0.108 303.8)"
+        ]
+      },
+      "escuro-rosa": {
+        "role": "secondary",
+        "displayName": "Via rosa (tema escuro)",
+        "canonical": "#2b1623",
+        "oklch": "oklch(23.5% 0.040 342.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.040 342.8)",
+          "oklch(26.0% 0.040 342.8)",
+          "oklch(38.0% 0.040 342.8)",
+          "oklch(50.0% 0.040 342.8)",
+          "oklch(61.0% 0.040 342.8)",
+          "oklch(72.0% 0.040 342.8)",
+          "oklch(84.0% 0.040 342.8)",
+          "oklch(95.0% 0.040 342.8)"
+        ]
+      },
+      "escuro-rosa-fio": {
+        "role": "secondary",
+        "displayName": "Fio da via rosa (tema escuro)",
+        "canonical": "#74395a",
+        "oklch": "oklch(43.2% 0.093 347.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.093 347.0)",
+          "oklch(26.0% 0.093 347.0)",
+          "oklch(38.0% 0.093 347.0)",
+          "oklch(50.0% 0.093 347.0)",
+          "oklch(61.0% 0.093 347.0)",
+          "oklch(72.0% 0.093 347.0)",
+          "oklch(84.0% 0.093 347.0)",
+          "oklch(95.0% 0.093 347.0)"
+        ]
+      },
+      "escuro-rosa-tinta": {
+        "role": "secondary",
+        "displayName": "Tinta da via rosa (tema escuro)",
+        "canonical": "#f2aec7",
+        "oklch": "oklch(82.2% 0.085 355.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.085 355.3)",
+          "oklch(26.0% 0.085 355.3)",
+          "oklch(38.0% 0.085 355.3)",
+          "oklch(50.0% 0.085 355.3)",
+          "oklch(61.0% 0.085 355.3)",
+          "oklch(72.0% 0.085 355.3)",
+          "oklch(84.0% 0.085 355.3)",
+          "oklch(95.0% 0.085 355.3)"
+        ]
+      },
+      "escuro-carmim": {
+        "role": "tertiary",
+        "displayName": "Carmim (tema escuro)",
+        "canonical": "#ff93b6",
+        "oklch": "oklch(78.7% 0.135 359.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.135 359.9)",
+          "oklch(26.0% 0.135 359.9)",
+          "oklch(38.0% 0.135 359.9)",
+          "oklch(50.0% 0.135 359.9)",
+          "oklch(61.0% 0.135 359.9)",
+          "oklch(72.0% 0.135 359.9)",
+          "oklch(84.0% 0.135 359.9)",
+          "oklch(95.0% 0.135 359.9)"
+        ]
+      },
+      "escuro-carmim-suave": {
+        "role": "tertiary",
+        "displayName": "Carmim suave (tema escuro)",
+        "canonical": "#3a1526",
+        "oklch": "oklch(25.9% 0.063 353.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.063 353.6)",
+          "oklch(26.0% 0.063 353.6)",
+          "oklch(38.0% 0.063 353.6)",
+          "oklch(50.0% 0.063 353.6)",
+          "oklch(61.0% 0.063 353.6)",
+          "oklch(72.0% 0.063 353.6)",
+          "oklch(84.0% 0.063 353.6)",
+          "oklch(95.0% 0.063 353.6)"
+        ]
+      },
+      "invertido-papel": {
+        "role": "neutral",
+        "displayName": "Papel (bloco invertido no tema claro)",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "invertido-papel-2": {
+        "role": "neutral",
+        "displayName": "Papel 2 (bloco invertido no tema claro)",
+        "canonical": "#2a2133",
+        "oklch": "oklch(26.6% 0.035 307.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.035 307.0)",
+          "oklch(26.0% 0.035 307.0)",
+          "oklch(38.0% 0.035 307.0)",
+          "oklch(50.0% 0.035 307.0)",
+          "oklch(61.0% 0.035 307.0)",
+          "oklch(72.0% 0.035 307.0)",
+          "oklch(84.0% 0.035 307.0)",
+          "oklch(95.0% 0.035 307.0)"
+        ]
+      },
+      "invertido-tinta": {
+        "role": "neutral",
+        "displayName": "Tinta berinjela-preta (bloco invertido no tema claro)",
+        "canonical": "#fbfafc",
+        "oklch": "oklch(98.6% 0.003 308.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 308.4)",
+          "oklch(26.0% 0.003 308.4)",
+          "oklch(38.0% 0.003 308.4)",
+          "oklch(50.0% 0.003 308.4)",
+          "oklch(61.0% 0.003 308.4)",
+          "oklch(72.0% 0.003 308.4)",
+          "oklch(84.0% 0.003 308.4)",
+          "oklch(95.0% 0.003 308.4)"
+        ]
+      },
+      "invertido-tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta 2 (bloco invertido no tema claro)",
+        "canonical": "#d3cbdd",
+        "oklch": "oklch(85.4% 0.026 305.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.026 305.8)",
+          "oklch(26.0% 0.026 305.8)",
+          "oklch(38.0% 0.026 305.8)",
+          "oklch(50.0% 0.026 305.8)",
+          "oklch(61.0% 0.026 305.8)",
+          "oklch(72.0% 0.026 305.8)",
+          "oklch(84.0% 0.026 305.8)",
+          "oklch(95.0% 0.026 305.8)"
+        ]
+      },
+      "invertido-tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta 3 (bloco invertido no tema claro)",
+        "canonical": "#aba1b9",
+        "oklch": "oklch(72.5% 0.036 304.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.036 304.4)",
+          "oklch(26.0% 0.036 304.4)",
+          "oklch(38.0% 0.036 304.4)",
+          "oklch(50.0% 0.036 304.4)",
+          "oklch(61.0% 0.036 304.4)",
+          "oklch(72.0% 0.036 304.4)",
+          "oklch(84.0% 0.036 304.4)",
+          "oklch(95.0% 0.036 304.4)"
+        ]
+      },
+      "invertido-fio": {
+        "role": "neutral",
+        "displayName": "Fio (bloco invertido no tema claro)",
+        "canonical": "#4a3f58",
+        "oklch": "oklch(38.9% 0.044 304.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.044 304.5)",
+          "oklch(26.0% 0.044 304.5)",
+          "oklch(38.0% 0.044 304.5)",
+          "oklch(50.0% 0.044 304.5)",
+          "oklch(61.0% 0.044 304.5)",
+          "oklch(72.0% 0.044 304.5)",
+          "oklch(84.0% 0.044 304.5)",
+          "oklch(95.0% 0.044 304.5)"
+        ]
+      },
+      "invertido-fio-forte": {
+        "role": "neutral",
+        "displayName": "Fio forte (bloco invertido no tema claro)",
+        "canonical": "#8f84a0",
+        "oklch": "oklch(63.3% 0.043 303.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.043 303.0)",
+          "oklch(26.0% 0.043 303.0)",
+          "oklch(38.0% 0.043 303.0)",
+          "oklch(50.0% 0.043 303.0)",
+          "oklch(61.0% 0.043 303.0)",
+          "oklch(72.0% 0.043 303.0)",
+          "oklch(84.0% 0.043 303.0)",
+          "oklch(95.0% 0.043 303.0)"
+        ]
+      },
+      "invertido-marca": {
+        "role": "primary",
+        "displayName": "Violeta de tinta copiativa (bloco invertido no tema claro)",
+        "canonical": "#c9a9f3",
+        "oklch": "oklch(78.9% 0.108 303.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.108 303.8)",
+          "oklch(26.0% 0.108 303.8)",
+          "oklch(38.0% 0.108 303.8)",
+          "oklch(50.0% 0.108 303.8)",
+          "oklch(61.0% 0.108 303.8)",
+          "oklch(72.0% 0.108 303.8)",
+          "oklch(84.0% 0.108 303.8)",
+          "oklch(95.0% 0.108 303.8)"
+        ]
+      },
+      "invertido-marca-forte": {
+        "role": "primary",
+        "displayName": "Violeta forte (bloco invertido no tema claro)",
+        "canonical": "#dcc6f8",
+        "oklch": "oklch(86.1% 0.072 304.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.072 304.9)",
+          "oklch(26.0% 0.072 304.9)",
+          "oklch(38.0% 0.072 304.9)",
+          "oklch(50.0% 0.072 304.9)",
+          "oklch(61.0% 0.072 304.9)",
+          "oklch(72.0% 0.072 304.9)",
+          "oklch(84.0% 0.072 304.9)",
+          "oklch(95.0% 0.072 304.9)"
+        ]
+      },
+      "invertido-marca-suave": {
+        "role": "primary",
+        "displayName": "Violeta suave (bloco invertido no tema claro)",
+        "canonical": "#35264a",
+        "oklch": "oklch(30.4% 0.065 301.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.065 301.9)",
+          "oklch(26.0% 0.065 301.9)",
+          "oklch(38.0% 0.065 301.9)",
+          "oklch(50.0% 0.065 301.9)",
+          "oklch(61.0% 0.065 301.9)",
+          "oklch(72.0% 0.065 301.9)",
+          "oklch(84.0% 0.065 301.9)",
+          "oklch(95.0% 0.065 301.9)"
+        ]
+      },
+      "invertido-sobre-marca": {
+        "role": "primary",
+        "displayName": "Sobre marca (bloco invertido no tema claro)",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "invertido-foco": {
+        "role": "primary",
+        "displayName": "Foco (bloco invertido no tema claro)",
+        "canonical": "#c9a9f3",
+        "oklch": "oklch(78.9% 0.108 303.8)",
+        "tonalRamp": [
+          "oklch(15.0% 0.108 303.8)",
+          "oklch(26.0% 0.108 303.8)",
+          "oklch(38.0% 0.108 303.8)",
+          "oklch(50.0% 0.108 303.8)",
+          "oklch(61.0% 0.108 303.8)",
+          "oklch(72.0% 0.108 303.8)",
+          "oklch(84.0% 0.108 303.8)",
+          "oklch(95.0% 0.108 303.8)"
+        ]
+      },
+      "invertido-carmim": {
+        "role": "tertiary",
+        "displayName": "Carmim (bloco invertido no tema claro)",
+        "canonical": "#ff93b6",
+        "oklch": "oklch(78.7% 0.135 359.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.135 359.9)",
+          "oklch(26.0% 0.135 359.9)",
+          "oklch(38.0% 0.135 359.9)",
+          "oklch(50.0% 0.135 359.9)",
+          "oklch(61.0% 0.135 359.9)",
+          "oklch(72.0% 0.135 359.9)",
+          "oklch(84.0% 0.135 359.9)",
+          "oklch(95.0% 0.135 359.9)"
+        ]
+      },
+      "invertido-carmim-suave": {
+        "role": "tertiary",
+        "displayName": "Carmim suave (bloco invertido no tema claro)",
+        "canonical": "#3a1526",
+        "oklch": "oklch(25.9% 0.063 353.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.063 353.6)",
+          "oklch(26.0% 0.063 353.6)",
+          "oklch(38.0% 0.063 353.6)",
+          "oklch(50.0% 0.063 353.6)",
+          "oklch(61.0% 0.063 353.6)",
+          "oklch(72.0% 0.063 353.6)",
+          "oklch(84.0% 0.063 353.6)",
+          "oklch(95.0% 0.063 353.6)"
+        ]
+      },
+      "invertido-escuro-papel": {
+        "role": "neutral",
+        "displayName": "Papel (bloco invertido no tema escuro)",
+        "canonical": "#ede8f3",
+        "oklch": "oklch(93.8% 0.016 306.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 306.4)",
+          "oklch(26.0% 0.016 306.4)",
+          "oklch(38.0% 0.016 306.4)",
+          "oklch(50.0% 0.016 306.4)",
+          "oklch(61.0% 0.016 306.4)",
+          "oklch(72.0% 0.016 306.4)",
+          "oklch(84.0% 0.016 306.4)",
+          "oklch(95.0% 0.016 306.4)"
+        ]
+      },
+      "invertido-escuro-papel-2": {
+        "role": "neutral",
+        "displayName": "Papel 2 (bloco invertido no tema escuro)",
+        "canonical": "#dcd5e5",
+        "oklch": "oklch(88.3% 0.023 305.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.023 305.6)",
+          "oklch(26.0% 0.023 305.6)",
+          "oklch(38.0% 0.023 305.6)",
+          "oklch(50.0% 0.023 305.6)",
+          "oklch(61.0% 0.023 305.6)",
+          "oklch(72.0% 0.023 305.6)",
+          "oklch(84.0% 0.023 305.6)",
+          "oklch(95.0% 0.023 305.6)"
+        ]
+      },
+      "invertido-escuro-tinta": {
+        "role": "neutral",
+        "displayName": "Tinta berinjela-preta (bloco invertido no tema escuro)",
+        "canonical": "#18121f",
+        "oklch": "oklch(19.6% 0.027 305.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 305.2)",
+          "oklch(26.0% 0.027 305.2)",
+          "oklch(38.0% 0.027 305.2)",
+          "oklch(50.0% 0.027 305.2)",
+          "oklch(61.0% 0.027 305.2)",
+          "oklch(72.0% 0.027 305.2)",
+          "oklch(84.0% 0.027 305.2)",
+          "oklch(95.0% 0.027 305.2)"
+        ]
+      },
+      "invertido-escuro-tinta-2": {
+        "role": "neutral",
+        "displayName": "Tinta 2 (bloco invertido no tema escuro)",
+        "canonical": "#3f3649",
+        "oklch": "oklch(35.0% 0.035 306.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.035 306.2)",
+          "oklch(26.0% 0.035 306.2)",
+          "oklch(38.0% 0.035 306.2)",
+          "oklch(50.0% 0.035 306.2)",
+          "oklch(61.0% 0.035 306.2)",
+          "oklch(72.0% 0.035 306.2)",
+          "oklch(84.0% 0.035 306.2)",
+          "oklch(95.0% 0.035 306.2)"
+        ]
+      },
+      "invertido-escuro-tinta-3": {
+        "role": "neutral",
+        "displayName": "Tinta 3 (bloco invertido no tema escuro)",
+        "canonical": "#5a5066",
+        "oklch": "oklch(44.9% 0.037 305.6)",
+        "tonalRamp": [
+          "oklch(15.0% 0.037 305.6)",
+          "oklch(26.0% 0.037 305.6)",
+          "oklch(38.0% 0.037 305.6)",
+          "oklch(50.0% 0.037 305.6)",
+          "oklch(61.0% 0.037 305.6)",
+          "oklch(72.0% 0.037 305.6)",
+          "oklch(84.0% 0.037 305.6)",
+          "oklch(95.0% 0.037 305.6)"
+        ]
+      },
+      "invertido-escuro-fio": {
+        "role": "neutral",
+        "displayName": "Fio (bloco invertido no tema escuro)",
+        "canonical": "#b9b0c6",
+        "oklch": "oklch(77.2% 0.032 304.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.032 304.1)",
+          "oklch(26.0% 0.032 304.1)",
+          "oklch(38.0% 0.032 304.1)",
+          "oklch(50.0% 0.032 304.1)",
+          "oklch(61.0% 0.032 304.1)",
+          "oklch(72.0% 0.032 304.1)",
+          "oklch(84.0% 0.032 304.1)",
+          "oklch(95.0% 0.032 304.1)"
+        ]
+      },
+      "invertido-escuro-fio-forte": {
+        "role": "neutral",
+        "displayName": "Fio forte (bloco invertido no tema escuro)",
+        "canonical": "#6f657d",
+        "oklch": "oklch(52.5% 0.039 304.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.039 304.0)",
+          "oklch(26.0% 0.039 304.0)",
+          "oklch(38.0% 0.039 304.0)",
+          "oklch(50.0% 0.039 304.0)",
+          "oklch(61.0% 0.039 304.0)",
+          "oklch(72.0% 0.039 304.0)",
+          "oklch(84.0% 0.039 304.0)",
+          "oklch(95.0% 0.039 304.0)"
+        ]
+      },
+      "invertido-escuro-marca": {
+        "role": "primary",
+        "displayName": "Violeta de tinta copiativa (bloco invertido no tema escuro)",
+        "canonical": "#5a2a8c",
+        "oklch": "oklch(40.4% 0.155 302.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.155 302.3)",
+          "oklch(26.0% 0.155 302.3)",
+          "oklch(38.0% 0.155 302.3)",
+          "oklch(50.0% 0.155 302.3)",
+          "oklch(61.0% 0.155 302.3)",
+          "oklch(72.0% 0.155 302.3)",
+          "oklch(84.0% 0.155 302.3)",
+          "oklch(95.0% 0.155 302.3)"
+        ]
+      },
+      "invertido-escuro-marca-forte": {
+        "role": "primary",
+        "displayName": "Violeta forte (bloco invertido no tema escuro)",
+        "canonical": "#46206f",
+        "oklch": "oklch(34.2% 0.130 301.9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.130 301.9)",
+          "oklch(26.0% 0.130 301.9)",
+          "oklch(38.0% 0.130 301.9)",
+          "oklch(50.0% 0.130 301.9)",
+          "oklch(61.0% 0.130 301.9)",
+          "oklch(72.0% 0.130 301.9)",
+          "oklch(84.0% 0.130 301.9)",
+          "oklch(95.0% 0.130 301.9)"
+        ]
+      },
+      "invertido-escuro-marca-suave": {
+        "role": "primary",
+        "displayName": "Violeta suave (bloco invertido no tema escuro)",
+        "canonical": "#d9cdea",
+        "oklch": "oklch(86.7% 0.042 304.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.042 304.3)",
+          "oklch(26.0% 0.042 304.3)",
+          "oklch(38.0% 0.042 304.3)",
+          "oklch(50.0% 0.042 304.3)",
+          "oklch(61.0% 0.042 304.3)",
+          "oklch(72.0% 0.042 304.3)",
+          "oklch(84.0% 0.042 304.3)",
+          "oklch(95.0% 0.042 304.3)"
+        ]
+      },
+      "invertido-escuro-sobre-marca": {
+        "role": "primary",
+        "displayName": "Sobre marca (bloco invertido no tema escuro)",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      },
+      "invertido-escuro-foco": {
+        "role": "primary",
+        "displayName": "Foco (bloco invertido no tema escuro)",
+        "canonical": "#5a2a8c",
+        "oklch": "oklch(40.4% 0.155 302.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.155 302.3)",
+          "oklch(26.0% 0.155 302.3)",
+          "oklch(38.0% 0.155 302.3)",
+          "oklch(50.0% 0.155 302.3)",
+          "oklch(61.0% 0.155 302.3)",
+          "oklch(72.0% 0.155 302.3)",
+          "oklch(84.0% 0.155 302.3)",
+          "oklch(95.0% 0.155 302.3)"
+        ]
+      },
+      "invertido-escuro-carmim": {
+        "role": "tertiary",
+        "displayName": "Carmim (bloco invertido no tema escuro)",
+        "canonical": "#a3114a",
+        "oklch": "oklch(46.6% 0.178 6.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.178 6.2)",
+          "oklch(26.0% 0.178 6.2)",
+          "oklch(38.0% 0.178 6.2)",
+          "oklch(50.0% 0.178 6.2)",
+          "oklch(61.0% 0.178 6.2)",
+          "oklch(72.0% 0.178 6.2)",
+          "oklch(84.0% 0.178 6.2)",
+          "oklch(95.0% 0.178 6.2)"
+        ]
+      },
+      "invertido-escuro-carmim-suave": {
+        "role": "tertiary",
+        "displayName": "Carmim suave (bloco invertido no tema escuro)",
+        "canonical": "#f3d3df",
+        "oklch": "oklch(89.7% 0.039 353.3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.039 353.3)",
+          "oklch(26.0% 0.039 353.3)",
+          "oklch(38.0% 0.039 353.3)",
+          "oklch(50.0% 0.039 353.3)",
+          "oklch(61.0% 0.039 353.3)",
+          "oklch(72.0% 0.039 353.3)",
+          "oklch(84.0% 0.039 353.3)",
+          "oklch(95.0% 0.039 353.3)"
+        ]
+      },
+      "tri-vermelho": {
+        "role": "clinical",
+        "displayName": "Triagem vermelho",
+        "canonical": "#c4161c",
+        "oklch": "oklch(52.3% 0.203 27.0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.203 27.0)",
+          "oklch(26.0% 0.203 27.0)",
+          "oklch(38.0% 0.203 27.0)",
+          "oklch(50.0% 0.203 27.0)",
+          "oklch(61.0% 0.203 27.0)",
+          "oklch(72.0% 0.203 27.0)",
+          "oklch(84.0% 0.203 27.0)",
+          "oklch(95.0% 0.203 27.0)"
+        ]
+      },
+      "tri-vermelho-texto": {
+        "role": "clinical",
+        "displayName": "Triagem vermelho — texto do rótulo",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      },
+      "tri-laranja": {
+        "role": "clinical",
+        "displayName": "Triagem laranja",
+        "canonical": "#f07d12",
+        "oklch": "oklch(70.7% 0.172 54.2)",
+        "tonalRamp": [
+          "oklch(15.0% 0.172 54.2)",
+          "oklch(26.0% 0.172 54.2)",
+          "oklch(38.0% 0.172 54.2)",
+          "oklch(50.0% 0.172 54.2)",
+          "oklch(61.0% 0.172 54.2)",
+          "oklch(72.0% 0.172 54.2)",
+          "oklch(84.0% 0.172 54.2)",
+          "oklch(95.0% 0.172 54.2)"
+        ]
+      },
+      "tri-laranja-texto": {
+        "role": "clinical",
+        "displayName": "Triagem laranja — texto do rótulo",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "tri-amarelo": {
+        "role": "clinical",
+        "displayName": "Triagem amarelo",
+        "canonical": "#f6d21a",
+        "oklch": "oklch(86.9% 0.175 96.1)",
+        "tonalRamp": [
+          "oklch(15.0% 0.175 96.1)",
+          "oklch(26.0% 0.175 96.1)",
+          "oklch(38.0% 0.175 96.1)",
+          "oklch(50.0% 0.175 96.1)",
+          "oklch(61.0% 0.175 96.1)",
+          "oklch(72.0% 0.175 96.1)",
+          "oklch(84.0% 0.175 96.1)",
+          "oklch(95.0% 0.175 96.1)"
+        ]
+      },
+      "tri-amarelo-texto": {
+        "role": "clinical",
+        "displayName": "Triagem amarelo — texto do rótulo",
+        "canonical": "#1a1320",
+        "oklch": "oklch(20.2% 0.027 308.7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.027 308.7)",
+          "oklch(26.0% 0.027 308.7)",
+          "oklch(38.0% 0.027 308.7)",
+          "oklch(50.0% 0.027 308.7)",
+          "oklch(61.0% 0.027 308.7)",
+          "oklch(72.0% 0.027 308.7)",
+          "oklch(84.0% 0.027 308.7)",
+          "oklch(95.0% 0.027 308.7)"
+        ]
+      },
+      "tri-verde": {
+        "role": "clinical",
+        "displayName": "Triagem verde",
+        "canonical": "#1b7a3a",
+        "oklch": "oklch(51.1% 0.130 149.4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.130 149.4)",
+          "oklch(26.0% 0.130 149.4)",
+          "oklch(38.0% 0.130 149.4)",
+          "oklch(50.0% 0.130 149.4)",
+          "oklch(61.0% 0.130 149.4)",
+          "oklch(72.0% 0.130 149.4)",
+          "oklch(84.0% 0.130 149.4)",
+          "oklch(95.0% 0.130 149.4)"
+        ]
+      },
+      "tri-verde-texto": {
+        "role": "clinical",
+        "displayName": "Triagem verde — texto do rótulo",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      },
+      "tri-azul": {
+        "role": "clinical",
+        "displayName": "Triagem azul",
+        "canonical": "#1d5bb5",
+        "oklch": "oklch(48.5% 0.156 258.5)",
+        "tonalRamp": [
+          "oklch(15.0% 0.156 258.5)",
+          "oklch(26.0% 0.156 258.5)",
+          "oklch(38.0% 0.156 258.5)",
+          "oklch(50.0% 0.156 258.5)",
+          "oklch(61.0% 0.156 258.5)",
+          "oklch(72.0% 0.156 258.5)",
+          "oklch(84.0% 0.156 258.5)",
+          "oklch(95.0% 0.156 258.5)"
+        ]
+      },
+      "tri-azul-texto": {
+        "role": "clinical",
+        "displayName": "Triagem azul — texto do rótulo",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      },
+      "tri-preto": {
+        "role": "clinical",
+        "displayName": "Triagem preto",
+        "canonical": "#101010",
+        "oklch": "oklch(17.3% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      },
+      "tri-preto-texto": {
+        "role": "clinical",
+        "displayName": "Triagem preto — texto do rótulo",
+        "canonical": "#ffffff",
+        "oklch": "oklch(100.0% 0.000 0)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 0)",
+          "oklch(26.0% 0.000 0)",
+          "oklch(38.0% 0.000 0)",
+          "oklch(50.0% 0.000 0)",
+          "oklch(61.0% 0.000 0)",
+          "oklch(72.0% 0.000 0)",
+          "oklch(84.0% 0.000 0)",
+          "oklch(95.0% 0.000 0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "numeral-g": {
+        "displayName": "Numeral grande",
+        "purpose": "Numeral de leitura à distância em destaque (56 px)."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Valor do campo numérico no app de campo e total do Glasgow; 1.75rem no portal."
+      },
+      "titulo-1": {
+        "displayName": "Título 1",
+        "purpose": "Degrau de 32 px da escala; até aqui usado só na vitrine."
+      },
+      "titulo-2": {
+        "displayName": "Título 2",
+        "purpose": "Degrau de 24 px da escala; até aqui usado só na vitrine."
+      },
+      "titulo-3": {
+        "displayName": "Título 3",
+        "purpose": "Título de página do portal, título do app, nome do paciente."
+      },
+      "campo": {
+        "displayName": "Corpo do app",
+        "purpose": "Texto corrido em data-contexto=\"campo\" (17/24); título de diálogo com peso 700."
+      },
+      "corpo": {
+        "displayName": "Corpo do portal",
+        "purpose": "Texto corrido do portal (14/20); título de seção em caixa-alta."
+      },
+      "pequeno": {
+        "displayName": "Pequeno",
+        "purpose": "Ajuda de campo, autor do evento, célula de tabela, paginação."
+      },
+      "rotulo": {
+        "displayName": "Rótulo",
+        "purpose": "Rótulo de campo, legenda, cabeçalho de coluna, termo de leitura; caixa-alta condensada. 12 px no campo."
+      },
+      "dado": {
+        "displayName": "Dado",
+        "purpose": "Martian Mono para hora, nº da entrada, código e contagem."
+      }
+    },
+    "density": [
+      {
+        "name": "portal",
+        "selector": ":root",
+        "alvo": "2.25rem",
+        "corpo": "0.875rem/1.25rem",
+        "rotulo": "0.6875rem",
+        "pequeno": "0.8125rem/1.125rem",
+        "numeral": "1.75rem",
+        "recuo": "0.75rem"
+      },
+      {
+        "name": "campo",
+        "selector": "[data-contexto='campo']",
+        "alvo": "3.5rem",
+        "corpo": "1.0625rem/1.5rem",
+        "rotulo": "0.75rem",
+        "pequeno": "0.9375rem/1.25rem",
+        "numeral": "2.5rem",
+        "recuo": "1rem"
+      }
+    ],
+    "shadows": [
+      {
+        "name": "sobreposicao-claro",
+        "value": "0 1px 0 #d2ccdb, 0 16px 40px -12px rgb(26 19 32 / 0.35)",
+        "purpose": "Diálogo e toast no tema claro. Nenhuma outra superfície tem sombra."
+      },
+      {
+        "name": "sobreposicao-escuro",
+        "value": "0 0 0 1px #807492, 0 20px 48px -12px rgb(0 0 0 / 0.7)",
+        "purpose": "Diálogo e toast no tema escuro; o anel de 1 px separa a folha do fundo."
+      }
+    ],
+    "veils": [
+      {
+        "name": "veu-claro",
+        "value": "rgb(15 11 20 / 0.6)",
+        "purpose": "Fundo inerte do diálogo no tema claro."
+      },
+      {
+        "name": "veu-escuro",
+        "value": "rgb(0 0 0 / 0.7)",
+        "purpose": "Fundo inerte do diálogo no tema escuro."
+      }
+    ],
+    "motion": [
+      {
+        "name": "duracao",
+        "value": "120ms",
+        "purpose": "Transição de cor de fundo, fio e texto; entrada de diálogo e toast."
+      },
+      {
+        "name": "ease-seco",
+        "value": "cubic-bezier(0.2, 0, 0, 1)",
+        "purpose": "Única curva do sistema."
+      },
+      {
+        "name": "carimbo",
+        "value": "900ms cubic-bezier(0.2, 0, 0, 1): fundo marca-suave + anel interno de 2px em marca; anel some aos 35%; fundo seca até transparente",
+        "purpose": "A entrada recém-registrada bate na linha do tempo, uma vez."
+      },
+      {
+        "name": "alterna",
+        "value": "1s steps(2, jump-none) infinite: rotate(180deg)",
+        "purpose": "Marca \"enviando\": o meio círculo alterna de lado em dois passos."
+      },
+      {
+        "name": "gira",
+        "value": "0.9s steps(8) infinite: rotate(360deg)",
+        "purpose": "Indicador de carregando em botão e sincronização."
+      },
+      {
+        "name": "pisca",
+        "value": "1.2s steps(2, jump-none) infinite: opacity 1 → 0.45",
+        "purpose": "Esqueleto; substitui o giro em movimento reduzido (1s)."
+      },
+      {
+        "name": "entra",
+        "value": "120ms cubic-bezier(0.2, 0, 0, 1): from opacity 0, translateY(6px)",
+        "purpose": "Diálogo e toast."
+      },
+      {
+        "name": "movimento-reduzido",
+        "value": "transition-duration 0.01ms; scroll-behavior auto; gira → pisca; alterna, entra: none; carimbo e pisca permanecem",
+        "purpose": "prefers-reduced-motion: o estado continua visível, sem deslocamento."
+      }
+    ],
+    "focus": [
+      {
+        "name": "anel",
+        "value": "outline: 3px solid var(--mf-foco); outline-offset: 2px",
+        "purpose": ":focus-visible em todo controle."
+      },
+      {
+        "name": "anel-campo",
+        "value": "border-color: var(--mf-foco); outline: 3px solid var(--mf-foco); outline-offset: -1px",
+        "purpose": "Caixa de campo, por :focus-within."
+      },
+      {
+        "name": "anel-interno",
+        "value": "outline-offset: -3px",
+        "purpose": "Linha de tabela, item de navegação e aba."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "48rem"
+      },
+      {
+        "name": "lg",
+        "value": "64rem"
+      },
+      {
+        "name": "xl",
+        "value": "80rem"
+      }
+    ],
+    "containerQueries": [
+      {
+        "name": "conexao-estreita",
+        "value": "width < 24rem",
+        "purpose": "Tira de conectividade aperta sem esconder palavra."
+      },
+      {
+        "name": "passagem-2-colunas",
+        "value": "width < 36rem",
+        "purpose": "Grade da passagem de caso cai de 3 para 2 colunas."
+      },
+      {
+        "name": "passagem-1-coluna",
+        "value": "width < 20rem",
+        "purpose": "Grade da passagem de caso em coluna única."
+      },
+      {
+        "name": "triagem-2-colunas",
+        "value": "width < 40rem",
+        "purpose": "Seletor de triagem em 2 colunas."
+      }
+    ],
+    "triage": [
+      {
+        "cor": "VERMELHO",
+        "bloco": "#c4161c",
+        "texto": "#ffffff",
+        "razao": 6.04,
+        "forma": "losango",
+        "protocolos": [
+          "MANCHESTER",
+          "START"
+        ]
+      },
+      {
+        "cor": "LARANJA",
+        "bloco": "#f07d12",
+        "texto": "#1a1320",
+        "razao": 6.6,
+        "forma": "triângulo",
+        "protocolos": [
+          "MANCHESTER"
+        ]
+      },
+      {
+        "cor": "AMARELO",
+        "bloco": "#f6d21a",
+        "texto": "#1a1320",
+        "razao": 12.22,
+        "forma": "quadrado",
+        "protocolos": [
+          "MANCHESTER",
+          "START"
+        ]
+      },
+      {
+        "cor": "VERDE",
+        "bloco": "#1b7a3a",
+        "texto": "#ffffff",
+        "razao": 5.4,
+        "forma": "círculo",
+        "protocolos": [
+          "MANCHESTER",
+          "START"
+        ]
+      },
+      {
+        "cor": "AZUL",
+        "bloco": "#1d5bb5",
+        "texto": "#ffffff",
+        "razao": 6.53,
+        "forma": "hexágono",
+        "protocolos": [
+          "MANCHESTER"
+        ]
+      },
+      {
+        "cor": "PRETO",
+        "bloco": "#101010",
+        "texto": "#ffffff",
+        "razao": 19.03,
+        "forma": "cruz em X",
+        "protocolos": [
+          "START"
+        ]
+      }
+    ],
+    "syncStates": [
+      {
+        "estado": "local",
+        "marca": "círculo vazado",
+        "cor": "marca"
+      },
+      {
+        "estado": "enviando",
+        "marca": "meio círculo cheio, alternando em dois passos",
+        "cor": "marca"
+      },
+      {
+        "estado": "confirmado",
+        "marca": "círculo cheio",
+        "cor": "tinta-2"
+      },
+      {
+        "estado": "rejeitado",
+        "marca": "círculo com X",
+        "cor": "carmim"
+      }
+    ],
+    "fonts": [
+      {
+        "family": "Archivo Variable",
+        "source": "@fontsource-variable/archivo/wdth.css",
+        "license": "SIL OFL 1.1",
+        "axes": [
+          "wght",
+          "wdth"
+        ]
+      },
+      {
+        "family": "Martian Mono Variable",
+        "source": "@fontsource-variable/martian-mono/wdth.css",
+        "license": "SIL OFL 1.1",
+        "axes": [
+          "wght",
+          "wdth"
+        ]
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão primário",
+      "kind": "button",
+      "refersTo": "botao-primario",
+      "description": "A única ação principal da tela: fundo de tinta copiativa.",
+      "html": "<button class=\"ds-botao-primario\">Registrar sinais vitais</button>",
+      "css": ".ds-botao-primario{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.25rem;padding:0 .9375rem;border:1px solid var(--mf-fio-forte, #7b7289);border-radius:2px;background:var(--mf-papel, #fbfafc);color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;font-weight:650;line-height:1.1;white-space:nowrap;cursor:pointer;transition:background-color 120ms cubic-bezier(.2,0,0,1),border-color 120ms cubic-bezier(.2,0,0,1),color 120ms cubic-bezier(.2,0,0,1);background:var(--mf-marca, #5a2a8c);border-color:var(--mf-marca, #5a2a8c);color:var(--mf-sobre-marca, #ffffff);} .ds-botao-primario:hover{background:var(--mf-marca-forte, #46206f);border-color:var(--mf-marca-forte, #46206f);} .ds-botao-primario:active{transform:translateY(1px);} .ds-botao-primario:focus-visible{outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:2px;}"
+    },
+    {
+      "name": "Botão secundário",
+      "kind": "button",
+      "refersTo": "botao-secundario",
+      "description": "Botão padrão: papel com fio forte.",
+      "html": "<button class=\"ds-botao\">Baixar PDF</button>",
+      "css": ".ds-botao{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.25rem;padding:0 .9375rem;border:1px solid var(--mf-fio-forte, #7b7289);border-radius:2px;background:var(--mf-papel, #fbfafc);color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;font-weight:650;line-height:1.1;white-space:nowrap;cursor:pointer;transition:background-color 120ms cubic-bezier(.2,0,0,1),border-color 120ms cubic-bezier(.2,0,0,1),color 120ms cubic-bezier(.2,0,0,1);} .ds-botao:hover{background:var(--mf-papel-2, #f2f0f5);border-color:var(--mf-tinta, #1a1320);} .ds-botao:active{transform:translateY(1px);} .ds-botao:focus-visible{outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:2px;}"
+    },
+    {
+      "name": "Botão de perigo",
+      "kind": "button",
+      "refersTo": "botao-perigo",
+      "description": "Ação destrutiva: fio e texto em carmim.",
+      "html": "<button class=\"ds-botao-perigo\">Inativar item</button>",
+      "css": ".ds-botao-perigo{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;min-height:2.25rem;padding:0 .9375rem;border:1px solid var(--mf-fio-forte, #7b7289);border-radius:2px;background:var(--mf-papel, #fbfafc);color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;font-weight:650;line-height:1.1;white-space:nowrap;cursor:pointer;transition:background-color 120ms cubic-bezier(.2,0,0,1),border-color 120ms cubic-bezier(.2,0,0,1),color 120ms cubic-bezier(.2,0,0,1);border-color:var(--mf-carmim, #a3114a);color:var(--mf-carmim, #a3114a);} .ds-botao-perigo:hover{background:var(--mf-carmim-suave, #fbe6ee);} .ds-botao-perigo:active{transform:translateY(1px);} .ds-botao-perigo:focus-visible{outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:2px;}"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "campo",
+      "description": "Caixa de ficha com o rótulo no canto.",
+      "html": "<div class=\"ds-campo\"><label class=\"ds-campo-rotulo\" for=\"ds-campo-1\">Local da ocorrência</label><input id=\"ds-campo-1\" class=\"ds-campo-entrada\" value=\"Rua das Tipuanas, 1840\"></div>",
+      "css": ".ds-campo{display:grid;padding:.375rem .75rem .4375rem;border:1px solid var(--mf-fio-forte, #7b7289);border-radius:2px;background:var(--mf-papel, #fbfafc);transition:border-color 120ms cubic-bezier(.2,0,0,1);} .ds-campo:hover{border-color:var(--mf-tinta, #1a1320);} .ds-campo:focus-within{border-color:var(--mf-foco, #5a2a8c);outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:-1px;} .ds-campo-rotulo{font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1rem;font-weight:650;font-stretch:78%;letter-spacing:.06em;text-transform:uppercase;color:var(--mf-tinta-2, #453c50);cursor:text;} .ds-campo-entrada{min-height:.75rem;padding:0;border:0;background:transparent;color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;font-weight:500;} .ds-campo-entrada:focus{outline:none;}"
+    },
+    {
+      "name": "Campo numérico (campo)",
+      "kind": "input",
+      "refersTo": "campo-numerico",
+      "description": "Entrada rápida de sinal vital no app de campo: numeral de 40 px.",
+      "html": "<div class=\"ds-numerico\"><label class=\"ds-numerico-rotulo\" for=\"ds-num-1\">Freq. cardíaca</label><input id=\"ds-num-1\" class=\"ds-numerico-entrada\" inputmode=\"numeric\" value=\"88\"><span class=\"ds-numerico-unidade\">bpm</span></div>",
+      "css": ".ds-numerico{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;column-gap:.5rem;max-width:12rem;padding:.375rem 1rem .4375rem;border:1px solid var(--mf-fio-forte, #7b7289);border-radius:2px;background:var(--mf-papel, #fbfafc);} .ds-numerico:hover{border-color:var(--mf-tinta, #1a1320);} .ds-numerico:focus-within{border-color:var(--mf-foco, #5a2a8c);outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:-1px;} .ds-numerico-rotulo{grid-column:1/-1;font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1rem;font-weight:650;font-stretch:78%;letter-spacing:.06em;text-transform:uppercase;color:var(--mf-tinta-2, #453c50);font-size:.75rem;} .ds-numerico-entrada{width:100%;min-width:0;padding:0;border:0;background:transparent;color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:2.5rem;font-weight:720;font-stretch:76%;font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.02em;line-height:1;} .ds-numerico-entrada:focus{outline:none;} .ds-numerico-unidade{padding-bottom:.25rem;color:var(--mf-tinta-2, #453c50);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.75rem;font-weight:600;}"
+    },
+    {
+      "name": "Seletor segmentado",
+      "kind": "custom",
+      "refersTo": "segmentado-opcao-selecionada",
+      "description": "Grupo de rádio em células coladas; a opção marcada é bloco invertido.",
+      "html": "<div class=\"ds-segmentado\" role=\"radiogroup\" aria-label=\"Via de administração\"><button class=\"ds-segmento\" role=\"radio\" aria-checked=\"false\">VO</button><button class=\"ds-segmento\" role=\"radio\" aria-checked=\"true\">EV</button><button class=\"ds-segmento\" role=\"radio\" aria-checked=\"false\">IM</button></div>",
+      "css": ".ds-segmentado{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);max-width:18rem;padding-right:1px;} .ds-segmento{min-height:2.25rem;margin-right:-1px;border:1px solid var(--mf-fio-forte, #7b7289);background:var(--mf-papel, #fbfafc);color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;font-weight:600;font-stretch:90%;cursor:pointer;transition:background-color 120ms cubic-bezier(.2,0,0,1),color 120ms cubic-bezier(.2,0,0,1);} .ds-segmento:first-child{border-radius:2px 0 0 2px;} .ds-segmento:last-child{border-radius:0 2px 2px 0;} .ds-segmento:hover{background:var(--mf-papel-2, #f2f0f5);} .ds-segmento[aria-checked=\"true\"]{position:relative;z-index:1;background:var(--mf-inverso, #1a1320);border-color:var(--mf-inverso, #1a1320);color:var(--mf-sobre-inverso, #fbfafc);} .ds-segmento:focus-visible{outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:2px;z-index:2;position:relative;}"
+    },
+    {
+      "name": "Etiqueta de triagem",
+      "kind": "chip",
+      "refersTo": "triagem-laranja",
+      "description": "Bloco chapado na cor do protocolo + forma + palavra. O único bloco em matiz de triagem.",
+      "html": "<span class=\"ds-triagem ds-triagem-vermelho\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 0.5 15.5 8 8 15.5 0.5 8z\"/></svg>Vermelho</span> <span class=\"ds-triagem ds-triagem-laranja\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 1 15.5 14.5H0.5z\"/></svg>Laranja</span> <span class=\"ds-triagem ds-triagem-amarelo\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M1.5 1.5h13v13h-13z\"/></svg>Amarelo</span> <span class=\"ds-triagem ds-triagem-verde\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1z\"/></svg>Verde</span> <span class=\"ds-triagem ds-triagem-azul\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M4.25 1.5h7.5L15.5 8l-3.75 6.5h-7.5L0.5 8z\"/></svg>Azul</span> <span class=\"ds-triagem ds-triagem-preto\"><svg viewBox=\"0 0 16 16\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M3.2 1 8 5.8 12.8 1 15 3.2 10.2 8 15 12.8 12.8 15 8 10.2 3.2 15 1 12.8 5.8 8 1 3.2z\"/></svg>Preto</span>",
+      "css": ".ds-triagem{display:inline-flex;align-items:center;gap:.375rem;min-height:1.375rem;padding:0 .5rem 0 .375rem;border:1px solid var(--mf-triagem-contorno, transparent);border-radius:2px;font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1;font-weight:750;font-stretch:82%;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;vertical-align:middle;} .ds-triagem svg{width:.875rem;height:.875rem;flex:none;} .ds-triagem-vermelho{background:var(--mf-tri-vermelho, #c4161c);color:var(--mf-tri-vermelho-texto, #ffffff);} .ds-triagem-laranja{background:var(--mf-tri-laranja, #f07d12);color:var(--mf-tri-laranja-texto, #1a1320);} .ds-triagem-amarelo{background:var(--mf-tri-amarelo, #f6d21a);color:var(--mf-tri-amarelo-texto, #1a1320);} .ds-triagem-verde{background:var(--mf-tri-verde, #1b7a3a);color:var(--mf-tri-verde-texto, #ffffff);} .ds-triagem-azul{background:var(--mf-tri-azul, #1d5bb5);color:var(--mf-tri-azul-texto, #ffffff);} .ds-triagem-preto{background:var(--mf-tri-preto, #101010);color:var(--mf-tri-preto-texto, #ffffff);}"
+    },
+    {
+      "name": "Selo de sincronização",
+      "kind": "chip",
+      "refersTo": "selo-sync",
+      "description": "Marca em célula fixa: vazada, meia, cheia, riscada.",
+      "html": "<span class=\"ds-selo ds-selo-pendente\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6\"/></svg>Local</span> <span class=\"ds-selo ds-selo-pendente ds-selo-enviando\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M8 2a6 6 0 0 0 0 12z\" fill=\"currentColor\" stroke=\"none\"/></svg>Enviando</span> <span class=\"ds-selo\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6\" fill=\"currentColor\"/></svg>Confirmado</span> <span class=\"ds-selo ds-selo-rejeitado\"><svg viewBox=\"0 0 16 16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><circle cx=\"8\" cy=\"8\" r=\"6\"/><path d=\"M5.4 5.4l5.2 5.2M10.6 5.4l-5.2 5.2\" stroke-linecap=\"square\"/></svg>Rejeitado</span>",
+      "css": ".ds-selo{display:inline-flex;align-items:center;gap:.375rem;margin-right:1rem;color:var(--mf-tinta-2, #453c50);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1rem;font-weight:650;font-stretch:80%;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;} .ds-selo svg{width:.9625rem;height:.9625rem;flex:none;} .ds-selo-pendente{color:var(--mf-marca, #5a2a8c);} .ds-selo-rejeitado{color:var(--mf-carmim, #a3114a);} .ds-selo-enviando svg{animation:ds-alterna 1s steps(2,jump-none) infinite;} @keyframes ds-alterna{to{transform:rotate(180deg);}} @media (prefers-reduced-motion:reduce){.ds-selo-enviando svg{animation:none;}}"
+    },
+    {
+      "name": "Etiqueta",
+      "kind": "chip",
+      "refersTo": "etiqueta",
+      "description": "Contorno e caixa-alta; a cheia é bloco invertido. Nunca em matiz de triagem.",
+      "html": "<span class=\"ds-etiqueta\">Encerrado</span> <span class=\"ds-etiqueta ds-etiqueta-cheia\">Aberto</span> <span class=\"ds-etiqueta ds-etiqueta-marca\">Pendente</span> <span class=\"ds-etiqueta ds-etiqueta-carmim\">Rejeitado</span>",
+      "css": ".ds-etiqueta{display:inline-flex;align-items:center;padding:0 .375rem;border:1px solid currentColor;border-radius:2px;color:var(--mf-tinta-2, #453c50);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1.125rem;font-weight:650;font-stretch:80%;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;} .ds-etiqueta-marca{color:var(--mf-marca, #5a2a8c);} .ds-etiqueta-carmim{color:var(--mf-carmim, #a3114a);} .ds-etiqueta-cheia{border-color:var(--mf-inverso, #1a1320);background:var(--mf-inverso, #1a1320);color:var(--mf-sobre-inverso, #fbfafc);}"
+    },
+    {
+      "name": "Entrada da linha do tempo",
+      "kind": "custom",
+      "refersTo": "selo-sync",
+      "description": "Pauta numerada: carimbo de hora e nº à esquerda; fato à direita.",
+      "html": "<ol class=\"ds-linha\"><li class=\"ds-evento\"><div class=\"ds-evento-carimbo\"><time class=\"ds-evento-hora\">21:19</time><span class=\"ds-evento-numero\">nº 07</span></div><div><div class=\"ds-evento-tipo\">Sinais vitais</div><div class=\"ds-evento-corpo\"><span class=\"ds-leitura-termo\">PA</span> <strong class=\"ds-leitura-valor\">152/96</strong> <span class=\"ds-leitura-termo\">FC</span> <strong class=\"ds-leitura-valor\">104</strong></div><div class=\"ds-evento-autor\">Enf. Caio Brandão</div></div></li></ol>",
+      "css": ".ds-linha{margin:0;padding:0;list-style:none;border-top:2px solid var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;color:var(--mf-tinta, #1a1320);} .ds-evento{display:grid;grid-template-columns:max-content minmax(0,1fr);column-gap:.75rem;padding:.625rem 0 .6875rem;border-bottom:1px solid var(--mf-fio, #d2ccdb);} .ds-evento-carimbo{display:flex;flex-direction:column;gap:.125rem;padding-left:.25rem;font-family:'Martian Mono Variable',ui-monospace,'Cascadia Mono',monospace;font-stretch:80%;font-variant-numeric:tabular-nums;} .ds-evento-hora{font-size:.8125rem;font-weight:600;line-height:1.125rem;} .ds-evento-numero{font-size:.6875rem;line-height:1rem;color:var(--mf-tinta-3, #665d72);} .ds-evento-tipo{font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1rem;font-weight:650;font-stretch:78%;letter-spacing:.06em;text-transform:uppercase;color:var(--mf-tinta-2, #453c50);margin-bottom:.25rem;} .ds-evento-corpo{font-size:.875rem;line-height:1.25rem;} .ds-leitura-termo{font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1rem;font-weight:650;font-stretch:78%;letter-spacing:.06em;text-transform:uppercase;color:var(--mf-tinta-2, #453c50);} .ds-leitura-valor{margin-right:.75rem;font-size:1.00625rem;font-weight:700;font-stretch:84%;font-variant-numeric:tabular-nums;} .ds-evento-autor{margin-top:.25rem;font-size:.8125rem;line-height:1.125rem;color:var(--mf-tinta-2, #453c50);}"
+    },
+    {
+      "name": "Passagem de caso (via rosa)",
+      "kind": "card",
+      "refersTo": "passagem",
+      "description": "A única superfície rosa: resumo factual para a entrega no hospital.",
+      "html": "<section class=\"ds-passagem\"><header class=\"ds-passagem-topo\"><h2 class=\"ds-passagem-titulo\">Passagem de caso</h2></header><div class=\"ds-passagem-paciente\"><p class=\"ds-passagem-nome\">Marlene Antunes Figueiró</p></div><div class=\"ds-passagem-celula\"><span class=\"ds-passagem-rotulo\">Alergias registradas</span><div class=\"ds-passagem-alergia\">Dipirona</div></div></section>",
+      "css": ".ds-passagem{max-width:24rem;border:1px solid var(--mf-rosa-fio, #c98aa0);background:var(--mf-rosa, #f7dde5);color:var(--mf-tinta, #1a1320);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;line-height:1.25rem;} .ds-passagem-topo{padding:.625rem .75rem;border-bottom:1px dashed var(--mf-rosa-fio, #c98aa0);} .ds-passagem-titulo{margin:0;font-size:.875rem;line-height:1.25rem;font-weight:800;font-stretch:80%;letter-spacing:.08em;text-transform:uppercase;color:var(--mf-rosa-tinta, #7a2146);} .ds-passagem-paciente{padding:.625rem .75rem;border-bottom:1px solid var(--mf-rosa-fio, #c98aa0);} .ds-passagem-nome{margin:0;font-size:1.25rem;line-height:1.5rem;font-weight:700;font-stretch:90%;} .ds-passagem-celula{padding:.5rem .75rem .625rem;} .ds-passagem-rotulo{font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.6875rem;line-height:1rem;font-weight:650;font-stretch:78%;letter-spacing:.06em;text-transform:uppercase;color:var(--mf-tinta-2, #453c50);color:var(--mf-rosa-tinta, #7a2146);} .ds-passagem-alergia{font-weight:750;text-transform:uppercase;letter-spacing:.02em;}"
+    },
+    {
+      "name": "Item de navegação",
+      "kind": "nav",
+      "refersTo": "nav-item-atual",
+      "description": "Índice do portal: o item atual é bloco invertido de tinta.",
+      "html": "<nav class=\"ds-nav\" aria-label=\"Seções do portal\"><a class=\"ds-nav-item ds-nav-item-atual\" href=\"#\" aria-current=\"page\"><span>Atendimentos</span><span class=\"ds-nav-contagem\">128</span></a><a class=\"ds-nav-item\" href=\"#\"><span>Prontuários</span><span class=\"ds-nav-contagem\">96</span></a><a class=\"ds-nav-item\" href=\"#\"><span>Medicamentos</span><span class=\"ds-nav-contagem\">42</span></a></nav>",
+      "css": ".ds-nav{display:flex;flex-direction:column;width:14.5rem;padding:.5rem 0;border-right:2px solid var(--mf-tinta, #1a1320);background:var(--mf-papel, #fbfafc);font-family:'Archivo Variable','Segoe UI',system-ui,sans-serif;font-size:.875rem;} .ds-nav-item{display:flex;align-items:center;gap:.625rem;min-height:2.25rem;padding:0 1rem;color:var(--mf-tinta, #1a1320);font-weight:550;text-decoration:none;} .ds-nav-item:hover{background:var(--mf-papel-2, #f2f0f5);} .ds-nav-item:focus-visible{outline:3px solid var(--mf-foco, #5a2a8c);outline-offset:-3px;} .ds-nav-item-atual,.ds-nav-item-atual:hover{background:var(--mf-inverso, #1a1320);color:var(--mf-sobre-inverso, #fbfafc);font-weight:700;} .ds-nav-contagem{margin-left:auto;font-family:'Martian Mono Variable',ui-monospace,'Cascadia Mono',monospace;font-stretch:80%;font-size:.6875rem;color:var(--mf-tinta-2, #453c50);} .ds-nav-item-atual .ds-nav-contagem{color:inherit;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "A ficha em vias carbonadas",
+    "overview": "O atendimento é uma ficha de APH preenchida a tinta em papel autocopiativo. Nada se apaga: o erro é riscado com um traço e a entrada nova cita o número que corrige. Todo registro diz em quantas vias já existe — só neste aparelho, a caminho, ou confirmado na central. O tema claro é a 1ª via (papel frio quase branco, tinta berinjela-preta); o tema escuro é o papel-carbono, para a noite dentro da ambulância.\n\nA interface é feita de fio de 1 px, caixa com rótulo no canto, pauta numerada e cabeçalho de fio grosso. Há dois contextos de densidade com o mesmo vocabulário: o portal (desktop, sentado, listas densas, corpo 14 px, controle de 36 px) e o app de campo (celular, luva, sol, corpo 17 px, alvo de 56 px). A cor é escassa de propósito: quase tudo se resolve em dois valores de tinta sobre papel, para que o código clínico de triagem seja a única cor saturada em bloco na tela.\n\nO sistema recusa o painel de cartões azul e branco com métricas no topo, o \"visual médico\" genérico, gradiente, vidro e cartão arredondado.",
+    "principles": [
+      "**Tinta e papel.** Todo o cromo usa dois valores. Cor fica reservada ao código clínico e aos estados que pedem ação.",
+      "**Bloco chapado é triagem.** Só a triagem usa bloco de cor saturada, sempre com forma e palavra. Nada mais no sistema se parece com ela.",
+      "**Estado é marca em célula fixa.** Vazada, meia, cheia, riscada. A marca de sincronização fica sempre no mesmo lugar e não depende de cor.",
+      "**Nada se apaga.** O evento retificado continua na pauta, riscado com um traço, e a retificação cita o número que corrige.",
+      "**Invertido é \"agora\".** Bloco de tinta com texto de papel marca o item atual, a opção escolhida e a condição offline.",
+      "**Fato, não conselho.** A interface mostra o que foi registrado e quando. Não há alerta, sugestão de dose nem cor de \"valor alterado\"."
+    ],
+    "keyCharacteristics": [
+      "Papel frio e tinta berinjela-preta em dois valores; violeta de tinta copiativa só para ação, link, foco e registro ainda não confirmado.",
+      "Bloco chapado em matiz saturado é exclusivo da triagem, sempre com forma geométrica e palavra.",
+      "Sincronização como marca circular em célula fixa: vazada, meia, cheia, riscada.",
+      "Campo em caixa de fio de 1 px com rótulo em caixa-alta condensada no canto; caixas vizinhas dividem o mesmo fio.",
+      "Cantos de 2 px; nenhuma sombra fora de diálogo e toast.",
+      "Seleção e \"agora\" são bloco invertido de tinta, nunca tinta colorida.",
+      "Movimento seco de 120 ms; a entrada nova \"bate\" na linha como carimbo.",
+      "Dois contextos de densidade (portal e `data-contexto=\"campo\"`) sobre a mesma escala em rem."
+    ],
+    "rules": [
+      {
+        "name": "Regra do Bloco Chapado",
+        "body": "Bloco sólido em matiz saturado de triagem (vermelho, laranja, amarelo, verde, azul, preto do protocolo) só existe na etiqueta e no seletor de triagem, sempre com forma e palavra. Etiqueta genérica é contorno; o único bloco cheio fora da triagem é o invertido de tinta, e ele nunca leva forma de triagem.",
+        "section": "colors"
+      },
+      {
+        "name": "Regra da Via Rosa",
+        "body": "Superfície rosa é a passagem de caso e só ela. O rosa aparece fora dela apenas como a segunda folha do símbolo da marca.",
+        "section": "colors"
+      },
+      {
+        "name": "Regra do Carmim",
+        "body": "Carmim significa rejeição ou erro (e o contorno do botão de perigo). Nunca é destaque, decoração ou cor de valor clínico.",
+        "section": "colors"
+      },
+      {
+        "name": "Regra da Cor Acompanhada",
+        "body": "Nenhum significado viaja só na cor: triagem leva forma e palavra, sincronização leva marca e rótulo, offline leva bloco invertido, ícone e palavra, erro leva ícone e texto.",
+        "section": "colors"
+      },
+      {
+        "name": "Regra da Raiz Intocada",
+        "body": "O `font-size` do `<html>` fica em 100%. Tema e contexto aplicam tamanho de corpo em contêineres (`[data-tema]`, `[data-contexto]`), nunca na raiz: mudar a raiz mudaria o valor de 1rem e toda a escala.",
+        "section": "typography"
+      },
+      {
+        "name": "Regra do Numeral Tabular",
+        "body": "Todo numeral de dado é tabular: `table`, `time`, `.mf-num`, `.mf-dado` e `.mf-numeral` aplicam `tabular-nums` (com `lining-nums` no numeral grande). Sinal vital, horário e contagem não dançam de largura.",
+        "section": "typography"
+      },
+      {
+        "name": "Regra da Mono Restrita",
+        "body": "Martian Mono é para o que a máquina carimba (hora, nº da entrada, código, contagem). Texto de pessoa, rótulo e valor clínico ficam em Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "Regra da Folha Plana",
+        "body": "Seção, campo, tabela, etiqueta e botão não têm sombra em nenhum estado. Hover troca papel por papel-2 e fio-forte por tinta; nada sobe.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** — resolva a tela em tinta sobre papel primeiro; acrescente violeta só no que está em curso ou pede ação (ação primária, link, foco, registro não confirmado).",
+      "**Do** — use bloco invertido (`.mf-invertido`) para \"agora\": item atual, opção escolhida, linha aberta, offline, toast.",
+      "**Do** — mostre a triagem sempre como bloco + forma + palavra (`EtiquetaTriagem`), nas cores do protocolo, iguais nos dois temas.",
+      "**Do** — mantenha a marca de sincronização na célula fixa do carimbo, com rótulo visível em todo estado que não seja \"confirmado\".",
+      "**Do** — risque o evento retificado e cite o número; a entrada antiga continua na pauta.",
+      "**Do** — ligue `data-contexto=\"campo\"` num contêiner para telas de campo: alvos de 56 px (mínimo 48), corpo 17/24, texto principal em 7:1 ou mais.",
+      "**Do** — use numeral tabular em sinal vital, horário e contagem; Martian Mono só em hora, nº da entrada, código e contagem.",
+      "**Do** — separe com fio (1 px pauta, 2 px de tinta em cabeçalho) e deixe caixas vizinhas dividirem o mesmo fio; canto de 2 px em controle, 3 px em sobreposição, vivo em folha.",
+      "**Do** — acrescente todo par novo de texto e fundo a `contraste.test.ts` com o mínimo que ele deve cumprir (7 texto principal, 4,5 texto, 3 contorno e foco).",
+      "**Do** — abra toda tela com a faixa \"Dados demonstrativos — sem validade clínica\" enquanto os dados forem fictícios.",
+      "**Do** — escreva o erro dizendo o que falhou e o que fazer; escreva o vazio dizendo o que aparece ali."
+    ],
+    "donts": [
+      "**Don't** — nada de \"interface médica azul e branca\" nem painel de cartões com métricas no topo. Azul aqui é só o nível azul do Manchester.",
+      "**Don't** — nada de gradiente de cor, em fundo, botão ou texto. A hachura de traço duro da faixa demonstrativa é o único padrão repetido e não é transição de cor.",
+      "**Don't** — nada de vidro: sem `backdrop-filter`, sem desfoque, sem superfície translúcida. O único translúcido é o véu chapado do diálogo.",
+      "**Don't** — nada de grade de cartões arredondados. O contêiner é a seção de canto vivo com fio; canto nunca passa de 3 px; seção não se aninha em seção.",
+      "**Don't** — nenhum bloco sólido em matiz de triagem (vermelho, laranja, amarelo, verde, azul, preto do protocolo) fora da etiqueta e do seletor de triagem; e nenhuma forma de triagem numa etiqueta genérica.",
+      "**Don't** — nenhum significado só na cor: sem ponto colorido solto, sem linha tingida, sem texto que muda de cor para dizer estado.",
+      "**Don't** — nenhuma interpretação clínica: sem alerta, sem sugestão de dose, sem cor ou ícone de \"valor alterado\", sem fluxograma, sem ordenar por gravidade por conta própria. A faixa do campo numérico é limite de digitação.",
+      "**Don't** — nenhuma superfície rosa além da passagem de caso.",
+      "**Don't** — carmim só em rejeição e erro (e no contorno do botão de perigo); nunca como destaque, marca ou decoração.",
+      "**Don't** — nunca mude `font-size` no `<html>`; densidade e tema se aplicam em contêiner.",
+      "**Don't** — nenhuma sombra em folha, campo, botão ou etiqueta; sombra projetada é só de diálogo e toast.",
+      "**Don't** — nada de movimento com mola, quique, giro contínuo suave ou brilho deslizante; o sistema anda em 120 ms secos e em passos.",
+      "**Don't** — nada de fonte por CDN nem ícone de outro conjunto; nada de ícone decorativo.",
+      "**Don't** — não apague, esconda nem edite no lugar um evento; não use tinta colorida para marcar seleção.",
+      "**Don't** — não use o rótulo em caixa-alta como sobretítulo decorativo acima de títulos; ele é rótulo de campo, de grupo, de coluna e de leitura."
+    ]
+  }
+}

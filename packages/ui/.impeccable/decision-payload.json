@@ -1,0 +1,105 @@
+{
+  "title": "MedicalField — escolha o mundo visual",
+  "question": "O sorteio atribuiu a Ficha em Vias Carbonadas. Manter, escolher uma alternativa ou sortear de novo.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Ficha em Vias Carbonadas",
+      "kicker": "THE ROLL",
+      "lineage": "fichas de atendimento pré-hospitalar em papel autocopiativo (1ª via branca, via rosa, o carbono)",
+      "thesis": "O atendimento é uma ficha preenchida a tinta: nada se apaga, o erro é riscado e rubricado, e cada registro mostra em quantas vias já existe.",
+      "palette": ["#F4F3F6", "#1D1524", "#5B2A91", "#F3D3DD", "#14101A"],
+      "materials": ["papel de formulário com fios de 1 px", "tinta copiativa violeta", "via rosa", "papel-carbono (tema escuro)"],
+      "viewport": "App: cabeçalho da ficha com nº e paciente, tira de conectividade, grade de campos em caixa com rótulo no canto e numerais enormes, linha do tempo como linhas pautadas numeradas. Portal: índice lateral + livro de registros denso + ficha aberta ao lado.",
+      "risk": "Violeta pode ser lido como roxo de IA se virar brilho ou gradiente; só funciona como tinta chapada sobre papel.",
+      "raised": [
+        {"from": "challenger-ikeda", "raise": "Todo o cromo em dois valores, tinta e papel; cor fica reservada ao código clínico e aos estados."},
+        {"from": "challenger-saville", "raise": "Todo evento é uma entrada numerada; a retificação cita o número que corrige."},
+        {"from": "challenger-timetable", "raise": "Estado é uma marca em célula fixa: vazada = só local, meia = enviando, cheia = confirmada, riscada = rejeitada."},
+        {"from": "challenger-transit", "raise": "No celular nada encolhe em miniatura: a linha do tempo mantém o corpo inteiro e o resto recolhe."},
+        {"from": "challenger-acetate", "raise": "Movimento de carimbo: curto, seco, sem coreografia; a entrada nova bate na linha."}
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Tira do Monitor",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "impressão térmica de resumo de evento do monitor-desfibrilador e papel de ECG",
+      "thesis": "A linha do tempo é a tira térmica: coluna de hora à esquerda, eventos impressos em sequência sobre a grade.",
+      "palette": ["#F2F1EC", "#16181A", "#D9486E", "#0F1114"],
+      "materials": ["papel térmico com grade milimetrada", "numerais de visor"],
+      "viewport": "Tira contínua com coluna de horário e blocos de sinais vitais em numerais grandes.",
+      "risk": "É onde quase todo produto da categoria cai: monitor cardíaco é o clichê do software médico."
+    },
+    {
+      "id": "challenger-jp-density",
+      "label": "Mosaico de alta densidade",
+      "verdict": "competitive",
+      "lineage": "sites japoneses de alta densidade",
+      "thesis": "O portal como mosaico de módulos pautados, sem um pixel desperdiçado.",
+      "palette": ["#FFFFFF", "#111111", "#D7261E", "#C9CED4"],
+      "materials": ["fios finos", "abas pequenas de módulo"],
+      "viewport": "Dezenas de módulos em grade, cada um com aba no topo.",
+      "case": "Ganha em clareza para as listas do portal; perde em identificação e é ilegível de luva no app.",
+      "risk": "O vermelho utilitário colide com a triagem vermelha.",
+      "hero": "https://impeccable.style/worlds/cards/japanese-high-density-web-hero.webp"
+    },
+    {
+      "id": "challenger-ikeda", "label": "Campo de dados preto e branco", "verdict": "declined",
+      "lineage": "Ryoji Ikeda, datamatics", "thesis": "Só preto e branco, barras e numerais.",
+      "palette": ["#000000", "#FFFFFF"], "materials": ["barras de código", "mono"],
+      "viewport": "Parede de barras com numerais na margem.",
+      "case": "Sem cor não há código de triagem; estrobo e mono denso não servem a quem atende.",
+      "kept": "Compromisso total com dois valores no cromo.", "risk": "Frio e hostil para uso clínico.",
+      "hero": "https://impeccable.style/worlds/cards/ikeda-datamatics-hero.webp"
+    },
+    {
+      "id": "challenger-saville", "label": "Catálogo Factory", "verdict": "declined",
+      "lineage": "Peter Saville / Factory Records", "thesis": "Tudo é uma entrada numerada; cor no lugar de palavra.",
+      "palette": ["#0B0B0B", "#FFFFFF", "#E0B400", "#2E6FD0"], "materials": ["preto fosco", "tira de blocos de cor"],
+      "viewport": "Capa preta com gráfico de pulsos e número de catálogo.",
+      "case": "Cor substituindo palavra viola a regra central do produto.",
+      "kept": "Tudo é entrada numerada.", "risk": "Código de cor sem rótulo é proibido aqui.",
+      "hero": "https://impeccable.style/worlds/cards/brand-identity-canon-saville-catalog-sleeve-hero.webp"
+    },
+    {
+      "id": "challenger-timetable", "label": "Horário de bolso em lâminas", "verdict": "declined",
+      "lineage": "horário aéreo de bolso, 1971", "thesis": "Um único corpo de letra; hierarquia por peso, caixa e fio.",
+      "palette": ["#E0A526", "#2B2F33", "#F3EEDD", "#C8402A"], "materials": ["vidro fumê", "leito dourado"],
+      "viewport": "Lâminas inclinadas a 11 graus sobre fundo dourado.",
+      "case": "Sinais vitais precisam de numerais grandes; inclinação atrapalha leitura em movimento.",
+      "kept": "Estado como marca em célula fixa.", "risk": "Dourado e vermelhão colidem com a triagem.",
+      "hero": "https://impeccable.style/worlds/cards/rw-timetable-slide-rack-hero.webp"
+    },
+    {
+      "id": "challenger-transit", "label": "Diagrama de metrô em esmalte", "verdict": "declined",
+      "lineage": "mapas de rede metropolitana", "thesis": "O atendimento como linha com estações.",
+      "palette": ["#0E1B3A", "#FFFFFF", "#D8262C", "#1F5FD0", "#E7A417", "#1D8A4A"], "materials": ["esmalte azul-meia-noite", "linhas coloridas"],
+      "viewport": "Mural de linhas coloridas a 45 e 90 graus.",
+      "case": "As quatro tintas de linha são exatamente as cores de triagem; azul de fundo é o clichê médico.",
+      "kept": "Nunca encolher o todo em miniatura.", "risk": "Confunde marca com código clínico.",
+      "hero": "https://impeccable.style/worlds/cards/wayfinding-cartography-signage-midnight-transit-diagram-hero.webp"
+    },
+    {
+      "id": "challenger-acetate", "label": "Manual com abas e acetato", "verdict": "declined",
+      "lineage": "manuais de software em caixa", "thesis": "Folhas de acetato sobre divisórias de cor plena; trilho de abas na borda.",
+      "palette": ["#E8641E", "#F2C200", "#1E8F86", "#F4F4EF"], "materials": ["acetato leitoso", "cartão de cor plena"],
+      "viewport": "Livro aberto com trilho de abas escalonado.",
+      "case": "Divisórias em cor plena competem com a triagem; serifa de leitura não serve a dado.",
+      "kept": "Nada desliza nem esmaece: passo curto e seco.", "risk": "Cores de seção colidem com o protocolo.",
+      "hero": "https://impeccable.style/worlds/cards/rw-manual-acetate-tab-board-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code"},
+  "canon": true,
+  "canonCard": {
+    "label": "O padrão da categoria",
+    "thesis": "Software clínico azul e branco, cartões e barra lateral, bem executado.",
+    "palette": ["#FFFFFF", "#0F172A", "#2563EB"],
+    "materials": ["grade limpa", "cartões"],
+    "viewport": "Barra lateral, cartões de métricas, tabela.",
+    "risk": "É exatamente o que o briefing do cliente proíbe."
+  },
+  "steer": true
+}

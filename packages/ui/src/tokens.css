@@ -1,0 +1,203 @@
+/*
+ * Tokens do MedicalField — "ficha em vias carbonadas".
+ * Tema claro = a 1ª via (papel). Tema escuro = o papel-carbono.
+ * Os pares texto/fundo são conferidos em src/contraste.test.ts.
+ */
+
+:root,
+[data-tema='claro'] {
+  color-scheme: light;
+
+  /* Superfícies */
+  --mf-mesa: #eceaf0; /* fundo atrás das folhas */
+  --mf-papel: #fbfafc; /* a folha: superfície principal */
+  --mf-papel-2: #f2f0f5; /* linha alternada, campo desabilitado */
+  --mf-inverso: #1a1320; /* bloco invertido (offline, item atual) */
+  --mf-sobre-inverso: #fbfafc;
+
+  /* Tinta: hierarquia de texto */
+  --mf-tinta: #1a1320;
+  --mf-tinta-2: #453c50;
+  --mf-tinta-3: #665d72;
+
+  /* Fios */
+  --mf-fio: #d2ccdb; /* pauta, divisória */
+  --mf-fio-forte: #7b7289; /* contorno de controle (>= 3:1) */
+
+  /* Marca: tinta copiativa */
+  --mf-marca: #5a2a8c;
+  --mf-marca-forte: #46206f;
+  --mf-marca-suave: #ebe3f4;
+  --mf-sobre-marca: #ffffff;
+  --mf-foco: #5a2a8c;
+
+  /* Via rosa: passagem de caso */
+  --mf-rosa: #f7dde5;
+  --mf-rosa-fio: #c98aa0;
+  --mf-rosa-tinta: #7a2146;
+
+  /* Carmim: rejeição e erro */
+  --mf-carmim: #a3114a;
+  --mf-carmim-suave: #fbe6ee;
+
+  /* Triagem: contorno só é visível quando o bloco se confunde com o fundo */
+  --mf-triagem-contorno: transparent;
+
+  --mf-sombra: 0 1px 0 var(--mf-fio), 0 16px 40px -12px rgb(26 19 32 / 0.35);
+  --mf-hachura: rgb(26 19 32 / 0.1);
+  --mf-veu: rgb(15 11 20 / 0.6);
+}
+
+[data-tema='escuro'] {
+  color-scheme: dark;
+
+  --mf-mesa: #0f0b14;
+  --mf-papel: #18121f;
+  --mf-papel-2: #211929;
+  --mf-inverso: #ede8f3;
+  --mf-sobre-inverso: #18121f;
+
+  --mf-tinta: #ede8f3;
+  --mf-tinta-2: #c0b7cc;
+  --mf-tinta-3: #988ea7;
+
+  --mf-fio: #3a3046;
+  --mf-fio-forte: #807492;
+
+  --mf-marca: #c9a9f3;
+  --mf-marca-forte: #dcc6f8;
+  --mf-marca-suave: #2f2241;
+  --mf-sobre-marca: #1a1320;
+  --mf-foco: #c9a9f3;
+
+  --mf-rosa: #2b1623;
+  --mf-rosa-fio: #74395a;
+  --mf-rosa-tinta: #f2aec7;
+
+  --mf-carmim: #ff93b6;
+  --mf-carmim-suave: #3a1526;
+
+  --mf-triagem-contorno: rgb(237 232 243 / 0.55);
+
+  --mf-sombra: 0 0 0 1px var(--mf-fio-forte), 0 20px 48px -12px rgb(0 0 0 / 0.7);
+  --mf-hachura: rgb(237 232 243 / 0.12);
+  --mf-veu: rgb(0 0 0 / 0.7);
+}
+
+/*
+ * Cores de triagem: código clínico convencional, iguais nos dois temas.
+ * Sempre acompanhadas de forma e palavra (EtiquetaTriagem).
+ */
+:root {
+  --mf-tri-vermelho: #c4161c;
+  --mf-tri-vermelho-texto: #ffffff;
+  --mf-tri-laranja: #f07d12;
+  --mf-tri-laranja-texto: #1a1320;
+  --mf-tri-amarelo: #f6d21a;
+  --mf-tri-amarelo-texto: #1a1320;
+  --mf-tri-verde: #1b7a3a;
+  --mf-tri-verde-texto: #ffffff;
+  --mf-tri-azul: #1d5bb5;
+  --mf-tri-azul-texto: #ffffff;
+  --mf-tri-preto: #101010;
+  --mf-tri-preto-texto: #ffffff;
+
+  /* Densidade: portal (padrão) */
+  --mf-alvo: 2.25rem; /* altura de controle: 36 px */
+  --mf-corpo: 0.875rem;
+  --mf-corpo-altura: 1.25rem;
+  --mf-rotulo: 0.6875rem;
+  --mf-pequeno: 0.8125rem;
+  --mf-pequeno-altura: 1.125rem;
+  --mf-numeral: 1.75rem;
+  --mf-recuo: 0.75rem;
+}
+
+/* Densidade: app de campo — alvos de 56 px (mínimo 48), corpo 17 px */
+[data-contexto='campo'] {
+  --mf-alvo: 3.5rem;
+  --mf-corpo: 1.0625rem;
+  --mf-corpo-altura: 1.5rem;
+  --mf-rotulo: 0.75rem;
+  --mf-pequeno: 0.9375rem;
+  --mf-pequeno-altura: 1.25rem;
+  --mf-numeral: 2.5rem;
+  --mf-recuo: 1rem;
+}
+
+@theme inline {
+  --color-*: initial;
+  --color-transparente: transparent;
+  --color-mesa: var(--mf-mesa);
+  --color-papel: var(--mf-papel);
+  --color-papel-2: var(--mf-papel-2);
+  --color-inverso: var(--mf-inverso);
+  --color-sobre-inverso: var(--mf-sobre-inverso);
+  --color-tinta: var(--mf-tinta);
+  --color-tinta-2: var(--mf-tinta-2);
+  --color-tinta-3: var(--mf-tinta-3);
+  --color-fio: var(--mf-fio);
+  --color-fio-forte: var(--mf-fio-forte);
+  --color-marca: var(--mf-marca);
+  --color-marca-forte: var(--mf-marca-forte);
+  --color-marca-suave: var(--mf-marca-suave);
+  --color-sobre-marca: var(--mf-sobre-marca);
+  --color-rosa: var(--mf-rosa);
+  --color-rosa-fio: var(--mf-rosa-fio);
+  --color-rosa-tinta: var(--mf-rosa-tinta);
+  --color-carmim: var(--mf-carmim);
+  --color-carmim-suave: var(--mf-carmim-suave);
+  --color-tri-vermelho: var(--mf-tri-vermelho);
+  --color-tri-laranja: var(--mf-tri-laranja);
+  --color-tri-amarelo: var(--mf-tri-amarelo);
+  --color-tri-verde: var(--mf-tri-verde);
+  --color-tri-azul: var(--mf-tri-azul);
+  --color-tri-preto: var(--mf-tri-preto);
+
+  --font-*: initial;
+  --font-texto: 'Archivo Variable', 'Segoe UI', system-ui, sans-serif;
+  --font-dados: 'Martian Mono Variable', ui-monospace, 'Cascadia Mono', monospace;
+
+  /* Escala fixa (rem), razão ~1,2. Hierarquia por peso, largura e caixa antes de tamanho. */
+  --text-*: initial;
+  --text-rotulo: 0.6875rem;
+  --text-rotulo--line-height: 1rem;
+  --text-pequeno: 0.8125rem;
+  --text-pequeno--line-height: 1.125rem;
+  --text-corpo: 0.875rem;
+  --text-corpo--line-height: 1.25rem;
+  --text-campo: 1.0625rem;
+  --text-campo--line-height: 1.5rem;
+  --text-titulo-3: 1.25rem;
+  --text-titulo-3--line-height: 1.5rem;
+  --text-titulo-2: 1.5rem;
+  --text-titulo-2--line-height: 1.75rem;
+  --text-titulo-1: 2rem;
+  --text-titulo-1--line-height: 2.25rem;
+  --text-numeral: 2.5rem;
+  --text-numeral--line-height: 2.5rem;
+  --text-numeral-g: 3.5rem;
+  --text-numeral-g--line-height: 3.5rem;
+
+  --radius-*: initial;
+  --radius-0: 0;
+  --radius-1: 2px; /* controles e etiquetas */
+  --radius-2: 3px; /* sobreposições */
+  --radius-marca: 999px; /* só marcas circulares de estado */
+
+  --shadow-*: initial;
+  --shadow-sobreposicao: var(--mf-sombra);
+
+  --ease-*: initial;
+  --ease-seco: cubic-bezier(0.2, 0, 0, 1);
+
+  --breakpoint-*: initial;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+}
+
+:root {
+  --mf-duracao: 120ms;
+  --mf-duracao-carimbo: 900ms;
+}

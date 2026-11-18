@@ -1,0 +1,12 @@
+/*
+ * @medicalfield/ui — ponto de entrada de estilo.
+ * O app importa só este arquivo; ele já traz o Tailwind v4, as fontes embutidas,
+ * os tokens (temas claro/escuro) e as classes dos componentes.
+ */
+@import 'tailwindcss';
+@import '@fontsource-variable/archivo/wdth.css';
+@import '@fontsource-variable/martian-mono/wdth.css';
+@source './';
+@import './tokens.css';
+@import './base.css';
+@import './componentes.css';

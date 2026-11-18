@@ -1,0 +1,131 @@
+/*
+ * Base: o que o navegador desenha sozinho também pertence ao sistema
+ * (seleção, cursor de texto, barra de rolagem, foco, numerais).
+ */
+
+/*
+ * Bloco invertido: dentro dele valem os tokens do tema oposto, então qualquer
+ * componente funciona sem variante própria. Usado no item atual da navegação,
+ * na linha selecionada da tabela, na tira offline e nos toasts.
+ */
+.mf-invertido,
+[data-tema='claro'] .mf-invertido,
+[data-tema='escuro'] [data-tema='claro'] .mf-invertido {
+  color-scheme: dark;
+  --mf-papel: #1a1320;
+  --mf-papel-2: #2a2133;
+  --mf-tinta: #fbfafc;
+  --mf-tinta-2: #d3cbdd;
+  --mf-tinta-3: #aba1b9;
+  --mf-fio: #4a3f58;
+  --mf-fio-forte: #8f84a0;
+  --mf-marca: #c9a9f3;
+  --mf-marca-forte: #dcc6f8;
+  --mf-marca-suave: #35264a;
+  --mf-sobre-marca: #1a1320;
+  --mf-foco: #c9a9f3;
+  --mf-carmim: #ff93b6;
+  --mf-carmim-suave: #3a1526;
+  --mf-triagem-contorno: rgb(251 250 252 / 0.55);
+  background-color: var(--mf-papel);
+  color: var(--mf-tinta);
+}
+
+/* Cobre um nível de tema aninhado (ex.: um quadro claro dentro de uma página escura). */
+[data-tema='escuro'] .mf-invertido,
+[data-tema='claro'] [data-tema='escuro'] .mf-invertido {
+  color-scheme: light;
+  --mf-papel: #ede8f3;
+  --mf-papel-2: #dcd5e5;
+  --mf-tinta: #18121f;
+  --mf-tinta-2: #3f3649;
+  --mf-tinta-3: #5a5066;
+  --mf-fio: #b9b0c6;
+  --mf-fio-forte: #6f657d;
+  --mf-marca: #5a2a8c;
+  --mf-marca-forte: #46206f;
+  --mf-marca-suave: #d9cdea;
+  --mf-sobre-marca: #ffffff;
+  --mf-foco: #5a2a8c;
+  --mf-carmim: #a3114a;
+  --mf-carmim-suave: #f3d3df;
+  --mf-triagem-contorno: transparent;
+}
+
+@layer base {
+  html {
+    font-family: var(--font-texto);
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scrollbar-color: var(--mf-fio-forte) transparent;
+  }
+
+  body {
+    background-color: var(--mf-mesa);
+    color: var(--mf-tinta);
+    font-size: var(--mf-corpo);
+    line-height: var(--mf-corpo-altura);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    accent-color: var(--mf-marca);
+    caret-color: var(--mf-marca);
+  }
+
+  /* Nunca no <html>: mudar o tamanho da raiz mudaria o valor de 1rem. */
+  [data-tema]:not(html),
+  [data-contexto]:not(html) {
+    color: var(--mf-tinta);
+    font-size: var(--mf-corpo);
+    line-height: var(--mf-corpo-altura);
+    scrollbar-color: var(--mf-fio-forte) transparent;
+  }
+
+  ::selection {
+    background-color: var(--mf-marca);
+    color: var(--mf-sobre-marca);
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--mf-foco);
+    outline-offset: 2px;
+  }
+
+  a {
+    color: var(--mf-marca);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+  }
+  a:hover {
+    color: var(--mf-marca-forte);
+    text-decoration-thickness: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    text-wrap: balance;
+  }
+
+  /* Numerais de dado: sempre tabulares */
+  table,
+  time,
+  .mf-num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+   * Movimento reduzido: a mudança de estado continua visível, sem deslocamento.
+   * As animações que giram ou deslizam têm alternativa própria em componentes.css.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
