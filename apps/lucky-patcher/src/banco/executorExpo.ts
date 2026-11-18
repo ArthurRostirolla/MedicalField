@@ -2,6 +2,7 @@
 // Vale igual para Android e iOS. A chave do banco e aleatoria, gerada no primeiro uso e guardada no
 // expo-secure-store (Android Keystore / iOS Keychain) como "so neste aparelho": um backup do arquivo
 // (iCloud, transferencia entre aparelhos) chega cifrado e sem a chave. A sessao vive neste banco.
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 import { randomUUID } from 'expo-crypto';
 import * as SecureStore from 'expo-secure-store';
 import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite';
@@ -20,15 +21,23 @@ async function chaveDoBanco(): Promise<string> {
   return nova;
 }
 
-async function abrir(chave: string, novaConexao: boolean): Promise<SQLiteDatabase> {
+/**
+ * Expo Go (app da loja) traz o SQLite comum, sem SQLCipher: la o banco fica SEM cifra. Serve so para
+ * demonstrar com dados ficticios; o development build e o release continuam cifrados.
+ */
+export const noExpoGo = Constants.executionEnvironment === ExecutionEnvironment.StoreClient;
+
+async function abrir(chave: string | null, novaConexao: boolean): Promise<SQLiteDatabase> {
   const banco = await openDatabaseAsync(NOME, { useNewConnection: novaConexao });
   // A chave so tem [0-9a-f]: nao ha como fechar a aspa.
-  await banco.execAsync(`PRAGMA key = '${chave}'; PRAGMA foreign_keys = ON;`);
+  if (chave) await banco.execAsync(`PRAGMA key = '${chave}'`);
+  await banco.execAsync('PRAGMA foreign_keys = ON');
   return banco;
 }
 
 export async function abrirExecutorNativo(): Promise<ExecutorSql> {
-  const chave = await chaveDoBanco();
+  if (noExpoGo) console.warn('Expo Go: banco local SEM cifra (SQLCipher so no development build). Use apenas dados ficticios.');
+  const chave = noExpoGo ? null : await chaveDoBanco();
   const banco = await abrir(chave, false);
   await banco.execAsync('PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;');
   // Conexao separada e travada em somente leitura: a porta de diagnostico nunca escreve.

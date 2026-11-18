@@ -31,7 +31,8 @@ export function Entrar() {
   const [registro, setRegistro] = useState(anterior?.registro ?? '');
   const [uf, setUf] = useState(anterior?.uf ?? 'RS');
   const [senha, setSenha] = useState('');
-  const [servidor, setServidor] = useState(app.enderecoServidor() ?? '');
+  // EXPO_PUBLIC_SERVIDOR (scripts/tunel.mjs) ja deixa o endereco preenchido no primeiro acesso.
+  const [servidor, setServidor] = useState(app.enderecoServidor() ?? process.env.EXPO_PUBLIC_SERVIDOR ?? '');
   const [erro, setErro] = useState<string | null>(null);
   const [campos, setCampos] = useState<Record<string, string>>({});
   const [entrando, setEntrando] = useState(false);
