@@ -36,7 +36,7 @@ const textoDe = (dados: object, campo: string): string => {
 /**
  * Passagem de caso do atendimento.
  *
- * - Evento apontado por uma RETIFICACAO deixa de contar em todas as secoes.
+ * - Evento retificado COM dadosCorrigidos aparece com os valores corrigidos; SEM, deixa de contar.
  * - Item de prontuario inativado nao entra.
  *
  * @param eventos linha do tempo do atendimento, em qualquer ordem
@@ -47,8 +47,23 @@ export function calcularResumo(
   itensProntuario: readonly ItemDoProntuario[],
 ): Resumo {
   // ponytail: um nivel so - retificar uma RETIFICACAO nao "ressuscita" o evento original.
-  const retificados = new Set(eventos.filter((e) => e.tipo === 'RETIFICACAO').map((e) => e.retificaEventoId));
-  const validos = ordenarLinhaDoTempo(eventos.filter((e) => !retificados.has(e.id)));
+  // Retificacao COM dadosCorrigidos corrige o evento (os campos corrigidos sobrepoem os originais);
+  // SEM dadosCorrigidos anula o evento. Assim uma medicacao com dose corrigida continua na passagem
+  // de caso, com o valor certo, em vez de sumir. A ultima retificacao de um evento e a que vale.
+  const correcoes = new Map<string, Record<string, unknown> | null>();
+  for (const r of ordenarLinhaDoTempo(eventos.filter((e) => e.tipo === 'RETIFICACAO'))) {
+    if (!r.retificaEventoId) continue;
+    const corrigidos = (r.dados as Record<string, unknown>).dadosCorrigidos;
+    const temCorrecao = typeof corrigidos === 'object' && corrigidos !== null && Object.keys(corrigidos).length > 0;
+    correcoes.set(r.retificaEventoId, temCorrecao ? (corrigidos as Record<string, unknown>) : null);
+  }
+  const validos = ordenarLinhaDoTempo(
+    eventos.flatMap((e) => {
+      if (!correcoes.has(e.id)) return [e];
+      const corrigidos = correcoes.get(e.id);
+      return corrigidos ? [{ ...e, dados: { ...(e.dados as Record<string, unknown>), ...corrigidos } }] : [];
+    }),
+  );
   const doTipo = (tipo: TipoEvento) => validos.filter((e) => e.tipo === tipo);
   const maisRecente = (tipo: TipoEvento) => {
     const evento = doTipo(tipo).at(-1);

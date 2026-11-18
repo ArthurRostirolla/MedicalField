@@ -93,3 +93,21 @@ describe('calcularResumo', () => {
     expect(calcularResumo(doServidor, []).medicacoes).toEqual([]);
   });
 });
+
+describe('calcularResumo — retificacao com dados corrigidos', () => {
+  it('corrige o evento em vez de remove-lo; sem dados corrigidos, anula', () => {
+    const eventos = [
+      ev('sv', 'SINAIS_VITAIS', 1, { pressaoSistolica: 168, frequenciaCardiaca: 92 }),
+      ev('med', 'MEDICACAO', 2, { medicamentoId: null, nome: 'Morfina', dose: '3', unidade: 'mg', via: 'EV' }),
+      ev('anulada', 'MEDICACAO', 3, { medicamentoId: null, nome: 'Nao aplicada', dose: '1', unidade: 'amp', via: 'EV' }),
+      ev('r-sv', 'RETIFICACAO', 4, { motivo: 'FC errada', dadosCorrigidos: { frequenciaCardiaca: 112 } }, 'sv'),
+      ev('r-med', 'RETIFICACAO', 5, { motivo: 'dose errada', dadosCorrigidos: { dose: '2' } }, 'med'),
+      ev('r-anula', 'RETIFICACAO', 6, { motivo: 'nao foi aplicada' }, 'anulada'),
+    ];
+    const resumo = calcularResumo(eventos, []);
+    expect(resumo.ultimosSinaisVitais?.dados).toEqual({ pressaoSistolica: 168, frequenciaCardiaca: 112 });
+    expect(resumo.medicacoes).toEqual([
+      { ocorridoEm: '2026-11-17T21:02:00.000Z', nome: 'Morfina', dose: '2', unidade: 'mg', via: 'EV' },
+    ]);
+  });
+});
