@@ -1,0 +1,14 @@
+{
+  "name": "@medicalfield/e2e",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Roteiro academico de 17 passos, automatizado contra o sistema implantado",
+  "scripts": {
+    "roteiro": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "@types/node": "^24.0.0"
+  }
+}

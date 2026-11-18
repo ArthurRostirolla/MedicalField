@@ -60,3 +60,33 @@ Cada entrada: o que foi executado, o comando ou a ação, o resultado observado 
 - **Inspeção visual do agente principal:** `atendimento-1440-claro.png` e `login-390-escuro.png` conferidas — passagem de caso em via rosa, linha do tempo numerada com retificação, bloco de PDF e envios, identidade coerente com o design system.
 - **Impeccable:** registro real em `apps/brad-pitt/IMPECCABLE.md` (contexto, detector sem achados, uma rodada de crítica/auditoria/polimento sobre as telas renderizadas; a crítica rodou em contexto único, sem os dois subagentes isolados que a skill prevê).
 - **Não coberto:** 429 no navegador (travaria os logins de demonstração por 15 min), reenvio após falha definitiva e paginação com várias páginas — os três só em teste de componente.
+
+## E-006 — App LuckyPatcher contra o backend real (OF-01..OF-11, OF-15; FE-03, FE-04)
+
+- **Data:** 2026-11-18
+- **Executado pelo agente principal:** `npm run typecheck`, `npm test`, `npm run build` e `npm run e2e` do workspace `@medicalfield/lucky-patcher` (Playwright no Chrome, 390×844, contra Mike/Cida/Jaiminho reais, conferindo o banco central por SQL).
+- **Observado:** typecheck sem erros; 25 testes do motor de sincronização passaram; build com 22 entradas no precache do PWA; **Playwright: 10 passaram em 3,1 min** (o agente relatou duas execuções anteriores, também 10/10).
+  1. Login + sincronização: contagem local de medicamentos e pessoas igual à central.
+  2. Online: atendimento com 4 eventos conferido no banco central.
+  3. `INSERT` de medicamento por SQL → sincronizar → aparece e é usado no app.
+  4. **Offline pelo seletor:** 7 comandos locais, **zero requisições `/api`** (inclusive após recarregar e 6 s de espera), nada na central; ao voltar, sobe em ordem; sincronizar mais duas vezes não duplica.
+  5. **Offline real** (`context.setOffline`) sobre o build de produção: abre pela casca do PWA, registra, recarrega e sincroniza ao voltar.
+  6. Subida abortada da 2ª requisição em diante: 1 confirmada, 4 pendentes; depois resposta perdida do `POST /atendimento`; o reenvio conclui com 1 linha de cada.
+  7. 422 forçado: Pendências mostra o motivo, dependentes ficam retidos, independente sobe, "Tentar de novo" destrava.
+  8. Logs offline chegam a `auditoria.log_cliente`; resposta perdida de `POST /log` e reenvio sem duplicar.
+- **Durabilidade do banco local** (medida pelo agente, `apps/lucky-patcher/docs/durabilidade.md`): gravar 200 linhas e matar o processo do Chrome — SQLite WASM em OPFS 5/5 duráveis; `jeep-sqlite` 0/5. Por isso o plano foi ajustado: o navegador usa SQLite WASM oficial em OPFS. **Não reexecutado pelo agente principal.**
+- **Inspeção visual do agente principal:** `atendimento-offline-390-claro.png` e `pendencias-390-claro.png`.
+- **Impeccable:** registro real em `apps/lucky-patcher/IMPECCABLE.md` (crítica com dois subagentes isolados, 27/40 em Nielsen antes das correções; 8 correções aplicadas; sem segunda rodada de crítica).
+- **Limite:** o 422 do cenário 7 é injetado por interceptação; a validação do cliente impede o envio de corpo inválido ao servidor real.
+
+## E-007 — Roteiro acadêmico de 17 passos contra o k3s local (passos 1–17; K8-02, K8-03, K8-04, K8-09)
+
+- **Data:** 2026-11-18
+- **Executado pelo agente principal:** `deploy/scripts/cluster-local.sh construir-imagens` (as 5 imagens) e `implantar`; depois `npm run roteiro -w @medicalfield/e2e`, que abre o portal (1440 px) e o cliente (390 px) em dois contextos de navegador contra `http://localhost:8088` (gateway Traefik), executa o passo 9 por `kubectl exec postgres-0 -- psql` e confere o e-mail na API do Mailpit do cluster.
+- **Observado:** os 6 pods (`postgres-0`, `mike-baguncinha`, `dona-cida`, `jaiminho`, `web`, `mailpit`) em `1/1 Running`; `/portal/` e `/app/` servidos pelo `web`; **17 de 17 passos concluídos, em duas execuções seguidas (cerca de 17 s cada)**. O observado de cada passo e as 17 capturas estão em [`testes/evidencias/roteiro/`](testes/evidencias/roteiro/resultado.md); o PDF baixado no passo 16 é `ficha-do-roteiro.pdf`.
+  - Passo 9: `INSERT` direto criou o medicamento com `seq` atribuído pelo trigger; passo 11: ele chegou ao banco local do cliente; passo 12: foi usado offline.
+  - Passo 12: 7 operações na fila após recarregar o app, nenhuma requisição `/api`; passo 13: 0 linhas no banco central.
+  - Passo 14: após a volta da rede e mais duas sincronizações — 1 pessoa, 1 prontuário, 1 item, 1 atendimento, 4 eventos.
+  - Passo 17: situação "Enviado" no portal e mensagem com anexo `application/pdf` no Mailpit.
+- **Consumo (`kubectl top`):** Jaiminho 96 Mi, Mike 65 Mi, Cida 44 Mi, Postgres 29 Mi, Mailpit 16 Mi, web 13 Mi — cerca de 263 Mi de aplicação.
+- **Limites:** cluster local em Docker, não a VM da Univates; e-mail no Mailpit, não em caixa externa.

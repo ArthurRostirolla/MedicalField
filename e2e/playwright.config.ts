@@ -1,0 +1,22 @@
+import { defineConfig } from '@playwright/test';
+
+// Roteiro academico contra o sistema IMPLANTADO (padrao: gateway do k3s local em :8088).
+//   MF_BASE        endereco do gateway           (padrao http://localhost:8088)
+//   MF_ALVO        "cluster" (kubectl exec) ou "dev" (docker exec) para o SQL e o Mailpit
+//   MF_SENHA_DEMO  senha de demonstracao (services/mike-baguncinha/README.md)
+export default defineConfig({
+  testDir: '.',
+  outputDir: './resultados',
+  workers: 1,
+  timeout: 10 * 60_000,
+  expect: { timeout: 20_000 },
+  reporter: [['list']],
+  use: {
+    channel: process.env.CANAL ?? 'chrome',
+    baseURL: process.env.MF_BASE ?? 'http://localhost:8088',
+    locale: 'pt-BR',
+    timezoneId: 'America/Sao_Paulo',
+    trace: 'retain-on-failure',
+    serviceWorkers: 'allow',
+  },
+});
