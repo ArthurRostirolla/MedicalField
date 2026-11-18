@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -79,18 +80,21 @@ jobs:
       - run: npm run typecheck --if-present $WORKSPACES
       - run: npm test --if-present $WORKSPACES
 
-  manifestos:
+  compose:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Kustomize renderiza os dois overlays
+      - name: docker compose valida o modo local e o da VM
+        working-directory: deploy
         run: |
-          kubectl kustomize deploy/overlays/local > /dev/null
-          kubectl kustomize deploy/overlays/univates > /dev/null
+          cp .env.example .env
+          printf '%s\n' SENHA_POSTGRES_ADMIN=x SENHA_MF_MIKE=x SENHA_MF_CIDA=x SENHA_MF_JAIMINHO=x JWT_CHAVE_PRIVADA_PEM=x MF_HOST=exemplo.invalid MF_ACME_EMAIL=x@exemplo.invalid >> .env
+          docker compose config -q
+          docker compose -f compose.yaml -f compose.vm.yaml config -q
 
   imagens:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    needs: [mike-baguncinha, jaiminho, npm, manifestos]
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    needs: [mike-baguncinha, jaiminho, npm, compose]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -120,34 +124,8 @@ jobs:
           context: ${{ matrix.contexto }}
           file: ${{ matrix.dockerfile }}
           push: true
-          tags: ${{ steps.nome.outputs.imagem }}:${{ github.sha }}
+          tags: |
+            ${{ steps.nome.outputs.imagem }}:${{ github.sha }}
+            ${{ steps.nome.outputs.imagem }}:latest
           cache-from: type=gha,scope=${{ matrix.peca }}
           cache-to: type=gha,mode=max,scope=${{ matrix.peca }}
-
-  # GitOps: o CI nao toca no cluster. So grava a nova tag no overlay; o Argo CD puxa.
-  atualizar-overlay:
-    needs: imagens
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    concurrency:
-      group: atualizar-overlay
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-      - name: Grava a tag no overlay univates
-        working-directory: deploy/overlays/univates
-        run: |
-          dono="${GITHUB_REPOSITORY_OWNER,,}"
-          for peca in mike-baguncinha dona-cida jaiminho web migracoes; do
-            kustomize edit set image "medicalfield-$peca=ghcr.io/$dono/medicalfield-$peca:$GITHUB_SHA"
-          done
-      - name: Commit
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add deploy/overlays/univates/kustomization.yaml
-          git diff --cached --quiet && exit 0
-          git commit -m "deploy(univates): imagens ${GITHUB_SHA::12} [skip ci]"
-          git push
