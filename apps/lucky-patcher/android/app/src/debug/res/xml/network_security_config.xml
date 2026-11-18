@@ -1,5 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Debug: libera HTTP para o Metro e para o gateway local (10.0.2.2) no emulador. -->
-<network-security-config>
-    <base-config cleartextTrafficPermitted="true" />
-</network-security-config>
