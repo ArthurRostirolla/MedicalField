@@ -2,7 +2,7 @@
 
 Roteiro de fala para cerca de **15 minutos**, com o que mostrar, o que dizer sobre cada requisito do enunciado, o plano B e as perguntas prováveis.
 
-Regra de ouro: **só afirmar o que foi feito.** O sistema foi validado num cluster Kubernetes local, antes da troca para o Docker Compose, e o app Android, num **emulador**. A repetição no Compose, a VM da Univates, o e-mail em caixa externa e um aparelho Android físico **não** foram executados — diga isso antes que perguntem (seção 5).
+Regra de ouro: **só afirmar o que foi feito.** O roteiro de 17 passos passou no Docker Compose local e na VM da Univates (no ar em https://177-44-248-60.sslip.io). **Não** foram executados: e-mail em caixa externa, o app Expo num aparelho Android físico e um roteiro automatizado do app Expo no Android — diga isso antes que perguntem (seção 5).
 
 Passo a passo detalhado de cada clique: [`../testes/roteiro-de-testes.md`](../testes/roteiro-de-testes.md).
 
@@ -19,7 +19,7 @@ Faça com 30 minutos de antecedência. Os comandos estão no roteiro de testes, 
 - [ ] Escolha o sufixo da rodada (`AULA1`) e, se já apresentou antes nesta máquina, use outro.
 - [ ] Abas prontas no editor ou navegador: `docs/arquitetura/arquitetura.md` (diagramas), `docs/dados/modelagem.md`, `docs/api/README.md`.
 - [ ] **Rode o roteiro automatizado uma vez** (`npm run roteiro -w @medicalfield/e2e`) para ter certeza de que está tudo no ar — e para ter evidência fresca caso a demonstração ao vivo falhe.
-- [ ] **Android (opcional):** emulador Pixel 6 aberto, APK instalado (`apps/lucky-patcher/docs/nativo.md`) e `adb devices` mostrando o emulador. Rode `node e2e/android/android.mjs` uma vez antes, para ter as capturas frescas.
+- [ ] **Android (opcional):** app aberto no emulador ou no Expo Go (`apps/lucky-patcher/docs/nativo.md`), já apontado para o servidor. O script `e2e/android/android.mjs` **não** funciona com o app Expo: a demonstração no aparelho é manual.
 - [ ] Zoom do navegador e do terminal legíveis no projetor.
 
 ## 2. Roteiro de fala (15 minutos)
@@ -29,7 +29,7 @@ Faça com 30 minutos de antecedência. Os comandos estão no roteiro de testes, 
 | 0:00 – 1:30 | Problema e proposta | Slide ou README |
 | 1:30 – 4:00 | Arquitetura | Diagrama geral e de implantação |
 | 4:00 – 11:30 | Demonstração: os 17 passos | Portal, app, terminal |
-| 11:30 – 13:30 | Requisitos que não aparecem na tela | Log de acesso, banco, Postman, app Android no emulador |
+| 11:30 – 13:30 | Requisitos que não aparecem na tela | Log de acesso, banco, Postman, app no celular (opcional) |
 | 13:30 – 15:00 | Limites e encerramento | Tabela "estado atual" |
 
 ### Bloco 1 — Problema e proposta (1:30)
@@ -66,7 +66,7 @@ Agrupe os passos em cinco cenas. Diga o número do passo em voz alta para o prof
 
 **Cena 2 — O app online (passos 5 a 8) · 2 min**
 
-- Entre como o Enf. Caio (COREN). Aponte a tira no alto: **Online**.
+- Entre como o Enf. Caio (COREN). Aponte a linha de conexão no alto: **Online**. A chave **Simular offline** fica no detalhe dessa linha (seta à direita, "Detalhes da conexão").
 - **Sincronizar agora**: "os cadastros do portal desceram para o banco local".
 - Pacientes → Clara → queixa → **Iniciar atendimento** → sinais, Glasgow, triagem.
 - Aponte a aba Network: "cada registro é um `POST` com uma `Idempotency-Key`".
@@ -85,12 +85,12 @@ Agrupe os passos em cinco cenas. Diga o número do passo em voz alta para o prof
 
 **Cena 4 — Offline (passos 12 a 15) · 2:30 — o centro da apresentação**
 
-- Ligue a chave **Simular offline**. A tira vira **Offline**. Limpe a aba Network.
+- Abra **Detalhes da conexão** e ligue a chave **Simular offline**. A linha vira **Offline**. Limpe a aba Network.
 - Pacientes → **Novo paciente** → nome e alergia → **Salvar e iniciar atendimento** → sinais, triagem, a medicação **que acabou de descer**, observação.
-- Aponte: tira com **7 pendentes**; aba Network **vazia**.
+- Aponte: linha de conexão com **7 pendentes**; aba Network **vazia**.
 - **`F5`.** "Fechei e abri o app. Está tudo aqui, e a fila também."
 - Portal → Prontuários e Atendimentos → **Atualizar**: **não aparece** (passo 13).
-- Desligue a chave. **Não clique em mais nada.** A tira volta a Online e a fila esvazia sozinha.
+- Desligue a chave (se o detalhe fechou, abra **Detalhes da conexão** de novo). **Não clique em mais nada.** A linha volta a Online e a fila esvazia sozinha.
 
 > "Ninguém mandou sincronizar. O monitor de conectividade avisou o motor de sincronização — é o padrão Observer que o enunciado pede."
 
@@ -134,23 +134,19 @@ npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF
 
 **Modelagem** — o diagrama ER de `docs/dados/modelagem.md` e a tabela de privilégios.
 
-**App Android** — se o emulador estiver aberto (cerca de 1 minuto; senão, mostre as capturas de `docs/testes/evidencias/android/`):
+**App no celular** (opcional, cerca de 1 minuto) — abra o app no emulador ou no Expo Go, já apontado para a VM, e repita a cena 4 à mão: Simular offline, registrar, fechar e reabrir o app, desligar a chave.
 
-```bash
-node e2e/android/android.mjs
-```
+> "É o mesmo app, em React Native com Expo. No aparelho o banco é SQLite nativo e cifrado, com a chave guardada no cofre do sistema."
 
-> "É o mesmo código do navegador dentro de um APK, com o banco SQLite nativo e cifrado. O teste entra informando o endereço do servidor, registra offline, **mata o processo do app**, reabre — a fila continua lá — e sincroniza sem duplicar."
-
-O script dirige o WebView por depuração remota e confere o banco central. No emulador, o app alcança o gateway em `http://10.0.2.2:8088`. Para mostrar à mão: abra o app no emulador, informe esse endereço na tela de entrada e repita a cena 4.
+Se não houver aparelho, mostre as capturas de [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md), lembrando que são da versão anterior do app (Capacitor).
 
 ### Bloco 5 — Limites e encerramento (1:30)
 
 Diga, sem rodeio:
 
-> "Três coisas que **não** fiz. Primeiro, isto está rodando em Docker Compose na minha máquina, não na VM da Univates: o procedimento e o arquivo da VM estão prontos, mas ainda não foram validados lá. Segundo, o e-mail vai para um servidor SMTP de captura; não testei numa caixa externa. Terceiro, o app Android: o APK foi construído e validado num emulador — login, registro offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado —, mas não num aparelho físico, e é um APK de depuração, não assinado."
+> "Três coisas que **não** fiz. Primeiro, o e-mail vai para um servidor SMTP de captura, o Mailpit; não testei numa caixa externa. Segundo, o app no Android: a versão anterior foi validada num emulador, com roteiro automatizado; a versão atual, em Expo, roda no emulador e no Expo Go, mas não tem roteiro automatizado no aparelho e não foi testada num celular físico. Terceiro, conflitos entre dois aparelhos reais: as quatro estratégias estão cobertas por testes de integração do servidor, não por dois celulares ao mesmo tempo."
 
-Feche com o que **está** provado: 17 passos automatizados, offline com queda e reabertura no navegador e no emulador Android, idempotência conferida no banco.
+Feche com o que **está** provado: 17 passos automatizados no Compose local e na VM, offline com queda e reabertura no navegador, idempotência conferida no banco.
 
 ## 3. O que dizer sobre cada requisito do enunciado
 
@@ -158,12 +154,12 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 | --- | --- | --- |
 | Três serviços em linguagens diferentes | Diagrama geral | "Go, TypeScript e Python — três processos, três imagens, três schemas." |
 | Persistência dual | `modelagem.md` | "PostgreSQL na central; SQLite embarcado no app." |
-| Aplicação cliente com interface gráfica | App no navegador e no emulador Android | "O mesmo código: PWA no navegador e APK no Android, validado em emulador." |
-| Execução na VM da Univates | Bloco 5 | "**No ar na VM:** https://177-44-248-60.sslip.io (HTTPS com Let's Encrypt, Docker Compose)." |
+| Aplicação cliente com interface gráfica | App no navegador (e no celular, se houver) | "O mesmo código em Expo: web/PWA no navegador e app nativo no Android e iOS." |
+| Execução na VM da Univates | Portal e app pela URL pública | "**No ar na VM:** https://177-44-248-60.sslip.io (HTTPS com Let's Encrypt, Docker Compose)." |
 | Todas as rotas autenticadas, menos o login | Postman, requisição "Sem token: 401" | "Cada serviço valida o JWT sozinho, com a chave pública do serviço de identidade." |
 | Credenciais do profissional | Telas de login | "CRM, COREN ou ID de socorrista, mais a UF." |
 | Middleware de log de acesso com os 7 campos | `mfsql` no log de acesso | "Mesma cadeia nos três: request-id, log de acesso, autenticação, handler." |
-| Simulador de conectividade | Chave "Simular offline" | "Com a chave ligada, nenhuma requisição sai — veja a aba de rede." |
+| Simulador de conectividade | Chave "Simular offline", em "Detalhes da conexão" | "Com a chave ligada, nenhuma requisição sai — veja a aba de rede." |
 | Interface administrativa | Portal | "Autentica, lista atendimentos, prontuários e cadastros de apoio." |
 | Inserção manual pelo banco | Passo 9 | "`INSERT` pelo `psql`; o gatilho faz o dado descer ao app." |
 | Repository, Strategy, Observer + 3 | Tabela de padrões | Bloco 4 |
@@ -187,7 +183,7 @@ Feche com o que **está** provado: 17 passos automatizados, offline com queda e 
 | **O app não abre o banco local** | Use o Chrome (não uma janela anônima antiga nem outro navegador). Em último caso: DevTools → Application → Clear site data, e entre de novo — o que já subiu não se perde. |
 | **Sem projetor para o terminal** | O passo 9 pode ser mostrado pela consequência: Medicamentos → Atualizar no portal. |
 | **Perguntam pela VM** | Abra [`../operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) e `deploy/compose.vm.yaml`. É o mesmo `compose.yaml` do modo local, com imagens do GHCR, HTTPS e o nome público. No ar desde 2026-11-18. |
-| **Perguntam pelo Android**, ou o emulador não sobe | Mostre as capturas em [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md) (início sincronizado, atendimento offline, reaberto com pendências, sincronizado) e o `resultado.md`. Detalhes: [`../../apps/lucky-patcher/docs/nativo.md`](../../apps/lucky-patcher/docs/nativo.md) e a evidência E-008. Diga o limite: emulador, APK de depuração, sem TLS. |
+| **Perguntam pelo Android**, ou o emulador não sobe | Explique que o app é Expo (React Native) e roda no Android e no iOS; mostre as capturas em [`../testes/evidencias/android/`](../testes/evidencias/android/resultado.md) (versão Capacitor, anterior) e [`../../apps/lucky-patcher/docs/nativo.md`](../../apps/lucky-patcher/docs/nativo.md). Diga o limite: sem roteiro automatizado da versão Expo no aparelho, sem celular físico, sem APK assinado. |
 
 ## 5. Perguntas prováveis e respostas curtas
 
@@ -219,10 +215,10 @@ Horário mais de cinco minutos à frente do servidor é limitado ao horário do 
 Strategy: `apps/dona-cida/src/dominio/conflito/` — uma interface, quatro classes e um registro que escolhe pelo tipo de dado. Observer: `apps/lucky-patcher/src/sync/conectividade.ts` — o monitor publica o estado, e o motor de sincronização e a tela assinam.
 
 **O banco local é mesmo um banco, ou é `localStorage`?**
-É SQLite, compilado para WebAssembly, gravando em arquivo no OPFS do navegador. O plano original usava outra biblioteca; num teste em que eu gravava e matava o processo do navegador, ela perdeu os dados em cinco de cinco vezes. Troquei pelo SQLite oficial, que manteve em cinco de cinco. Só o adaptador mudou — é o padrão Adapter. No Android o adaptador é outro, nativo e cifrado, e passou pelo mesmo ciclo num emulador.
+É SQLite, compilado para WebAssembly, gravando em arquivo no OPFS do navegador. O plano original usava outra biblioteca; num teste em que eu gravava e matava o processo do navegador, ela perdeu os dados em cinco de cinco vezes. Troquei pelo SQLite oficial, que manteve em cinco de cinco. Só o adaptador mudou — é o padrão Adapter. No aparelho o adaptador é outro, `expo-sqlite` com SQLCipher, nativo e cifrado.
 
 **O app Android funciona?**
-O APK de depuração foi construído e validado num emulador Pixel 6 com Android 17: login, registro offline, processo morto e reaberto com a fila intacta, sincronização sem duplicar, banco cifrado. Não testei em aparelho físico, o APK não é assinado para publicação e o tráfego até o servidor local é HTTP.
+O app é React Native com Expo e roda no Android (emulador e Expo Go) com o banco SQLite nativo cifrado. A versão anterior, em Capacitor, passou por um roteiro automatizado num emulador: offline, processo morto e reaberto, sincronização sem duplicar. A versão Expo atual ainda não tem esse roteiro automatizado nem teste em celular físico.
 
 **O simulador desliga a rede de verdade?**
 Não: ele faz o cliente HTTP do app recusar a chamada antes de ela sair, e o estado é persistido. Há também um teste com a rede realmente cortada no navegador, que passa. Na apresentação uso a chave porque é o que o enunciado pede.

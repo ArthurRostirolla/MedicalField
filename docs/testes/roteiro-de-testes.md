@@ -129,7 +129,7 @@ O app já sincroniza sozinho ao entrar; este passo repete pelo botão, para fica
 
 ### Passo 7 — Cliente: Online — Registrar um atendimento
 
-1. Confira que a chave **Simular offline** (canto da tira) está **desligada** e a tira diz **Online**.
+1. Toque na seta **Detalhes da conexão** (à direita da linha de conexão, no alto) e confira que a chave **Simular offline** está **desligada** e a tira diz **Online**.
 2. Aba **Pacientes** → em **Buscar por nome ou CPF**, digite `Clara Fictícia` → toque em **Clara Fictícia Souza**.
 3. Em **Novo atendimento**, preencha **Queixa principal** com `Roteiro online AULA1` → **Iniciar atendimento**.
 4. Na tela do atendimento, em **Registrar agora**:
@@ -187,7 +187,7 @@ Na VM é o mesmo comando, em `/opt/medicalfield/deploy`. Para uma sessão intera
 
 ### Passo 12 — Cliente: Offline — Registrar ocorrência de socorro: criar pessoa, criar prontuário, registrar atendimento
 
-1. Janela B: ligue a chave **Simular offline** (canto da tira). A tira vira um bloco **Offline · simulado**.
+1. Janela B: toque em **Detalhes da conexão** (seta à direita da linha de conexão) e ligue a chave **Simular offline**. A linha passa a dizer **Offline**.
 2. Na aba Network, limpe a lista (ícone 🚫) para começar do zero.
 3. Aba **Pacientes** → **Novo paciente**.
 4. **Nome completo:** `Pessoa Offline AULA1` · **Alergias:** `Alergia Roteiro AULA1`.
@@ -225,7 +225,7 @@ O registro existe só no aparelho.
 
 ### Passo 14 — Cliente: Online — Sincronizar dados para o Portal
 
-1. Janela B: **desligue** a chave **Simular offline**.
+1. Janela B: **desligue** a chave **Simular offline** (se o detalhe estiver fechado, abra **Detalhes da conexão**).
 
 Não é preciso clicar em mais nada: o monitor de conectividade confirma o servidor e avisa o motor de sincronização (padrão *Observer*).
 
@@ -257,10 +257,9 @@ mfsql "SELECT (SELECT count(*) FROM clinico.pessoa p WHERE p.nome = 'Pessoa Offl
 ### Passo 16 — Demonstrar geração da Ficha de atendimento
 
 1. Janela A → **Atendimentos** → clique na linha de "Pessoa Offline AULA1".
-2. Clique em **Gerar PDF**.
-3. Na seção **Ficha em PDF e envios**, clique em **Baixar PDF**.
+2. Clique em **Gerar PDF** (gera a ficha e já baixa o arquivo).
 
-**Esperado:** a seção passa a mostrar o código de verificação (formato `MF-XXXX-XXXX`) e a etiqueta **Íntegra**. O navegador baixa `ficha-MF-XXXX-XXXX.pdf`.
+**Esperado:** a seção **Ficha em PDF e envios** passa a mostrar o código de verificação (formato `MF-XXXX-XXXX`) e a etiqueta **Íntegra**. O navegador baixa `ficha-MF-XXXX-XXXX.pdf`.
 
 **Comprovar:** abra o PDF — cabeçalho, dados da pessoa, **passagem de caso**, linha do tempo numerada, código de verificação e QR no rodapé, e a faixa "DADOS DEMONSTRATIVOS — SEM VALIDADE CLÍNICA" em todas as páginas. O QR leva à tela de verificação do documento no portal.
 
@@ -297,7 +296,7 @@ No banco: `mfsql "SELECT destinatario_email, vinculo, status, tentativas, enviad
 | 13 | Portal: cadastro novo **não** aparece | Portal → Prontuários e Atendimentos | Ausente; 0 linhas na central |
 | 14 | Cliente: Online — sincronizar | App, chave desligada | Fila esvazia; repetir não duplica |
 | 15 | Portal: cadastro novo aparece | Portal → Prontuários e Atendimentos | Presente |
-| 16 | Gerar a ficha | Portal → atendimento → Gerar PDF → Baixar PDF | PDF baixado, íntegro |
+| 16 | Gerar a ficha | Portal → atendimento → Gerar PDF (já baixa) | PDF baixado, íntegro |
 | 17 | E-mail com a ficha | Portal → Enviar por e-mail | "Enviado"; mensagem com anexo no Mailpit |
 
 ## 5. Execução automatizada

@@ -74,7 +74,7 @@ Evidências: [VALIDATION_EVIDENCE.md](VALIDATION_EVIDENCE.md) · Defeitos: [KNOW
 | FE-03 | App: fluxo de campo em largura de celular, temas claro e escuro | Validado | E-006 |
 | FE-04 | Revisão visual Impeccable das telas renderizadas (portal e app) | Validado | E-005, E-006 |
 | FE-05 | Navegação por teclado e foco visível | Validado no portal; no app corrigido após a crítica, sem nova medição | E-005, E-006 |
-| FE-06 | App Android (Capacitor) | Validado em emulador, antes e depois das correções (APK de depuração; banco nativo cifrado) | E-008, E-010 |
+| FE-06 | App Android (Capacitor) | Validado em emulador, antes e depois das correções (APK de depuração; banco nativo cifrado). **Não repetido na versão Expo atual** | E-008, E-010 |
 
 ## Kubernetes
 

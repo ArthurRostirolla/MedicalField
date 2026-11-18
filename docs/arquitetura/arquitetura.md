@@ -17,9 +17,9 @@ O MedicalField é um prontuário de emergência pré-hospitalar **Offline-First*
 | Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | Python (FastAPI) | `apps/jaiminho` |
 | Gateway | **freeway** | Roteamento por prefixo, limite de taxa no login, cabeçalhos | Traefik 3.5 (provedor de arquivo) | `deploy/gateway` |
 | Portal administrativo | **BradPitt** | Consulta, PDF, e-mail, auditoria (somente leitura clínica) | React + Vite (SPA) | `apps/brad-pitt` |
-| App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, outbox, simulador de rede | React + Vite (PWA) + Capacitor | `apps/lucky-patcher` |
+| App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, outbox, simulador de rede | React Native com Expo (Android, iOS e web via react-native-web, instalável como PWA) | `apps/lucky-patcher` |
 | Banco central | — | Um PostgreSQL, quatro schemas, um papel por serviço | PostgreSQL 17 | `apps/*/migrations` |
-| Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS (navegador) | `apps/lucky-patcher/src/banco` |
+| Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS (navegador); `expo-sqlite` com SQLCipher (aparelho) | `apps/lucky-patcher/src/banco` |
 
 São **três serviços em três linguagens diferentes** (Go, TypeScript, Python), uma interface administrativa e uma aplicação cliente com interface gráfica, como o enunciado exige.
 
@@ -28,7 +28,7 @@ São **três serviços em três linguagens diferentes** (Go, TypeScript, Python)
 ```mermaid
 flowchart LR
   subgraph campo["Dispositivo do profissional"]
-    app["LuckyPatcher<br/>app PWA / Android"]
+    app["LuckyPatcher<br/>app Expo: web (PWA) / Android"]
     local[("Banco local<br/>SQLite + outbox")]
     app -- "leitura e escrita<br/>transacional" --> local
   end
@@ -74,7 +74,7 @@ Como ler:
 
 ## 3. Implantação com Docker Compose
 
-Tudo roda em **Docker Compose** num único host: `deploy/compose.yaml` (modo local, `http://localhost:8088`) e, na VM da Univates, o mesmo arquivo somado a `deploy/compose.vm.yaml` (HTTPS com Let's Encrypt em `https://177-44-248-60.sslip.io`). Na VM, as imagens vêm do GHCR, publicadas pelo CI. A implantação na VM está **a validar** (ver seção 10).
+Tudo roda em **Docker Compose** num único host: `deploy/compose.yaml` (modo local, `http://localhost:8088`) e, na VM da Univates, o mesmo arquivo somado a `deploy/compose.vm.yaml` (HTTPS com Let's Encrypt em `https://177-44-248-60.sslip.io`). Na VM, as imagens vêm do GHCR, publicadas pelo CI. A VM está **no ar** desde 2026-11-18 (ver seção 10).
 
 > **Decisão revista.** O plano previa Kubernetes (k3s + Kustomize + Argo CD) — uma escolha própria, não uma exigência do enunciado. A VM entregue tem **1 vCPU e 1,6 GB de RAM**: o k3s pede no mínimo 2 GB e gasta cerca de 450–600 MB só com a orquestração, contra uns 70 MB do Docker. A implantação passou para Docker Compose, mantendo as mesmas imagens e o mesmo endurecimento dos contêineres. As evidências registradas antes da troca foram obtidas num k3s local.
 
@@ -174,21 +174,23 @@ Versões **reais**: lidas de `go.mod`, `package-lock.json`, `pyproject.toml`, do
 | PostgreSQL | 17 (17.12 em execução, `postgres:17-alpine`) | Banco central | Transações, papéis por schema, `jsonb`, gatilho para o cursor de sincronização, inserção manual por SQL (passo 9). |
 | dbmate | 2 (`ghcr.io/amacneil/dbmate:2`) | Migrações dos três serviços | Uma ferramenta e uma convenção (SQL puro) para três linguagens. |
 | SQLite WASM oficial | 3.54.1 (`@sqlite.org/sqlite-wasm`) | Banco local no navegador, em OPFS (`opfs-sahpool`) | SQLite de verdade gravando em arquivo: o `COMMIT` é durável. O `jeep-sqlite` foi descartado por perder dados em teste de queda ([durabilidade](../../apps/lucky-patcher/docs/durabilidade.md)). |
-| `@capacitor-community/sqlite` | 8.1.1 | Banco local no Android (SQLCipher) | Adaptador nativo cifrado. Validado em emulador (E-008); não testado em aparelho físico. |
+| `expo-sqlite` (SQLCipher) | 58.0 | Banco local no aparelho (Android/iOS) | Adaptador nativo cifrado; a chave fica no `expo-secure-store` (Keystore/Keychain). No Expo Go o banco fica sem cifra (só demonstração). |
 
 ### Front-ends
 
 | Tecnologia | Versão | Onde | Por quê |
 | --- | --- | --- | --- |
-| React | 19.3.1 | Portal e app | Uma base de componentes para os dois. |
-| Vite | 8.3.8 | Portal e app | Build e servidor de desenvolvimento com proxy igual ao gateway. |
+| React | 19.3.0 | Portal e app | Uma base de componentes para os dois. |
+| Vite | 8.3.8 | Portal | Build e servidor de desenvolvimento com proxy igual ao gateway. |
+| Expo (SDK 58) + React Native | 58.0 · 0.88.1 | App | Um código para Android, iOS e navegador. |
+| react-native-web | 0.21 | App (web) | O mesmo app servido em `/app/` no navegador. |
+| Expo Router | 58.0 | App | Navegação por arquivos (`apps/lucky-patcher/app/`), com rotas sem hash. |
+| Workbox (`workbox-build`) | 7.4.1 | App (web) | *Service worker* gerado no build guarda a casca do app: abre sem rede. |
 | TypeScript | 7.0.2 (5.9.3 em `packages/ui`) | Todo o código TS | Tipos compartilhados com o backend. |
-| Tailwind CSS | 4.3.5 | `packages/ui`, portal, app | Tokens do design system. |
-| React Router | 7.18.5 (portal) · 8.5.1 (app) | Navegação | No app, *hash router*: funciona no navegador, offline e no WebView. |
+| Tailwind CSS | 4.3.5 | `packages/ui`, portal | Tokens do design system (o app usa os mesmos tokens em componentes React Native, `src/ui/ds`). |
+| React Router | 7.18.5 | Portal | Navegação. |
 | TanStack Query | 5.108.0 | Portal | Cache e estados de carregamento das consultas. |
-| `vite-plugin-pwa` (Workbox 7.4.1) | 2.0.0 | App | *Service worker* guarda a casca do app: abre sem rede. |
-| Capacitor | 8.6.2 | App (Android) | Empacota o mesmo código web num APK. APK de depuração construído e validado em emulador (Pixel 6, Android 17). |
-| lucide-react | 0.500.0 | Ícones | — |
+| lucide-react / lucide-react-native | — | Ícones | — |
 
 ### Infraestrutura e testes
 
@@ -266,7 +268,7 @@ Os três sugeridos pelo enunciado e três de livre escolha, com o arquivo onde c
 | 2 | **Strategy** (enunciado) | Cada tipo de dado pede uma regra de conflito diferente | `apps/dona-cida/src/dominio/conflito/`: interface em `estrategia.ts`; `uniao-imutavel.ts`, `campo-mais-recente.ts`, `servidor-vence.ts`, `revisao-manual.ts`; `registro.ts` escolhe a estratégia pelo tipo de dado. |
 | 3 | **Observer** (enunciado) | Sincronizar quando a rede volta, sem a tela consultar a rede | `apps/lucky-patcher/src/sync/conectividade.ts` (`MonitorConectividade`: `assinar` / `publicar`). Assinantes: `sync/motor.ts` (`iniciar` dispara `sincronizar('conexao')` quando o estado passa a online) e a interface (`ui/contexto.tsx`, `useConectividade`). |
 | 4 | **Command** (livre) | Uma ação precisa ser guardada, reenviada e repetida com segurança | **App:** `dados/outbox.ts` — cada operação vira uma linha serializável (método, rota, corpo, `op_id`) na tabela `outbox`. **Servidor:** `apps/dona-cida/src/aplicacao/comando.ts` (`ExecutorComandos`, o receptor idempotente). |
-| 5 | **Adapter** (livre) | A mesma lógica sobre mecanismos diferentes | **Banco local:** porta `apps/lucky-patcher/src/banco/executor.ts` (`ExecutorSql`) com `executorWeb.ts` (SQLite WASM/OPFS), `executorCapacitor.ts` (Android) e `executorOo1.ts` (memória, nos testes). **E-mail:** `EnviadorEmail` em `apps/jaiminho/src/jaiminho/dominio/portas.py`, com `EnviadorEmailSmtp` e `EnviadorEmailFalso` em `infra/email.py`. |
+| 5 | **Adapter** (livre) | A mesma lógica sobre mecanismos diferentes | **Banco local:** porta `apps/lucky-patcher/src/banco/executor.ts` (`ExecutorSql`) com `executorWeb.ts` (SQLite WASM/OPFS), `executorExpo.ts` (Android/iOS, SQLCipher) e `executorOo1.ts` (memória, nos testes). **E-mail:** `EnviadorEmail` em `apps/jaiminho/src/jaiminho/dominio/portas.py`, com `EnviadorEmailSmtp` e `EnviadorEmailFalso` em `infra/email.py`. |
 | 6 | **Chain of Responsibility** (livre) | Preocupações transversais sem poluir o handler — é o "middleware/interceptor" do enunciado | `request-id → log de acesso → autenticação → handler`, nos três: `apps/mike-baguncinha/internal/http/servidor.go` (`Handler`); `apps/dona-cida/src/http/cadeia.ts` + `app.module.ts` (`configure`); `apps/jaiminho/src/jaiminho/http/middlewares.py` + `http/app.py`. |
 
 Além desses, três padrões **arquiteturais**: *Transactional Outbox* (app e fila de e-mail), *Idempotent Receiver* (DonaCida) e *API Gateway* (freeway).
@@ -305,6 +307,7 @@ Código compartilhado entre o backend TypeScript e os dois front-ends (monorepo 
 | Formulários | React Hook Form + zod | Estado do React + zod | Sem dependência extra; a validação é a do contrato. |
 | Sessão do app | *Refresh token* no Keystore (Android) / cookie (web) | Sessão inteira no **banco local** (cifrado só no Android); o cookie `HttpOnly` é usado apenas pelo portal | O app precisa abrir sem rede; ver [segurança](seguranca.md). |
 | App Android | APK entregue | **APK de depuração**, validado em **emulador**; não assinado para publicação, sem teste em aparelho físico | O Gradle exigiu uma pasta temporária de caminho curto (D-09); ver `apps/lucky-patcher/docs/nativo.md`. |
+| Tecnologia do app | React + Vite (PWA) + Capacitor | **Expo / React Native** (Android, iOS e web pelo mesmo código); servidor embutido no build, o login não pergunta o endereço | Um código nativo de verdade para Android e iOS, mantendo a versão web. O motor de sincronização, o outbox e os repositórios não mudaram; trocaram as telas e o adaptador nativo do banco. |
 | Implantação | Kubernetes (k3s) na VM, Kustomize, Argo CD | **Docker Compose**, imagens do GHCR, atualização por `docker compose pull && up -d` | A VM tem 1 vCPU e 1,6 GB de RAM; o k3s pede ao menos 2 GB (seção 3). |
 
 ## 10. Estado atual
@@ -317,7 +320,7 @@ Código compartilhado entre o backend TypeScript e os dois front-ends (monorepo 
 | Coleção Postman de todas as rotas | Validada com Newman contra o gateway |
 | Conflito com dois clientes reais | Só testes de integração do servidor |
 | Isolamento de rede e backup/restauração | Backup/restauração executados no Compose local; isolamento pelas redes Docker a validar |
-| App Android | APK de depuração construído e validado em emulador (`e2e/android/android.mjs`, E-008): login, offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado. **Não testado em aparelho físico**; APK não assinado; HTTP sem TLS até o gateway local |
+| App Android | A versão em Capacitor foi validada em emulador (E-008): login, offline, processo morto e reaberto, sincronização sem duplicar, banco cifrado. **A versão Expo atual ainda não tem essa validação automatizada** (`e2e/android/android.mjs` dirigia o WebView do Capacitor); roda no Expo Go e no emulador para teste manual ([`nativo.md`](../../apps/lucky-patcher/docs/nativo.md)). Sem teste em aparelho físico; sem APK assinado |
 | VM da Univates e acesso público HTTPS | **No ar** em 2026-11-18 em `https://177-44-248-60.sslip.io` — [`operacao/instalacao-vm.md`](../operacao/instalacao-vm.md) |
 | E-mail em caixa externa | Não testado — validado contra o Mailpit (SMTP real de captura) |
 

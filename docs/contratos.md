@@ -12,7 +12,7 @@ Arquitetura completa: [`arquitetura/plano-arquitetural.md`](arquitetura/plano-ar
 | DonaCida (núcleo clínico + sync) | `apps/dona-cida` | TypeScript (NestJS) | 8082 / 9092 | `dona-cida:8080` / `9090` |
 | Jaiminho (PDF + e-mail) | `apps/jaiminho` | Python (FastAPI) | 8083 / 9093 | `jaiminho:8080` / `9090` |
 | BradPitt (portal) | `apps/brad-pitt` | React + Vite | 5181, base `/portal/` | pod `web` |
-| LuckyPatcher (app) | `apps/lucky-patcher` | React + Vite + Capacitor | 5182, base `/app/` | pod `web` + APK |
+| LuckyPatcher (app) | `apps/lucky-patcher` | Expo / React Native (web via react-native-web) | 5182, base `/app/` | contêiner `web` + build nativo |
 | freeway (gateway) | `deploy/` | Traefik | — | Ingress |
 | Postgres dev | `scripts/dev-db.sh` | — | 5544 | `postgres:5432` |
 | Mailpit dev | — | — | SMTP 1025 / UI 8025 | `mailpit:1025` |
@@ -234,7 +234,8 @@ As faixas são apenas limites de digitação plausível — **o sistema não int
 5. **Nunca rejeitar dado clínico por conflito cadastral.** Rejeição (422) só por corpo inválido ou referência inexistente (`pessoaId`/`atendimentoId` desconhecido → 422 `VALIDACAO`, não 404, para o outbox reter os dependentes).
 6. **Chave de idempotência é por profissional e por comando.** A mesma `Idempotency-Key` vinda de outro profissional, de outra rota ou com outro corpo → 422 `CHAVE_IDEMPOTENCIA_CONFLITANTE`, sem devolver a resposta guardada.
 7. **Texto sem caracteres de controle.** Todo campo de texto recusa caracteres de controle (exceto `
-`, ``, `	`) → 422 `VALIDACAO`. Cursor de paginação malformado → 422 com `campo: "cursor"`. Nenhum erro de dado vira 500.
+`, `
+`, `	`) → 422 `VALIDACAO`. Cursor de paginação malformado → 422 com `campo: "cursor"`. Nenhum erro de dado vira 500.
 8. **`dadosCorrigidos` da retificação é plano:** até 20 campos, chave de até 50 caracteres, valor simples (texto, número, booleano ou nulo). Esses valores são aplicados sobre o evento original na passagem de caso.
 
 O resumo (`Resumo`) é calculado por função pura em `packages/dominio`, usada pela DonaCida, pelo portal e pelo app.

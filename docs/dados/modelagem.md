@@ -372,7 +372,7 @@ Definido em `apps/lucky-patcher/src/banco/migracoes/001_inicial.sql`; a versão 
 | Plataforma | Implementação | Onde ficam os dados |
 | --- | --- | --- |
 | Navegador (PWA) | SQLite WASM oficial, VFS `opfs-sahpool`, dentro de um *Worker* (`banco/sqlite.worker.ts`) | OPFS — sistema de arquivos privado da origem. **Não cifrado.** |
-| Android | `@capacitor-community/sqlite` com SQLCipher (`banco/executorCapacitor.ts`) | Arquivo nativo `databases/medicalfieldSQLite.db`, cifrado. Validado em emulador (E-008); não em aparelho físico. |
+| Android / iOS | `expo-sqlite` com SQLCipher (`banco/executorExpo.ts`) | Arquivo nativo `medicalfield.db`, cifrado; chave aleatória no `expo-secure-store` (Keystore/Keychain). No Expo Go, sem cifra (só demonstração). Não testado em aparelho físico. |
 | Testes | O mesmo SQLite WASM, em memória (`banco/executorOo1.ts`) | — |
 
 O banco local **não declara chaves estrangeiras**: a ordem de chegada dos dados (descida parcial, registro criado offline antes de o cadastro existir) não pode impedir uma gravação. As relações abaixo são lógicas.

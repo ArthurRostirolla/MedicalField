@@ -15,9 +15,9 @@ O profissional de saúde em campo registra o atendimento pré-hospitalar (sinais
 | Serviço de documentos | **Jaiminho** | Ficha em PDF, fila e envio de e-mail | **Python** (FastAPI) | [`apps/jaiminho`](apps/jaiminho) |
 | Gateway | **freeway** | Roteamento, limite de taxa no login | Traefik | [`deploy/gateway`](deploy/gateway) |
 | Portal administrativo | **BradPitt** | Consulta, PDF, e-mail, auditoria | React + Vite | [`apps/brad-pitt`](apps/brad-pitt) |
-| App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, simulador de rede | React + Vite (PWA) + Capacitor | [`apps/lucky-patcher`](apps/lucky-patcher) |
+| App do profissional | **LuckyPatcher** | Atendimento em campo, banco local, simulador de rede | Expo / React Native (Android, iOS e web/PWA) | [`apps/lucky-patcher`](apps/lucky-patcher) |
 | Banco central | — | Quatro schemas, um papel por serviço | PostgreSQL 17 | `apps/*/migrations` |
-| Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS | `apps/lucky-patcher/src/banco` |
+| Banco local | — | SQLite embarcado no app | SQLite WASM em OPFS (web); `expo-sqlite` + SQLCipher (aparelho) | `apps/lucky-patcher/src/banco` |
 | Pacotes compartilhados | — | Contratos (zod), funções de domínio, design system | TypeScript | [`packages/`](packages) |
 | Implantação | — | Docker Compose, imagens no GHCR | — | [`deploy/`](deploy) |
 
@@ -185,7 +185,7 @@ Cada serviço e o portal têm um `README.md` próprio, com variáveis de ambient
 - Todas as rotas pelo gateway, com a coleção Postman (Newman: 31 requisições, 57 verificações, nenhuma falha).
 - Log de acesso com os sete campos do enunciado nos três serviços; 401 sem token em todas as rotas.
 - PDF gerado e íntegro; e-mail com anexo entregue ao servidor SMTP de demonstração.
-- **App Android:** APK de depuração construído e validado num emulador (Pixel 6, Android 17) — login informando o endereço do servidor, registro offline, processo morto e reaberto com a fila intacta, sincronização sem duplicar, banco nativo cifrado (SQLCipher). Evidência E-008.
+- **App Android (versão Capacitor, anterior ao Expo):** APK de depuração validado num emulador (Pixel 6, Android 17) — registro offline, processo morto e reaberto com a fila intacta, sincronização sem duplicar, banco nativo cifrado. Evidência E-008. A versão Expo atual roda no emulador e no Expo Go, mas ainda sem roteiro automatizado no aparelho.
 
 **Não validado ou não feito** — dito com clareza:
 
