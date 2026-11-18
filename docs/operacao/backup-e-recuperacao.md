@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | Dados do Postgres | Volume nomeado `medicalfield_dados` (disco da VM) | Sobrevive a reinício do contêiner, `docker compose down` e nova versão. **`docker compose down -v` apaga.** |
 | `deploy/scripts/backup.sh` | `deploy/backups/` (fora do Git) | `pg_dump` (formato *custom*) pelo contêiner do Postgres. Mantém os **7** mais recentes. |
-| Cron do host | `crontab` do usuário `univates` | `15 3 * * * /opt/medicalfield/deploy/scripts/backup.sh agora` — todo dia às 03:15 (hora da VM). |
+| Cron do host | `crontab` do root (`sudo crontab -e`) | `15 3 * * * /opt/medicalfield/deploy/scripts/backup.sh agora` — todo dia às 03:15 (hora da VM). |
 
 **Limite:** o volume e os backups estão no mesmo disco da VM. Perder a VM é perder os dois — **antes da apresentação, copie um dump para fora da VM** (junto com uma cópia de `deploy/.env`).
 

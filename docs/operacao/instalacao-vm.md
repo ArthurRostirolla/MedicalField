@@ -21,10 +21,12 @@
 
 ```bash
 sudo apt update && sudo apt install -y docker.io docker-compose-v2
-sudo usermod -aG docker univates       # saia e entre de novo na sessão SSH
-docker compose version
+sudo systemctl enable --now docker
+sudo docker compose version
 sudo ufw allow 443/tcp                 # a 80 já está liberada
 ```
+
+Na VM da Univates o `sudo` não permite `usermod` (política da administração), então o usuário não entra no grupo `docker`: **todo comando `docker` roda com `sudo`**.
 
 **Atenção:** porta publicada pelo Docker passa por fora do `ufw`. Só o gateway publica portas para fora (80 e 443); o Mailpit fica em `127.0.0.1:18025` e só é alcançável por túnel SSH (passo 5).
 
@@ -42,7 +44,7 @@ cd /opt/medicalfield
 cp deploy/.env.example deploy/.env
 ```
 
-Em `deploy/.env`, descomente o bloco **VM** e preencha `MF_ACME_EMAIL`:
+Em `deploy/.env`, descomente o bloco **VM**:
 
 | Variável | Valor |
 | --- | --- |
@@ -51,7 +53,7 @@ Em `deploy/.env`, descomente o bloco **VM** e preencha `MF_ACME_EMAIL`:
 | `MF_TAG` | `latest` (ou o SHA de um commit, para fixar a versão) |
 | `MF_PORTA_HTTP` | `80` |
 | `MF_HOST` | `177-44-248-60.sslip.io` |
-| `MF_ACME_EMAIL` | e-mail para o Let's Encrypt |
+| `MF_ACME_EMAIL` | opcional (o Let's Encrypt não exige e-mail) |
 | `URL_PUBLICA_PORTAL` | `https://177-44-248-60.sslip.io/portal` (vai no QR do PDF) |
 | `SMTP_*` | só se for usar SMTP externo; vazio = Mailpit |
 
@@ -63,28 +65,28 @@ deploy/scripts/segredos.sh             # completa deploy/.env e aplica chmod 600
 
 **Guarde uma cópia de `deploy/.env` fora da VM**: as senhas do banco só são aplicadas na primeira partida do Postgres.
 
-**Imagens do GHCR:** os 5 pacotes `medicalfield-*` precisam ser públicos (GitHub → Packages → Package settings → Change visibility), ou faça `docker login ghcr.io` na VM com um token `read:packages`.
+**Imagens do GHCR:** os 5 pacotes `medicalfield-*` precisam ser públicos (GitHub → Packages → Package settings → Change visibility), ou faça `sudo docker login ghcr.io` na VM com um token `read:packages`.
 
 ## 4. Subir
 
 ```bash
 cd /opt/medicalfield/deploy
-docker compose pull
-docker compose up -d
-docker compose ps                      # migra-* "Exited (0)"; o resto "running"/"healthy"
+sudo docker compose pull
+sudo docker compose up -d
+sudo docker compose ps                 # migra-* "Exited (0)"; o resto "running"/"healthy"
 ```
 
 ## 5. Conferir
 
 ```bash
 curl -s -o /dev/null -w '%{http_code}\n' https://177-44-248-60.sslip.io/portal/   # 200, certificado válido
-docker stats --no-stream               # orçamento de memória real
-deploy/scripts/backup.sh               # primeiro backup
+sudo docker stats --no-stream          # orçamento de memória real
+sudo deploy/scripts/backup.sh          # primeiro backup
 ```
 
 Mailpit, da sua máquina: `ssh -L 18025:127.0.0.1:18025 univates@177.44.248.60` e abra `http://localhost:18025`.
 
-Agende o backup diário (`crontab -e` do usuário `univates`):
+Agende o backup diário (`sudo crontab -e`, no crontab do root, porque o `docker` exige `sudo`):
 
 ```
 15 3 * * * /opt/medicalfield/deploy/scripts/backup.sh agora
