@@ -15,8 +15,10 @@ import { GerenciadorSessao, SessaoExpirada } from './sync/sessao.ts';
 export interface OpcoesApp {
   executor: ExecutorSql;
   fetch: typeof fetch;
-  /** No navegador o padrao e o mesmo host (caminhos relativos); no aparelho (Android/iOS) e obrigatorio informar. */
+  /** No navegador o padrao e o mesmo host (caminhos relativos); no aparelho (Android/iOS) e obrigatorio ter um. */
   exigeEnderecoServidor: boolean;
+  /** Endereco usado enquanto ninguem trocou em Ajustes (no aparelho, o servidor embutido no build). */
+  servidorPadrao?: string;
   /** `navigator.onLine` no navegador. */
   redeDoAparelho?: () => boolean;
   agora?: () => Date;
@@ -49,7 +51,7 @@ export async function criarApp(opcoes: OpcoesApp) {
     await banco.gravarEstado('dispositivo_id', dispositivoId);
   }
   let enderecoServidor: string | null = await banco.lerEstado('servidor');
-  if (enderecoServidor === null && !opcoes.exigeEnderecoServidor) enderecoServidor = '';
+  if (enderecoServidor === null) enderecoServidor = opcoes.servidorPadrao ?? (opcoes.exigeEnderecoServidor ? null : '');
 
   let monitor!: MonitorConectividade;
   const http = new ClienteHttp({

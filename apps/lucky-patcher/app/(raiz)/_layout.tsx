@@ -15,6 +15,8 @@ if (Platform.OS === 'web' && !__DEV__ && 'serviceWorker' in navigator) {
   void navigator.serviceWorker.register(`${process.env.EXPO_BASE_URL ?? ''}/sw.js`).catch(() => undefined);
 }
 
+const SERVIDOR_PRODUCAO = 'https://177-44-248-60.sslip.io';
+
 type Estado ={ tipo: 'abrindo' } | { tipo: 'pronto'; app: App } | { tipo: 'erro'; erro: unknown };
 
 let abertura: Promise<App> | null = null;
@@ -27,6 +29,8 @@ function abrirApp(): Promise<App> {
       executor,
       fetch: (entrada, opcoes) => fetch(entrada, opcoes),
       exigeEnderecoServidor: ehNativo(),
+      // O servidor vem embutido: o login nao pergunta. EXPO_PUBLIC_SERVIDOR troca (tunel, emulador); Ajustes tambem.
+      servidorPadrao: ehNativo() ? (process.env.EXPO_PUBLIC_SERVIDOR ?? SERVIDOR_PRODUCAO) : undefined,
       redeDoAparelho,
       novoId: randomUUID,
     });

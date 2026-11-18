@@ -17,7 +17,7 @@ Sem Mac, o build iOS sai pelo EAS Build (`npx eas build -p ios`).
 npm run tunel -w @medicalfield/lucky-patcher     # Metro na porta 8090 + túnel do Expo
 ```
 
-Escaneie o QR (ou digite a URL `exp://…` que aparece em "Waiting on https://…") no Expo Go do iPhone ou Android, em qualquer rede. O login já vem com o servidor preenchido: a VM, `https://177-44-248-60.sslip.io` (troque com `MF_SERVIDOR=https://…`).
+Escaneie o QR (ou digite a URL `exp://…` que aparece em "Waiting on https://…") no Expo Go do iPhone ou Android, em qualquer rede. O app já vem apontado para a VM, `https://177-44-248-60.sslip.io` (troque com `MF_SERVIDOR=https://…`, ou depois em Ajustes); o login não pergunta o servidor.
 
 - **No Expo Go o banco local fica SEM cifra**: o Expo Go traz o SQLite comum, sem SQLCipher. O app detecta isso (`noExpoGo` em `src/banco/executorExpo.ts`), abre o banco sem `PRAGMA key` e avisa no log. Use só com dados fictícios; o development build e o release continuam cifrados.
 - O Expo Go da loja só roda a versão atual do SDK (58). O React está fixado em `19.3.0` em todo o monorepo (`overrides` no `package.json` da raiz), a versão que o React Native do Expo Go espera; duas cópias do React quebrariam o app.

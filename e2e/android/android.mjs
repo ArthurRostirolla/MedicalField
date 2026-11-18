@@ -5,6 +5,7 @@
 // (apps/lucky-patcher/docs/android.md), sistema local no ar (docker compose, gateway em :8088) e MF_SENHA_DEMO.
 //   node e2e/android/android.mjs
 // No emulador, o host da maquina e 10.0.2.2; em aparelho fisico, defina MF_SERVIDOR_ANDROID.
+// O login nao pergunta o servidor: gere o APK com EXPO_PUBLIC_SERVIDOR igual a MF_SERVIDOR_ANDROID.
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
@@ -117,7 +118,6 @@ try {
   await pagina.getByRole('radio', { name: 'COREN' }).click();
   await pagina.getByLabel('Número do COREN').fill('200002');
   await pagina.getByLabel('Senha').fill(senha);
-  await pagina.getByLabel('Endereço do servidor').fill(SERVIDOR);
   await pagina.getByRole('button', { name: 'Entrar' }).click();
   await pagina.getByRole('heading', { name: 'Início', level: 1 }).waitFor();
   await esperar(async () => (await local(pagina, 'SELECT count(*) AS n FROM medicamento'))[0].n > 0, 'a descida inicial nao trouxe medicamentos');

@@ -22,7 +22,6 @@ import {
   useTema,
   type OpcaoCartao,
 } from '../ui/ds/index.ts';
-import { Recolhivel } from './NovoPaciente.tsx';
 
 // O título do cartão é a sigla do registro: é o nome do rádio (testes e leitor de tela).
 const PERFIS: ReadonlyArray<OpcaoCartao<TipoRegistro>> = [
@@ -64,8 +63,6 @@ export function Entrar() {
   const [registro, setRegistro] = useState(anterior?.registro ?? '');
   const [uf, setUf] = useState(anterior?.uf ?? 'RS');
   const [senha, setSenha] = useState('');
-  // EXPO_PUBLIC_SERVIDOR (scripts/tunel.mjs) ja deixa o endereco preenchido no primeiro acesso.
-  const [servidor, setServidor] = useState(app.enderecoServidor() ?? process.env.EXPO_PUBLIC_SERVIDOR ?? '');
   const [erro, setErro] = useState<string | null>(null);
   const [campos, setCampos] = useState<Record<string, string>>({});
   const [entrando, setEntrando] = useState(false);
@@ -90,7 +87,6 @@ export function Entrar() {
     setCampos({});
     setEntrando(true);
     try {
-      if (app.exigeEnderecoServidor || servidor !== (app.enderecoServidor() ?? '')) await app.definirEnderecoServidor(servidor);
       await app.sessao.entrar(entrada.data);
       await app.registrarLog('LOGIN');
       void app.motor.sincronizar('abertura');
@@ -103,7 +99,7 @@ export function Entrar() {
           falha.motivo === 'OFFLINE_SIMULADO'
             ? '“Simular offline” está ligado (detalhe da linha de conexão, no alto). Desligue-o para entrar: o primeiro acesso precisa de conexão.'
             : falha.motivo === 'SEM_SERVIDOR'
-              ? 'Informe o endereço do servidor.'
+              ? 'Este app está sem servidor configurado. Fale com a equipe de implantação.'
               : 'Sem conexão com o servidor. O primeiro acesso neste aparelho precisa de rede.',
         );
       } else {
@@ -218,31 +214,6 @@ export function Entrar() {
                 erro={campos.senha}
                 onSubmitEditing={aoEnviar}
               />
-
-              {app.exigeEnderecoServidor ? (
-                <CampoTexto
-                  rotulo="Endereço do servidor"
-                  value={servidor}
-                  onChangeText={setServidor}
-                  placeholder="https://medicalfield.exemplo.org"
-                  inputMode="url"
-                  autoCapitalize="none"
-                  autoComplete="url"
-                  ajuda="O endereço que a equipe de implantação informou."
-                />
-              ) : (
-                <Recolhivel titulo="Endereço do servidor">
-                  <CampoTexto
-                    rotulo="Endereço do servidor"
-                    value={servidor}
-                    onChangeText={setServidor}
-                    placeholder="O mesmo endereço deste app"
-                    inputMode="url"
-                    autoCapitalize="none"
-                    ajuda="Deixe em branco para usar o mesmo endereço de onde o app foi aberto."
-                  />
-                </Recolhivel>
-              )}
 
               {erro ? <Mensagens erro={erro} /> : null}
               {!conexao.online && !erro ? (
