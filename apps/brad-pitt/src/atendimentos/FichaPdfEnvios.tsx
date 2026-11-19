@@ -15,7 +15,8 @@ import {
 } from '@medicalfield/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { FileDown, FileText, Mail, MailQuestion, ShieldAlert, ShieldCheck, ShieldQuestion } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useSyncExternalStore } from 'react';
+import { assinarOffline, lerOffline } from '../api/offline';
 import { baixarPdf, listarDocumentos, listarEnvios, obterDocumento, reenviar } from '../api/recursos';
 import { salvarArquivo, useAvisar } from '../comum/avisos';
 import { descreverErro, formatarDataHora, formatarTamanho } from '../comum/formato';
@@ -56,6 +57,9 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
   const consultas = useQueryClient();
   const [versao, setVersao] = useState<string | null>(null);
   const [dialogoAberto, setDialogoAberto] = useState(false);
+  const offline = useSyncExternalStore(assinarOffline, lerOffline);
+  // Baixar e enviar dependem do serviço de documentos: offline, ficam para quando voltar.
+  const semServidor = offline.simulando || !offline.redeDoComputador;
 
   const documentos = useQuery({
     queryKey: ['documentos', atendimentoId],
@@ -128,6 +132,7 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
       celula: (envio) =>
         envio.status === 'FALHA_DEFINITIVA' ? (
           <Botao
+            disabled={semServidor}
             carregando={reenvio.isPending && reenvio.variables === envio.id}
             onClick={() => reenvio.mutate(envio.id)}
             aria-label={`Reenviar para ${envio.destinatarioNome}`}
@@ -192,10 +197,10 @@ export function FichaPdfEnvios({ atendimentoId, nomeDe }: FichaPdfEnviosProps) {
               </Etiqueta>
             )}
           </span>
-          <Botao icone={<FileDown aria-hidden />} carregando={download.isPending} onClick={() => download.mutate()}>
+          <Botao icone={<FileDown aria-hidden />} disabled={semServidor} carregando={download.isPending} onClick={() => download.mutate()}>
             Baixar PDF
           </Botao>
-          <Botao icone={<Mail aria-hidden />} onClick={() => setDialogoAberto(true)}>
+          <Botao icone={<Mail aria-hidden />} disabled={semServidor} onClick={() => setDialogoAberto(true)}>
             Enviar por e-mail
           </Botao>
         </>

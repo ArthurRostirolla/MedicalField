@@ -4,6 +4,7 @@ import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun
 import { useEffect, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { Outlet, useHref, useLocation, useNavigate } from 'react-router';
 import { sair } from '../api/cliente';
+import { listarTodosMedicamentos } from '../api/recursos';
 import { assinarOffline, definirSimulacao, iniciarOffline, lerOffline, sincronizar, type Rejeicao } from '../api/offline';
 import { useAvisar } from '../comum/avisos';
 import { useProfissional } from '../sessao/sessao';
@@ -46,6 +47,8 @@ export function Casca() {
 
   /** Desligar a simulação: a fila sobe e as telas buscam de novo o que o servidor tem. */
   async function mudarSimulacao(simular: boolean) {
+    // Antes de cortar: o catálogo de medicamentos fica à mão para registrar medicação offline.
+    if (simular) await consultas.prefetchQuery({ queryKey: ['medicamentos', false], queryFn: () => listarTodosMedicamentos(false) });
     definirSimulacao(simular);
     if (simular) return;
     await sincronizar(); // recusas chegam pelo aviso ligado em iniciarOffline

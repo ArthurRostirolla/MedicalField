@@ -26,19 +26,59 @@ import {
   type ProfissionalEntrada,
 } from '@medicalfield/contratos';
 import { z } from 'zod';
-import { api, apiComStatus, baixar } from './cliente';
+import { api, apiComStatus, baixar, ErroApi, semServidor } from './cliente';
+import {
+  atendimentoNaFila,
+  comFilaNaFicha,
+  comFilaNosAtendimentos,
+  comItensDaFila,
+  fichaNaFila,
+  pessoaLocal,
+  pessoasNaFila,
+  prontuarioNaFila,
+  prontuarioVazio,
+} from './local';
 import { escrever } from './offline';
+
+/**
+ * Leitura com o que foi gravado offline como reserva: sem servidor (e sem última leitura guardada),
+ * ou o servidor ainda sem o comando da fila (404), vale o que `local` montar.
+ */
+async function ouLocal<T>(remoto: () => Promise<T>, local: () => T | undefined | Promise<T | undefined>): Promise<T> {
+  try {
+    return await remoto();
+  } catch (erro) {
+    if (semServidor(erro) || (erro instanceof ErroApi && erro.status === 404)) {
+      const daqui = await local();
+      if (daqui !== undefined) return daqui;
+    }
+    throw erro;
+  }
+}
 
 export interface Pagina {
   limite?: number;
   cursor?: string;
 }
 
-export const listarAtendimentos = (pagina: Pagina) =>
-  api('/atendimento', paginaSchema(atendimentoListadoSchema), { consulta: { ...pagina } });
+/** Primeira página sem servidor e nunca lida: só o que está na fila. */
+const paginaVazia = { itens: [], proximoCursor: null };
 
-export const listarAtendimentosDaPessoa = (pessoaId: string, pagina: Pagina) =>
-  api(`/atendimento/${pessoaId}`, paginaSchema(atendimentoListadoSchema), { consulta: { ...pagina } });
+export async function listarAtendimentos(pagina: Pagina) {
+  const lista = await ouLocal(
+    () => api('/atendimento', paginaSchema(atendimentoListadoSchema), { consulta: { ...pagina } }),
+    () => (pagina.cursor ? undefined : paginaVazia),
+  );
+  return pagina.cursor ? lista : { ...lista, itens: comFilaNosAtendimentos(lista.itens) };
+}
+
+export async function listarAtendimentosDaPessoa(pessoaId: string, pagina: Pagina) {
+  const lista = await ouLocal(
+    () => api(`/atendimento/${pessoaId}`, paginaSchema(atendimentoListadoSchema), { consulta: { ...pagina } }),
+    () => (pagina.cursor ? undefined : paginaVazia),
+  );
+  return pagina.cursor ? lista : { ...lista, itens: comFilaNosAtendimentos(lista.itens, pessoaId) };
+}
 
 /** Atendimento aberto pelo portal (mesma rota do app; o id vem do cliente para a repeticao ser idempotente). */
 export const registrarAtendimento = (entrada: AtendimentoEntrada) =>
@@ -48,17 +88,45 @@ export const registrarAtendimento = (entrada: AtendimentoEntrada) =>
 export const registrarEvento = (entrada: EventoEntrada) =>
   escrever('/atendimento-evento', eventoSchema, entrada, `Evento ${entrada.tipo}`);
 
-export const obterFicha = (atendimentoId: string) => api(`/ficha/${atendimentoId}`, fichaSchema);
+/** Ficha do servidor, da última leitura ou montada da fila; sempre com o que ainda não subiu. */
+export async function obterFicha(atendimentoId: string) {
+  const ficha = await ouLocal(
+    () => api(`/ficha/${atendimentoId}`, fichaSchema),
+    async () => {
+      const aberto = atendimentoNaFila(atendimentoId);
+      if (!aberto) return undefined;
+      const { pessoaId, iniciadoEm } = aberto.entrada;
+      const pessoa = await obterPessoa(pessoaId);
+      const prontuario = await obterProntuario(pessoaId).catch(() => prontuarioVazio(pessoaId, iniciadoEm));
+      return fichaNaFila(atendimentoId, pessoa, prontuario);
+    },
+  );
+  return comFilaNaFicha(ficha);
+}
 
 export const listarProntuarios = (pagina: Pagina) =>
   api('/prontuario', paginaSchema(prontuarioComPessoaSchema), { consulta: { ...pagina } });
 
-export const obterProntuario = (pessoaId: string) => api(`/prontuario/${pessoaId}`, prontuarioSchema);
-export const obterPessoa = (id: string) => api(`/pessoa/${id}`, pessoaSchema);
+export const obterProntuario = async (pessoaId: string) =>
+  comItensDaFila(await ouLocal(() => api(`/prontuario/${pessoaId}`, prontuarioSchema), () => prontuarioNaFila(pessoaId)));
 
-/** Busca por parte do nome ou do CPF (a lista de prontuários não filtra). */
-export const buscarPessoas = (busca: string, pagina: Pagina) =>
-  api('/pessoa', paginaSchema(pessoaSchema), { consulta: { ...pagina, ...(busca ? { busca } : {}) } });
+export const obterPessoa = (id: string) => ouLocal(() => api(`/pessoa/${id}`, pessoaSchema), () => pessoaLocal(id));
+
+/** Busca por parte do nome ou do CPF (a lista de prontuários não filtra). Cadastros da fila entram na frente. */
+export async function buscarPessoas(busca: string, pagina: Pagina) {
+  const lista = await ouLocal(
+    () => api('/pessoa', paginaSchema(pessoaSchema), { consulta: { ...pagina, ...(busca ? { busca } : {}) } }),
+    () => (pagina.cursor ? undefined : { itens: [], proximoCursor: null }),
+  );
+  if (pagina.cursor) return lista;
+  const termo = busca.toLocaleLowerCase('pt-BR');
+  const digitos = busca.replace(/\D/g, '');
+  const conhecidos = new Set(lista.itens.map((p) => p.id));
+  const daFila = pessoasNaFila().filter(
+    (p) => !conhecidos.has(p.id) && (!busca || p.nome.toLocaleLowerCase('pt-BR').includes(termo) || (!!digitos && !!p.cpf?.includes(digitos))),
+  );
+  return { ...lista, itens: [...daFila, ...lista.itens] };
+}
 
 /* Escritas do cadastro: os mesmos comandos do app, com id gerado aqui (repetir = 200, não duplica). */
 export const cadastrarPessoa = (entrada: PessoaEntrada) => escrever('/pessoa', pessoaSchema, entrada, 'Cadastro de paciente');
@@ -106,8 +174,12 @@ export const listarLogsAcesso = (filtro: FiltroLogs) =>
 
 /* ───────── Jaiminho: ficha em PDF e envios ───────── */
 
+/** Atendimento que ainda está na fila não tem ficha em PDF no servidor. */
 export const listarDocumentos = (atendimentoId: string) =>
-  api('/documento', z.object({ itens: z.array(documentoSchema) }), { consulta: { atendimentoId } });
+  ouLocal(
+    () => api('/documento', z.object({ itens: z.array(documentoSchema) }), { consulta: { atendimentoId } }),
+    () => (atendimentoNaFila(atendimentoId) ? { itens: [] } : undefined),
+  );
 
 export const obterDocumento = (id: string) => api(`/documento/${id}`, documentoComIntegridadeSchema);
 

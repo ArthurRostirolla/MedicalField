@@ -2,10 +2,14 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { definirSimulacao, reiniciarOfflineParaTeste } from '../api/offline';
 import { CAIO, ficha, json, montar, simularApi } from '../teste/apoio';
 
 beforeEach(() => localStorage.clear());
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => {
+  vi.unstubAllGlobals();
+  reiniciarOfflineParaTeste();
+});
 
 describe('Novo atendimento e novo paciente', () => {
   it('sem achar o paciente, cadastra e já abre o atendimento (pessoa → prontuário com itens → atendimento)', async () => {
@@ -117,5 +121,26 @@ describe('Novo atendimento e novo paciente', () => {
     await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Inativar' }));
     expect(await screen.findByText('Item inativado')).toBeInTheDocument();
     expect(para(`/prontuario-item/${item.id}/inativacao`, 'POST')).toHaveLength(1);
+  });
+
+  it('offline: cadastra, abre o atendimento e registra, tudo da fila, sem nenhuma requisição', async () => {
+    const { chamadas } = simularApi(() => undefined);
+    definirSimulacao(true);
+    montar('/pacientes/novo?de=atendimento', CAIO);
+    await userEvent.type(await screen.findByLabelText('Nome'), 'Ana Offline');
+    await userEvent.type(screen.getByLabelText('Alergias'), 'Látex');
+    await userEvent.type(screen.getByLabelText('Queixa principal'), 'Queda de moto');
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar e abrir atendimento' }));
+
+    const registro = await screen.findByRole('region', { name: 'Registrar no atendimento' });
+    expect(screen.getAllByText('Ana Offline').length).toBeGreaterThan(0);
+    expect(screen.getByText('Queda de moto')).toBeInTheDocument();
+    expect(screen.getByText('Nenhum evento registrado')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Gerar PDF' })).toBeDisabled();
+
+    await userEvent.type(within(registro).getByLabelText(/Saturação/), '94');
+    await userEvent.click(within(registro).getByRole('button', { name: 'Registrar sinais vitais' }));
+    expect(await screen.findByText('1 entrada · mais antiga primeiro')).toBeInTheDocument();
+    expect(chamadas).toHaveLength(0);
   });
 });

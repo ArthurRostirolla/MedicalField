@@ -12,7 +12,9 @@ import {
 } from '@medicalfield/ui';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, FileDown } from 'lucide-react';
+import { useSyncExternalStore } from 'react';
 import { Link } from 'react-router';
+import { assinarOffline, lerOffline } from '../api/offline';
 import { baixarPdf, gerarFicha, obterFicha } from '../api/recursos';
 import { salvarArquivo, useAvisar } from '../comum/avisos';
 import { CampoLeitura, CamposLeitura } from '../comum/CamposLeitura';
@@ -55,6 +57,9 @@ export function DetalheAtendimento({ id }: { id: string }) {
   const avisar = useAvisar();
   const consultas = useQueryClient();
   const ficha = useQuery({ queryKey: ['ficha', id], queryFn: () => obterFicha(id) });
+  const offline = useSyncExternalStore(assinarOffline, lerOffline);
+  // O PDF é gerado no servidor, com o que ele tem: sem servidor ou com fila, sairia sem o que falta subir.
+  const pdfEspera = offline.simulando || !offline.redeDoComputador || offline.fila.length > 0;
 
   const geracao = useMutation({
     mutationFn: () => gerarFicha(id),
@@ -117,9 +122,18 @@ export function DetalheAtendimento({ id }: { id: string }) {
         paciente={{ nome: pessoa.nome, identificacao: identificacao(pessoa, atendimento.iniciadoEm) }}
         queixaPrincipal={atendimento.queixaPrincipal}
         acoes={
-          <Botao variante="primario" icone={<FileDown aria-hidden />} carregando={geracao.isPending} onClick={() => geracao.mutate()}>
-            Gerar PDF
-          </Botao>
+          <>
+            {pdfEspera ? <span className="self-center text-pequeno text-tinta-2">O PDF sai depois de sincronizar.</span> : null}
+            <Botao
+              variante="primario"
+              icone={<FileDown aria-hidden />}
+              carregando={geracao.isPending}
+              disabled={pdfEspera}
+              onClick={() => geracao.mutate()}
+            >
+              Gerar PDF
+            </Botao>
+          </>
         }
       />
 

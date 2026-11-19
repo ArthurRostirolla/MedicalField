@@ -108,17 +108,59 @@ export function definirOfflineSimulado(simulando: boolean): void {
   offlineSimulado = simulando;
 }
 
+/** Sem servidor (rede fora ou simulação): o que já foi lido ou gravado aqui é o que vale. */
+export const semServidor = (erro: unknown): boolean =>
+  erro instanceof ErroApi && (erro.codigo === 'SEM_CONEXAO' || erro.codigo === 'OFFLINE_SIMULADO');
+
+function montarUrl(caminho: string, consulta: Opcoes['consulta']): string {
+  const parametros = new URLSearchParams();
+  for (const [nome, valor] of Object.entries(consulta ?? {})) {
+    if (valor !== undefined && valor !== '' && valor !== false) parametros.set(nome, String(valor));
+  }
+  return `${BASE}${caminho}${parametros.size > 0 ? `?${parametros}` : ''}`;
+}
+
+/* ───────── Última leitura de cada GET: a leitura offline ───────── */
+
+// sessionStorage: recarregar a aba (ainda offline) não perde o que já foi visto; fechar a aba apaga.
+// ponytail: grava o mapa inteiro a cada GET; se pesar, gravar por chave ou só ao entrar em offline.
+const LEITURAS = 'mf-portal-leituras';
+let leituras: Record<string, unknown> = (() => {
+  try {
+    return JSON.parse(sessionStorage.getItem(LEITURAS) ?? '{}') as Record<string, unknown>;
+  } catch {
+    return {};
+  }
+})();
+function guardarLeitura(url: string, dado: unknown): void {
+  leituras[url] = dado;
+  try {
+    sessionStorage.setItem(LEITURAS, JSON.stringify(leituras));
+  } catch {
+    // Cheio ou bloqueado: vale até recarregar.
+  }
+}
+function esquecerLeituras(): void {
+  leituras = {};
+  try {
+    sessionStorage.removeItem(LEITURAS);
+  } catch {
+    // nada a apagar
+  }
+}
+/** Respostas guardadas dos GETs cujo caminho começa com `prefixo` (ex.: listas de pessoas já vistas). */
+export const leiturasDe = (prefixo: string): unknown[] =>
+  Object.entries(leituras)
+    .filter(([url]) => url.startsWith(`${BASE}${prefixo}`))
+    .map(([, dado]) => dado);
+
 async function buscar(caminho: string, { metodo = 'GET', corpo, consulta, cabecalhos }: Opcoes): Promise<Response> {
   // Recusada ANTES de sair: simulando, nenhuma requisição aparece na aba de rede.
   // `/auth/*` passa: o portal não tem sessão offline, e recarregar a página precisa do refresh.
   if (offlineSimulado && !caminho.startsWith('/auth/')) {
     throw new ErroApi(null, 'OFFLINE_SIMULADO', 'Modo offline simulado: nenhuma requisição é enviada.');
   }
-  const parametros = new URLSearchParams();
-  for (const [nome, valor] of Object.entries(consulta ?? {})) {
-    if (valor !== undefined && valor !== '' && valor !== false) parametros.set(nome, String(valor));
-  }
-  const url = `${BASE}${caminho}${parametros.size > 0 ? `?${parametros}` : ''}`;
+  const url = montarUrl(caminho, consulta);
   try {
     return await fetch(url, {
       method: metodo,
@@ -161,10 +203,23 @@ function validar<S extends z.ZodType>(esquema: S, dado: unknown): z.infer<S> {
   );
 }
 
-/** Chamada JSON validada pelo esquema do contrato. */
+/**
+ * Chamada JSON validada pelo esquema do contrato. GET sem servidor devolve a última resposta
+ * que esta aba recebeu para a mesma URL (se houver); escrita offline é com `escrever` (offline.ts).
+ */
 export async function api<S extends z.ZodType>(caminho: string, esquema: S, opcoes: Opcoes = {}): Promise<z.infer<S>> {
-  const resposta = await responder(caminho, opcoes);
-  return validar(esquema, await resposta.json().catch(() => null));
+  const leitura = (opcoes.metodo ?? 'GET') === 'GET';
+  const url = montarUrl(caminho, opcoes.consulta);
+  try {
+    const resposta = await responder(caminho, opcoes);
+    const dado: unknown = await resposta.json().catch(() => null);
+    const validado = validar(esquema, dado);
+    if (leitura) guardarLeitura(url, dado);
+    return validado;
+  } catch (erro) {
+    if (leitura && semServidor(erro) && url in leituras) return validar(esquema, leituras[url]);
+    throw erro;
+  }
 }
 
 /** Igual a `api`, devolvendo também o status (201 criado × 200 já existia). */
@@ -233,11 +288,13 @@ export async function restaurarSessao(): Promise<void> {
 export async function sair(): Promise<void> {
   // O servidor revoga o refresh token; se não responder, a sessão local acaba do mesmo jeito.
   await buscar('/auth/logout', { metodo: 'POST', corpo: {} }).catch(() => undefined);
+  esquecerLeituras();
   definirSessao({ situacao: 'anonima' }, null);
 }
 
 /** Só para testes: volta ao estado inicial do módulo. */
 export function reiniciarSessaoParaTeste(estado: EstadoSessao = { situacao: 'restaurando' }, token: string | null = null): void {
   renovacao = null;
+  esquecerLeituras();
   definirSessao(estado, token);
 }

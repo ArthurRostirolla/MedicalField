@@ -157,7 +157,7 @@ publicar({ fila: [...estado.fila, comando] });   // opId = Idempotency-Key
 - **Desligar a simulação**, o evento `online` do navegador ou um relógio de 15 s disparam `sincronizar()`: 2xx sai da fila, sem resposta para e espera, 4xx vira aviso "Recusado".
 - Só o **profissional que gravou** sobe os próprios comandos (a auditoria do servidor registra o autor pelo token).
 - `/auth/*` passa pelo portão: o portal não tem sessão offline, e recarregar a página precisa do refresh.
-- Leitura offline é o que o cache do React Query já tem; telas novas mostram "Modo offline simulado".
+- Leitura offline: cada GET guarda a última resposta (sessionStorage da aba) e, sem servidor, ela volta; por cima, `api/local.ts` monta da fila o que ainda não subiu — paciente, prontuário, atendimento, eventos e a passagem de caso (o mesmo `calcularResumo` do servidor). O atendimento inteiro roda offline; só gerar/baixar/enviar o PDF espera a fila subir.
 
 ## Limites conhecidos
 
