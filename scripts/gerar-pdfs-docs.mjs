@@ -56,7 +56,10 @@ function montarHtml(md) {
 
 const browser = await chromium.launch({ channel: 'chrome' });
 for (const arq of readdirSync(FONTES).filter((f) => f.endsWith('.md') && f.includes(process.argv[2] ?? '')).sort()) {
-  const { titulo, html } = montarHtml(readFileSync(join(FONTES, arq), 'utf8').replace(/\r\n/g, '\n'));
+  // {{md caminho}} inclui outro markdown do repositorio (sem o titulo `# `): o PDF nao vira uma segunda copia.
+  const fonte = readFileSync(join(FONTES, arq), 'utf8').replace(/\r\n/g, '\n').replace(/\{\{md ([^}]+)\}\}/g, (_, c) =>
+    readFileSync(join(RAIZ, c.trim()), 'utf8').replace(/\r\n/g, '\n').replace(/^# .*\n/, ''));
+  const { titulo, html } = montarHtml(fonte);
   const tmp = join(tmpdir(), arq.replace('.md', '.html'));
   writeFileSync(tmp, html);
   const page = await browser.newPage();
