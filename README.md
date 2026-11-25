@@ -1,5 +1,24 @@
 # MedicalField
 
+## 🚀 Acesse o sistema no ar
+
+| | Endereço |
+| --- | --- |
+| 🖥️ **Portal administrativo** | **<https://177-44-248-60.sslip.io/portal/>** |
+| 📱 **App do profissional** (abre no navegador do computador ou do celular) | **<https://177-44-248-60.sslip.io/app/>** |
+
+**Senha (a mesma para os três usuários): `Demo#MedicalField26`**
+
+| Usuário | Tipo de registro | Registro | UF | Use no |
+| --- | --- | --- | --- | --- |
+| **Dra. Helena Prado** (ADMIN, vê tudo, inclusive a auditoria) | CRM | **`100001`** | RS | Portal |
+| Enf. Caio Brandão (PROFISSIONAL) | COREN | **`200002`** | RS | App ou portal |
+| Soc. Lia Moura (PROFISSIONAL) | SOCORRISTA | **`300003`** | (vazio) | App ou portal |
+
+Na tela de login, escolha o **tipo de registro**, digite o **registro**, a **UF** e a **senha**. Os usuários e os dados são fictícios. Um roteiro de teste de 5 minutos está em [Testar agora, remotamente](#testar-agora-remotamente-para-o-professor).
+
+---
+
 Prontuário médico de emergência **Offline-First** — trabalho final da disciplina 4815206 Arquiteturas de Software (Univates, 2026/B).
 
 O profissional de saúde em campo registra o atendimento pré-hospitalar (sinais vitais, Escala de Glasgow, triagem Manchester/START, medicações) num **banco local**, com ou sem rede. Quando a conexão volta, o app sincroniza com o servidor central, com idempotência, trilha de auditoria e tratamento de conflitos. Um portal administrativo consulta os registros, gera a ficha de atendimento em PDF e a envia por e-mail.
@@ -42,7 +61,7 @@ O sistema está **no ar na VM da Univates**. Nada precisa ser instalado: basta u
 | **App do profissional** (web/PWA) | **<https://177-44-248-60.sslip.io/app/>** | Abre no navegador do computador ou do celular; tem o seletor **"Simular conectividade"** para testar o modo offline |
 | **API** (gateway) | `https://177-44-248-60.sslip.io/api/v1` | Sem token responde `401`. Rotas e corpos em [`docs/api/README.md`](docs/api/README.md); a coleção Postman já funciona trocando `baseUrl` por este endereço |
 
-**Login:** use `CRM` `100001` / `RS` (Dra. Helena Prado, **ADMIN**, que enxerga tudo) ou os outros usuários de [Entrar](#entrar). A senha de demonstração está em [`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md).
+**Login:** `CRM` `100001` / `RS`, senha `Demo#MedicalField26` (Dra. Helena Prado, **ADMIN**, que enxerga tudo), ou os outros usuários do [topo deste README](#-acesse-o-sistema-no-ar).
 
 **Ver o que está rodando no servidor pelo portal (logado como ADMIN):**
 
