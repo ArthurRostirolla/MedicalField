@@ -32,6 +32,72 @@ Três serviços em três linguagens, uma interface administrativa e uma aplicaç
 | 2 | Modelagem dos bancos de dados | [`docs/dados/modelagem.md`](docs/dados/modelagem.md) |
 | 3 | Roteiro de testes | [`docs/testes/roteiro-de-testes.md`](docs/testes/roteiro-de-testes.md) |
 
+## Como acessar o sistema
+
+### Na VM da Univates (no ar, sem instalar nada)
+
+| O quê | Endereço | Para quem |
+| --- | --- | --- |
+| **Portal administrativo** (BradPitt) | <https://177-44-248-60.sslip.io/portal/> | ADMIN e profissionais, no navegador do computador |
+| **App do profissional** (LuckyPatcher) na web/PWA | <https://177-44-248-60.sslip.io/app/> | Profissional em campo; abre no navegador do celular ou do computador e pode ser instalado ("Adicionar à tela inicial") |
+| **API** (gateway) | `https://177-44-248-60.sslip.io/api/v1` | Postman, `curl`, integrações: ver [`docs/api/README.md`](docs/api/README.md) |
+| **Mailpit** (caixa que captura os e-mails da ficha) | `ssh -L 18025:127.0.0.1:18025 univates@177.44.248.60` e abra <http://localhost:18025> | Só por túnel SSH; não é exposto à internet |
+
+O endereço raiz (`https://177-44-248-60.sslip.io/`) redireciona para o portal. HTTP redireciona para HTTPS (certificado Let's Encrypt).
+
+### Entrar
+
+Três profissionais **fictícios** já vêm cadastrados. A senha de demonstração (a mesma para os três) está em [`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md).
+
+| Papel | Nome | Tipo de registro | Registro | UF | Onde usar |
+| --- | --- | --- | --- | --- | --- |
+| ADMIN | Dra. Helena Prado | CRM | `100001` | RS | Portal (vê também *Auditoria*: logs de acesso, logs dos aparelhos, duplicatas, novo profissional) |
+| PROFISSIONAL | Enf. Caio Brandão | COREN | `200002` | RS | App e portal |
+| PROFISSIONAL | Soc. Lia Moura | Socorrista | `300003` | (vazio) | App e portal |
+
+Na tela de login escolha o **tipo de registro**, digite o número, a UF (não há UF para socorrista) e a senha. Cinco senhas erradas em 15 minutos bloqueiam aquele registro naquele IP por um tempo.
+
+### No celular
+
+| Forma | Como | Observação |
+| --- | --- | --- |
+| **Navegador / PWA** (mais simples) | Abra <https://177-44-248-60.sslip.io/app/> e, se quiser, "Adicionar à tela inicial" | Banco local SQLite em OPFS; funciona offline depois do primeiro acesso |
+| **Expo Go** (Android e iPhone) | No computador: `npm install` e `npm run tunel -w @medicalfield/lucky-patcher`; no celular, leia o QR com o Expo Go | Já aponta para a VM. No Expo Go o banco local fica **sem cifra** (só dados fictícios). Detalhes em [`apps/lucky-patcher/docs/nativo.md`](apps/lucky-patcher/docs/nativo.md) |
+| **App instalado** (APK / iOS) | `npm run android -w @medicalfield/lucky-patcher` (ou `ios`) | Banco nativo cifrado (SQLCipher); exige Android SDK ou Xcode |
+
+O servidor do app pode ser trocado em **Ajustes**. O app registra tudo no aparelho, com ou sem rede, e sincroniza quando a conexão volta. O seletor **"Simular conectividade"** força o modo offline para demonstração; enquanto ele estiver em *Offline*, nenhuma requisição sai do aparelho.
+
+> **Se o que você fez no app não aparece no portal nem nos logs:** nada foi enviado ainda. Confira, no app: (1) o seletor *Simular conectividade* está em *Online*; (2) não há a faixa vermelha **"Sessão expirada"** (se houver, toque em *Entrar de novo*: o que está no aparelho não se perde); (3) a aba **Pendências** mostra o que ainda está na fila e o último erro; (4) em **Ajustes**, o servidor é `https://177-44-248-60.sslip.io`. Depois que a sincronização passa, as chamadas aparecem em *Auditoria → Logs de acesso* e as ações do aparelho em *Auditoria → Logs dos aparelhos*.
+
+### Localmente
+
+Veja [Subir tudo do zero](#subir-tudo-do-zero): no modo Compose o portal fica em <http://127.0.0.1:8088/portal/>, o app em <http://127.0.0.1:8088/app/> e a API em `http://127.0.0.1:8088/api/v1` (no Windows prefira `127.0.0.1` a `localhost`, que pode travar tentando IPv6). O celular **não** alcança o backend local; para Expo Go use a VM.
+
+## Onde estão os PDFs
+
+Todos os PDFs ficam versionados no repositório, dentro de `docs/`:
+
+| PDF | Conteúdo | Fonte |
+| --- | --- | --- |
+| [`docs/pdf/MedicalField-01-arquitetura.pdf`](docs/pdf/MedicalField-01-arquitetura.pdf) | Arquitetura, rede e comunicação entre as peças | [`docs/pdf/fontes/01-arquitetura.md`](docs/pdf/fontes/01-arquitetura.md) |
+| [`docs/pdf/MedicalField-02-apis.pdf`](docs/pdf/MedicalField-02-apis.pdf) | Documentação das APIs (resumo; a referência completa, com todos os corpos, é [`docs/api/README.md`](docs/api/README.md)) | [`docs/pdf/fontes/02-apis.md`](docs/pdf/fontes/02-apis.md) |
+| [`docs/pdf/MedicalField-03-banco.pdf`](docs/pdf/MedicalField-03-banco.pdf) | Modelagem do banco central e do banco local | [`docs/pdf/fontes/03-banco.md`](docs/pdf/fontes/03-banco.md) |
+| [`docs/pdf/MedicalField-04-roteiro.pdf`](docs/pdf/MedicalField-04-roteiro.pdf) | Roteiro de testes: os 17 passos do enunciado | [`docs/pdf/fontes/04-roteiro.md`](docs/pdf/fontes/04-roteiro.md) |
+| [`docs/pdf/MedicalField-05-sincronizacao.pdf`](docs/pdf/MedicalField-05-sincronizacao.pdf) | Sincronização offline/online, outbox e conflitos | [`docs/pdf/fontes/05-sincronizacao.md`](docs/pdf/fontes/05-sincronizacao.md) |
+| [`docs/pdf/MedicalField-06-patterns.pdf`](docs/pdf/MedicalField-06-patterns.pdf) | Os padrões de projeto usados e onde estão no código | [`docs/pdf/fontes/06-patterns.md`](docs/pdf/fontes/06-patterns.md) |
+| [`docs/apresentacao/MedicalField-guia-completo.pdf`](docs/apresentacao/MedicalField-guia-completo.pdf) | Guia visual completo da apresentação, com as telas | [`docs/apresentacao/guia-visual/guia.html`](docs/apresentacao/guia-visual/guia.html) |
+| [`docs/testes/evidencias/roteiro/ficha-do-roteiro.pdf`](docs/testes/evidencias/roteiro/ficha-do-roteiro.pdf) | Exemplo real de ficha de atendimento gerada pelo Jaiminho no roteiro | gerado pelo sistema |
+| [`docs/enunciado-final_project_as_2026b.pdf`](docs/enunciado-final_project_as_2026b.pdf) | Enunciado do trabalho | — |
+
+Os diagramas usados nos PDFs estão em [`docs/pdf/fontes/diagramas/`](docs/pdf/fontes/diagramas). Para **regerar** os PDFs depois de editar uma fonte (precisa de rede para o `marked` e do Chrome do Playwright):
+
+```bash
+node scripts/gerar-pdfs-docs.mjs        # todos
+node scripts/gerar-pdfs-docs.mjs 02     # só o 02-apis
+```
+
+A ficha de um atendimento qualquer sai pelo portal (*Atendimentos → abrir um → Gerar PDF*) ou pela API (`POST /api/v1/documento/ficha-atendimento` e `GET /api/v1/documento/{id}/pdf`).
+
 ## Pré-requisitos
 
 | Ferramenta | Para quê |
@@ -43,13 +109,7 @@ Três serviços em três linguagens, uma interface administrativa e uma aplicaç
 
 **Go e Python não precisam estar instalados**: o serviço Go compila e testa em contêiner, e o Python depende de bibliotecas (Pango) que não rodam nativamente no Windows.
 
-A **senha de demonstração** dos três profissionais fictícios está em [`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md). Nos comandos abaixo ela entra pela variável `MF_SENHA_DEMO`; não a grave em arquivo.
-
-| Papel | Nome | Registro |
-| --- | --- | --- |
-| ADMIN (portal) | Dra. Helena Prado | CRM `100001` / RS |
-| PROFISSIONAL (app) | Enf. Caio Brandão | COREN `200002` / RS |
-| PROFISSIONAL (app) | Soc. Lia Moura | Socorrista `300003` |
+Nos comandos abaixo a senha de demonstração ([`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md)) entra pela variável `MF_SENHA_DEMO`; não a grave em arquivo. Os usuários estão em [Entrar](#entrar).
 
 ## Subir tudo do zero
 
@@ -124,7 +184,7 @@ Executa os 17 passos do enunciado no Chrome, com o portal e o app em dois contex
 npx newman run docs/api/medicalfield.postman_collection.json --env-var senha=$MF_SENHA_DEMO
 ```
 
-31 requisições, cobrindo as 30 rotas pelo gateway. Detalhes em [`docs/api/README.md`](docs/api/README.md).
+31 requisições, cobrindo 30 das 31 rotas pelo gateway. Detalhes em [`docs/api/README.md`](docs/api/README.md).
 
 ### App Android (emulador)
 
@@ -158,10 +218,12 @@ Checagem de tipos: `npm run typecheck -w <workspace>` em qualquer pacote TypeScr
 
 | Assunto | Documento |
 | --- | --- |
-| Arquitetura, diagramas, tecnologias, padrões de projeto | [`docs/arquitetura/arquitetura.md`](docs/arquitetura/arquitetura.md) |
+| Arquitetura, diagramas, tecnologias | [`docs/arquitetura/arquitetura.md`](docs/arquitetura/arquitetura.md) |
+| Padrões de projeto | [`docs/arquitetura/patterns.md`](docs/arquitetura/patterns.md) |
+| PDFs da documentação | [`docs/pdf/`](docs/pdf) (ver [Onde estão os PDFs](#onde-estão-os-pdfs)) |
 | Sincronização Offline-First (outbox, cursor, idempotência, conflitos) | [`docs/arquitetura/sincronizacao.md`](docs/arquitetura/sincronizacao.md) |
 | Segurança, auditoria e LGPD | [`docs/arquitetura/seguranca.md`](docs/arquitetura/seguranca.md) |
-| Endpoints, OpenAPI, coleção Postman | [`docs/api/`](docs/api/README.md) |
+| **Todas as rotas, com corpos de requisição e resposta**, OpenAPI, coleção Postman | [`docs/api/README.md`](docs/api/README.md) |
 | Modelagem dos bancos (central e local) | [`docs/dados/modelagem.md`](docs/dados/modelagem.md) |
 | Roteiro de testes | [`docs/testes/roteiro-de-testes.md`](docs/testes/roteiro-de-testes.md) |
 | Guia da apresentação | [`docs/apresentacao/guia-da-apresentacao.md`](docs/apresentacao/guia-da-apresentacao.md) |
