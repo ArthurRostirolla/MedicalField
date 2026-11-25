@@ -6,6 +6,7 @@ import {
   envioSchema,
   fichaSchema,
   logAcessoSchema,
+  logClienteSaidaSchema,
   medicamentoSchema,
   paginaSchema,
   pessoaSchema,
@@ -171,6 +172,9 @@ export interface FiltroLogs extends Pagina {
 }
 export const listarLogsAcesso = (filtro: FiltroLogs) =>
   api('/auditoria/acesso', paginaSchema(logAcessoSchema), { consulta: { ...filtro } });
+/** Logs que os aparelhos geraram (inclusive offline) e enviaram por `POST /log`. */
+export const listarLogsAparelhos = (filtro: Omit<FiltroLogs, 'servico'>) =>
+  api('/auditoria/cliente', paginaSchema(logClienteSaidaSchema), { consulta: { ...filtro } });
 
 /* ───────── Jaiminho: ficha em PDF e envios ───────── */
 

@@ -7,6 +7,7 @@ import { TelaNovoAtendimento } from './atendimentos/NovoAtendimento';
 import { TelaAtendimentos } from './atendimentos/TelaAtendimentos';
 import { TelaDuplicatas } from './auditoria/TelaDuplicatas';
 import { TelaLogsAcesso } from './auditoria/TelaLogsAcesso';
+import { TelaLogsAparelhos } from './auditoria/TelaLogsAparelhos';
 import { Casca } from './casca/Casca';
 import { ProvedorAvisos } from './comum/avisos';
 import { TelaVerificacao } from './documentos/TelaVerificacao';
@@ -50,6 +51,7 @@ export function Rotas() {
           <Route path="/documentos/:id" element={<TelaVerificacao />} />
           <Route element={<RequerAdmin />}>
             <Route path="/auditoria/acessos" element={<TelaLogsAcesso />} />
+            <Route path="/auditoria/aparelhos" element={<TelaLogsAparelhos />} />
             <Route path="/auditoria/duplicatas" element={<TelaDuplicatas />} />
             <Route path="/profissionais/novo" element={<TelaNovoProfissional />} />
           </Route>

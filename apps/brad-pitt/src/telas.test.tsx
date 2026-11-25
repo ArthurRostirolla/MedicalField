@@ -342,6 +342,32 @@ describe('Logs de acesso', () => {
     montar('/auditoria/acessos', HELENA);
     expect(await screen.findByText('Sem permissão')).toBeInTheDocument();
   });
+
+  it('logs dos aparelhos listam o que o app enviou por POST /log', async () => {
+    simularApi((c) =>
+      c.caminho === '/auditoria/cliente'
+        ? json({
+            itens: [
+              {
+                id: uuid(901),
+                ocorridoEm: '2026-11-17T21:00:00.000Z',
+                acao: 'ATENDIMENTO_INICIADO',
+                entidade: 'atendimento',
+                resultado: 'SUCESSO',
+                estavaOnline: false,
+                profissionalId: CAIO.id,
+                dispositivoId: uuid(902),
+                recebidoEm: '2026-11-17T21:05:00.000Z',
+              },
+            ],
+            proximoCursor: null,
+          })
+        : undefined,
+    );
+    montar('/auditoria/aparelhos', HELENA);
+    expect(await screen.findByText('ATENDIMENTO_INICIADO · atendimento')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Offline' })).toBeInTheDocument();
+  });
 });
 
 describe('Verificação de documento', () => {

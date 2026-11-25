@@ -1,6 +1,6 @@
 import { aplicarTema, BarraConectividade, Botao, Chave, LayoutPortal, type ItemNavegacao, type Tema } from '@medicalfield/ui';
 import { useQueryClient } from '@tanstack/react-query';
-import { ClipboardList, FileCheck, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, UserRound, Users } from 'lucide-react';
+import { ClipboardList, FileCheck, Smartphone, FileText, LogOut, Moon, Pill, ScrollText, Sun, UserPlus, UserRound, Users } from 'lucide-react';
 import { useEffect, useState, useSyncExternalStore, type MouseEvent } from 'react';
 import { Outlet, useHref, useLocation, useNavigate } from 'react-router';
 import { sair } from '../api/cliente';
@@ -16,6 +16,7 @@ const TITULOS: Record<string, string> = {
   prontuarios: 'Prontuários',
   medicamentos: 'Medicamentos',
   acessos: 'Logs de acesso',
+  aparelhos: 'Logs dos aparelhos',
   duplicatas: 'Possíveis duplicatas',
   documentos: 'Verificação de documento',
   profissionais: 'Novo profissional',
@@ -74,6 +75,7 @@ export function Casca() {
     ...(profissional.papel === 'ADMIN'
       ? [
           { id: 'acessos', rotulo: 'Logs de acesso', icone: <ScrollText aria-hidden />, href: href('/auditoria/acessos'), grupo: 'Auditoria' },
+          { id: 'aparelhos', rotulo: 'Logs dos aparelhos', icone: <Smartphone aria-hidden />, href: href('/auditoria/aparelhos') },
           { id: 'duplicatas', rotulo: 'Possíveis duplicatas', icone: <Users aria-hidden />, href: href('/auditoria/duplicatas') },
           {
             id: 'profissionais',
