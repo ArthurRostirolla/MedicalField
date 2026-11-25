@@ -32,6 +32,45 @@ Três serviços em três linguagens, uma interface administrativa e uma aplicaç
 | 2 | Modelagem dos bancos de dados | [`docs/dados/modelagem.md`](docs/dados/modelagem.md) |
 | 3 | Roteiro de testes | [`docs/testes/roteiro-de-testes.md`](docs/testes/roteiro-de-testes.md) |
 
+## Testar agora, remotamente (para o professor)
+
+O sistema está **no ar na VM da Univates**. Nada precisa ser instalado: basta um navegador.
+
+| O que ver | Endereço | Observação |
+| --- | --- | --- |
+| **Portal administrativo** | **<https://177-44-248-60.sslip.io/portal/>** | Pacientes, prontuários, atendimentos, ficha em PDF, envio por e-mail e auditoria |
+| **App do profissional** (web/PWA) | **<https://177-44-248-60.sslip.io/app/>** | Abre no navegador do computador ou do celular; tem o seletor **"Simular conectividade"** para testar o modo offline |
+| **API** (gateway) | `https://177-44-248-60.sslip.io/api/v1` | Sem token responde `401`. Rotas e corpos em [`docs/api/README.md`](docs/api/README.md); a coleção Postman já funciona trocando `baseUrl` por este endereço |
+
+**Login:** use `CRM` `100001` / `RS` (Dra. Helena Prado, **ADMIN**, que enxerga tudo) ou os outros usuários de [Entrar](#entrar). A senha de demonstração está em [`apps/mike-baguncinha/README.md`](apps/mike-baguncinha/README.md).
+
+**Ver o que está rodando no servidor pelo portal (logado como ADMIN):**
+
+| Menu do portal | O que mostra | De onde vem |
+| --- | --- | --- |
+| *Auditoria → Logs de acesso* | Cada requisição recebida pelos três serviços, quase em tempo real: data e hora, serviço, profissional, método, rota, status, tempo e IP | tabela `auditoria.log_acesso` |
+| *Auditoria → Logs dos aparelhos* | O que o app registrou no aparelho, **inclusive offline**, depois de sincronizado | tabela `auditoria.log_cliente` |
+| *Auditoria → Possíveis duplicatas* | Pessoas cadastradas em dois aparelhos que provavelmente são a mesma | `clinico.pessoa` |
+| *Atendimentos → abrir um → Gerar PDF* | A ficha gerada pelo serviço Python, com código de verificação e hash | `documentos.documento` |
+
+**Roteiro curto (5 min) para ver o Offline-First:**
+
+1. Abra o **app**, entre como `SOCORRISTA` `300003` e cadastre um paciente fictício.
+2. Em *Ajustes*, ligue **Simular conectividade → Offline** e registre sinais vitais e uma medicação. A barra mostra os itens na fila.
+3. Volte para **Online**: a fila sobe sozinha, sem duplicar.
+4. No **portal** (como ADMIN), o atendimento aparece em *Atendimentos*; em *Logs dos aparelhos*, os registros feitos offline aparecem com "Offline"; em *Logs de acesso*, os `POST` da sincronização.
+5. Abra o atendimento, clique em **Gerar PDF** e envie a ficha por e-mail.
+
+**O que não é público** (por segurança, só com acesso SSH à VM, que o professor não precisa ter):
+
+| Recurso | Por quê | Alternativa remota |
+| --- | --- | --- |
+| Mailpit (caixa que captura os e-mails da ficha) | Mostraria e-mails a qualquer pessoa | No portal, o envio aparece como **ENVIADO**; o conteúdo pode ser visto em uma demonstração ao vivo |
+| Banco PostgreSQL | Nunca exposto à internet | As telas de auditoria acima mostram as tabelas de log; as consultas SQL estão em [`docs/operacao/banco-manual.md`](docs/operacao/banco-manual.md) |
+| Saúde dos serviços (`/health/*`) e logs dos contêineres | Porta de gestão interna (9090) | Os *Logs de acesso* comprovam que os três serviços estão respondendo |
+
+Com acesso SSH (`univates@177.44.248.60`): `ssh -L 18025:127.0.0.1:18025 univates@177.44.248.60` e <http://localhost:18025> para o Mailpit; `cd /opt/medicalfield/deploy && sudo docker compose ps` e `sudo docker compose logs -f <serviço>` para os contêineres; `sudo docker compose exec postgres psql -U postgres -d medicalfield` para o banco (as tabelas ficam nos schemas `auditoria`, `clinico`, `documentos` e `identidade`, não no `public`).
+
 ## Como acessar o sistema
 
 ### Na VM da Univates (no ar, sem instalar nada)
